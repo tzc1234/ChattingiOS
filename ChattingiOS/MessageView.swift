@@ -26,7 +26,7 @@ struct MessageView: View {
 }
 
 #Preview("My message") {
-    MessageView(width: 393, text: "Hello, mate👋. How are you?", isMine: true)
+    MessageView(width: 393, text: "Hello, mate👋.\nHow are you?", isMine: true)
 }
 
 #Preview("Other message") {
