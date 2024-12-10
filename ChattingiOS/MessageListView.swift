@@ -20,6 +20,8 @@ struct MessageListView: View {
             }
             .listStyle(.plain)
         }
+        .navigationTitle("Messages")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
