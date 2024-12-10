@@ -12,7 +12,7 @@ struct MessageListView: View {
         GeometryReader { proxy in
             List(0..<20, id: \.self) { index in
                 MessageView(
-                    viewWidth: proxy.size.width,
+                    width: proxy.size.width * 0.7,
                     text: "Hello \(Int.random(in: 0...999999999999999)) \(Int.random(in: 0...999999999999999)) 3142342134324",
                     isMine: index % 2 == 0
                 )

@@ -8,29 +8,27 @@
 import SwiftUI
 
 struct MessageView: View {
-    let viewWidth: CGFloat
+    let width: CGFloat
     let text: String
     let isMine: Bool
     
     var body: some View {
-        Group {
-            Group {
-                Text(text)
-                    .font(.callout)
-                    .foregroundStyle(.white)
-                    .padding(8)
-            }
-            .background(isMine ? .orange : .gray, in: .rect(cornerRadius: 8))
-            .frame(maxWidth: viewWidth * 0.7, alignment: isMine ? .trailing : .leading)
+        ZStack {
+            Text(text)
+                .font(.callout)
+                .foregroundStyle(.white)
+                .padding(8)
+                .background(isMine ? .orange : .gray, in: .rect(cornerRadius: 8))
+                .frame(maxWidth: width, alignment: isMine ? .trailing : .leading)
         }
         .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)
     }
 }
 
 #Preview("My message") {
-    MessageView(viewWidth: 393, text: "Hello, mate👋. How are you?", isMine: true)
+    MessageView(width: 393, text: "Hello, mate👋. How are you?", isMine: true)
 }
 
 #Preview("Other message") {
-    MessageView(viewWidth: 393, text: "Hello, mate👋.", isMine: false)
+    MessageView(width: 393, text: "Hello, mate👋.", isMine: false)
 }
