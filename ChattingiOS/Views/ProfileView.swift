@@ -45,7 +45,7 @@ struct ProfileView: View {
             )
             .padding()
         }
-        .ignoresSafeArea()
+        .ignoresSafeArea(.all, edges: .top)
     }
 }
 
