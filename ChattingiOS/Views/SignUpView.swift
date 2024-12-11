@@ -13,6 +13,7 @@ struct SignUpView: View {
     @State var password = ""
     @State var confirmPassword = ""
     @Environment(\.dismiss) private var dismiss
+    @State private var keyboardHeight: CGFloat = 0
     
     var body: some View {
         ZStack {
@@ -61,6 +62,8 @@ struct SignUpView: View {
             )
             .padding()
         }
+        .keyboardHeight($keyboardHeight)
+        .offset(y: -keyboardHeight / 2)
         .ignoresSafeArea()
     }
 }
