@@ -30,12 +30,8 @@ struct SignUpView: View {
                 }
 
                 VStack(spacing: 12) {
-                    TextField("Name", text: $name)
-                        .textFieldStyle(.roundedBorder)
-                    
-                    TextField("Email", text: $email)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.emailAddress)
+                    CustomTextField(placeholder: "Name", text: $name)
+                    CustomTextField(placeholder: "Email", text: $email, keyboardType: .emailAddress)
                     
                     SecureField("Password", text: $password)
                         .textFieldStyle(.roundedBorder)
