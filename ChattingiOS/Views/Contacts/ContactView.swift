@@ -25,14 +25,13 @@ struct ContactView: View {
             
             Spacer()
             
-            if unreadCount > 0 {
-                Text(unreadCount < 100 ? "\(unreadCount)" : "99+")
-                    .foregroundStyle(.white)
-                    .font(.caption)
-                    .frame(width: 30, height: 30)
-                    .background(.orange)
-                    .clipShape(.circle)
-            }
+            Text(unreadCount < 100 ? "\(unreadCount)" : "99+")
+                .foregroundStyle(.white)
+                .font(.caption)
+                .frame(width: 30, height: 30)
+                .background(.orange)
+                .clipShape(.circle)
+                .opacity(unreadCount > 0 ? 1 : 0)
         }
     }
 }
