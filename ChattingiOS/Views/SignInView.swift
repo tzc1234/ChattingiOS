@@ -1,5 +1,5 @@
 //
-//  LoginView.swift
+//  SignInView.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 11/12/2024.
@@ -7,9 +7,10 @@
 
 import SwiftUI
 
-struct LoginView: View {
+struct SignInView: View {
     @State var email = ""
     @State var password = ""
+    @State var signUpTapped = false
     
     var body: some View {
         ZStack {
@@ -24,19 +25,31 @@ struct LoginView: View {
                 VStack(spacing: 12) {
                     TextField("Email", text: $email)
                         .textFieldStyle(.roundedBorder)
+                        .keyboardType(.emailAddress)
                     
                     SecureField("Password", text: $password)
                         .textFieldStyle(.roundedBorder)
                     
                     Button {
-                        print("login taped.")
+                        print("Sign In taped.")
                     } label: {
-                        Text("Login".uppercased())
+                        Text("Sign In")
                             .font(.headline)
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .padding(12)
                             .background(.orange, in: .rect(cornerRadius: 8))
+                    }
+                    
+                    Button {
+                        signUpTapped.toggle()
+                    } label: {
+                        Text("Sign Up")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(12)
+                            .background(.blue, in: .rect(cornerRadius: 8))
                     }
                 }
                 .padding()
@@ -48,9 +61,12 @@ struct LoginView: View {
             .padding()
         }
         .ignoresSafeArea()
+        .sheet(isPresented: $signUpTapped) {
+            SignUpView()
+        }
     }
 }
 
 #Preview {
-    LoginView()
+    SignInView()
 }
