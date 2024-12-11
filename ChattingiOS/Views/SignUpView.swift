@@ -32,12 +32,8 @@ struct SignUpView: View {
                 VStack(spacing: 12) {
                     CustomTextField(placeholder: "Name", text: $name)
                     CustomTextField(placeholder: "Email", text: $email, keyboardType: .emailAddress)
-                    
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(.roundedBorder)
-                    
-                    SecureField("Confirm password", text: $confirmPassword)
-                        .textFieldStyle(.roundedBorder)
+                    CustomSecureField(placeholder: "Password", text: $password)
+                    CustomSecureField(placeholder: "Confirm password", text: $confirmPassword)
                     
                     Button {
                         dismiss()

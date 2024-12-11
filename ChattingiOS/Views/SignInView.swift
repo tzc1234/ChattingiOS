@@ -23,12 +23,8 @@ struct SignInView: View {
                     .padding(.top, 10)
                 
                 VStack(spacing: 12) {
-                    TextField("Email", text: $email)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.emailAddress)
-                    
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(.roundedBorder)
+                    CustomTextField(placeholder: "Email", text: $email, keyboardType: .emailAddress)
+                    CustomSecureField(placeholder: "Password", text: $password)
                     
                     Button {
                         print("Sign In taped.")

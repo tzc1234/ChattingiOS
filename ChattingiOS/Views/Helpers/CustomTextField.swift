@@ -23,6 +23,7 @@ struct CustomTextField: View {
     var body: some View {
         VStack(spacing: 6) {
             TextField("", text: $text, prompt: Text(placeholder).foregroundColor(.gray.opacity(0.5)))
+                .frame(height: 24)
                 .textFieldStyle(.plain)
                 .keyboardType(keyboardType)
                 .padding(8)
