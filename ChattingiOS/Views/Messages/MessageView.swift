@@ -18,10 +18,19 @@ struct MessageView: View {
                 .font(.callout)
                 .foregroundStyle(.white)
                 .padding(8)
-                .background(isMine ? .orange : .gray, in: .rect(cornerRadius: 8))
+                .background(isMine ? .orange : .gray, in: .rect(cornerRadii: cornerRadii))
                 .frame(maxWidth: width, alignment: isMine ? .trailing : .leading)
         }
         .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)
+    }
+    
+    private var cornerRadii: RectangleCornerRadii {
+        let corner: CGFloat = 12
+        return if isMine {
+            RectangleCornerRadii(topLeading: corner, bottomLeading: corner, topTrailing: corner)
+        } else {
+            RectangleCornerRadii(topLeading: corner, bottomTrailing: corner, topTrailing: corner)
+        }
     }
 }
 
