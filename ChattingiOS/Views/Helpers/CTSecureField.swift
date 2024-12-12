@@ -1,5 +1,5 @@
 //
-//  CustomSecureField.swift
+//  CTSecureField.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 11/12/2024.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CustomSecureField: View {
+struct CTSecureField: View {
     private enum FocusedField {
         case secure
         case text
@@ -90,5 +90,5 @@ struct CustomSecureField: View {
 }
 
 #Preview {
-    CustomSecureField(placeholder: "Password", text: .constant("123"), error: "Password invalid.")
+    CTSecureField(placeholder: "Password", text: .constant("123"), error: "Password invalid.")
 }

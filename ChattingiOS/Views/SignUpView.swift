@@ -58,14 +58,14 @@ struct SignUpView: View {
                         focused?.onNext()
                     }
                     
-                    CustomSecureField(placeholder: "Password", text: $password, textContentType: .newPassword)
+                    CTSecureField(placeholder: "Password", text: $password, textContentType: .newPassword)
                         .focused($focused, equals: .password)
                         .submitLabel(.next)
                         .onSubmit {
                             focused?.onNext()
                         }
                     
-                    CustomSecureField(
+                    CTSecureField(
                         placeholder: "Confirm password",
                         text: $confirmPassword,
                         textContentType: .newPassword

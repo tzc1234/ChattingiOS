@@ -50,7 +50,7 @@ struct SignInView: View {
                         focused?.onNext()
                     }
                     
-                    CustomSecureField(placeholder: "Password", text: $password, textContentType: .password)
+                    CTSecureField(placeholder: "Password", text: $password, textContentType: .password)
                         .focused($focused, equals: .password)
                     
                     Button {
