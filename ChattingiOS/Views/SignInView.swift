@@ -8,10 +8,17 @@
 import SwiftUI
 
 struct SignInView: View {
+    private enum FocusedField: CaseIterable {
+        case email
+        case password
+    }
+    
     @State var email = ""
     @State var password = ""
     @State var signUpTapped = false
     @State var keyboardHeight: CGFloat = 0
+    
+    @FocusState private var focused: FocusedField?
     
     var body: some View {
         ZStack {
@@ -29,8 +36,20 @@ struct SignInView: View {
                 .padding(.top, 12)
                 
                 VStack(spacing: 12) {
-                    CustomTextField(placeholder: "Email", text: $email, keyboardType: .emailAddress)
-                    CustomSecureField(placeholder: "Password", text: $password)
+                    CustomTextField(
+                        placeholder: "Email",
+                        text: $email,
+                        keyboardType: .emailAddress,
+                        textContentType: .emailAddress
+                    )
+                    .focused($focused, equals: .email)
+                    .submitLabel(.next)
+                    .onSubmit {
+                        focused?.next()
+                    }
+                    
+                    CustomSecureField(placeholder: "Password", text: $password, textContentType: .password)
+                        .focused($focused, equals: .password)
                     
                     Button {
                         print("Sign In taped.")

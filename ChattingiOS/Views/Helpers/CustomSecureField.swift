@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CustomSecureField: View {
-    enum FocusedField {
+    private enum FocusedField {
         case secure
         case text
     }
@@ -18,11 +18,13 @@ struct CustomSecureField: View {
     
     private let placeholder: String
     @Binding private var text: String
+    private let textContentType: UITextContentType?
     private let error: String?
     
-    init(placeholder: String, text: Binding<String>, error: String? = nil) {
+    init(placeholder: String, text: Binding<String>, textContentType: UITextContentType? = nil, error: String? = nil) {
         self.placeholder = placeholder
         self._text = text
+        self.textContentType = textContentType
         self.error = error
     }
     
@@ -47,7 +49,7 @@ struct CustomSecureField: View {
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(.foreground, lineWidth: 0.5)
+                    .stroke(.foreground, lineWidth: 1)
             )
             .clipShape(.rect(cornerRadius: 8))
             
@@ -65,9 +67,11 @@ struct CustomSecureField: View {
     private var inputField: some View {
         if isSecure {
             SecureField(placeholder, text: $text)
+                .textContentType(textContentType)
                 .focused($focused, equals: .secure)
         } else {
             TextField(placeholder, text: $text)
+                .textContentType(textContentType)
                 .focused($focused, equals: .text)
         }
     }

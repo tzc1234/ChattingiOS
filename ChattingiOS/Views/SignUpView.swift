@@ -8,12 +8,21 @@
 import SwiftUI
 
 struct SignUpView: View {
+    private enum FocusedField: CaseIterable {
+        case name
+        case email
+        case password
+        case confirmPassword
+    }
+    
     @State var name = ""
     @State var email = ""
     @State var password = ""
     @State var confirmPassword = ""
+    
     @Environment(\.dismiss) private var dismiss
     @State private var keyboardHeight: CGFloat = 0
+    @FocusState private var focused: FocusedField?
     
     var body: some View {
         ZStack {
@@ -30,10 +39,38 @@ struct SignUpView: View {
                 }
 
                 VStack(spacing: 12) {
-                    CustomTextField(placeholder: "Name", text: $name)
-                    CustomTextField(placeholder: "Email", text: $email, keyboardType: .emailAddress)
-                    CustomSecureField(placeholder: "Password", text: $password)
-                    CustomSecureField(placeholder: "Confirm password", text: $confirmPassword)
+                    CustomTextField(placeholder: "Name", text: $name, textContentType: .name)
+                        .focused($focused, equals: .name)
+                        .submitLabel(.next)
+                        .onSubmit {
+                            focused?.next()
+                        }
+                    
+                    CustomTextField(
+                        placeholder: "Email",
+                        text: $email,
+                        keyboardType: .emailAddress,
+                        textContentType: .emailAddress
+                    )
+                    .focused($focused, equals: .email)
+                    .submitLabel(.next)
+                    .onSubmit {
+                        focused?.next()
+                    }
+                    
+                    CustomSecureField(placeholder: "Password", text: $password, textContentType: .newPassword)
+                        .focused($focused, equals: .password)
+                        .submitLabel(.next)
+                        .onSubmit {
+                            focused?.next()
+                        }
+                    
+                    CustomSecureField(
+                        placeholder: "Confirm password",
+                        text: $confirmPassword,
+                        textContentType: .newPassword
+                    )
+                    .focused($focused, equals: .confirmPassword)
                     
                     Button {
                         dismiss()
