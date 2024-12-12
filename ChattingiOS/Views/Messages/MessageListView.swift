@@ -11,6 +11,8 @@ struct MessageListView: View {
     @State private var message = ""
     @FocusState private var textEditorFocused: Bool
     
+    let username: String
+    
     var body: some View {
         VStack {
             GeometryReader { proxy in
@@ -29,7 +31,6 @@ struct MessageListView: View {
             HStack(alignment: .top) {
                 TextEditor(text: $message)
                     .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(.secondary, lineWidth: 1)
@@ -47,13 +48,15 @@ struct MessageListView: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 18)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 HStack {
                     Image(systemName: "person.circle")
-                    Text("John C.")
+                    Text(username)
                         .font(.headline)
                 }
             }
@@ -63,6 +66,6 @@ struct MessageListView: View {
 
 #Preview {
     NavigationStack {
-        MessageListView()
+        MessageListView(username: "User 1")
     }
 }
