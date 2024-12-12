@@ -24,7 +24,7 @@ struct SignUpView: View {
                     print("Add avatar taped.")
                 } label: {
                     Image(systemName: "person.fill.badge.plus")
-                        .font(.system(size: 90))
+                        .font(.system(size: 85).weight(.ultraLight))
                         .foregroundStyle(.foreground.opacity(0.8))
                         .padding(.top, 16)
                 }
@@ -46,13 +46,14 @@ struct SignUpView: View {
                             .background(.blue, in: .rect(cornerRadius: 8))
                     }
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.bottom)
             }
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(.background)
             )
-            .padding()
+            .padding(24)
         }
         .keyboardHeight($keyboardHeight)
         .offset(y: -keyboardHeight / 2)

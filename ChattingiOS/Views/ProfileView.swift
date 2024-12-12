@@ -15,7 +15,7 @@ struct ProfileView: View {
             VStack(spacing: 12) {
                 VStack(spacing: 2) {
                     Image(systemName: "person.circle")
-                        .font(.system(size: 110))
+                        .font(.system(size: 100))
                         .foregroundStyle(.foreground.opacity(0.8))
                     
                     VStack(spacing: 2) {
@@ -43,7 +43,7 @@ struct ProfileView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(.background)
             )
-            .padding()
+            .padding(24)
         }
         .ignoresSafeArea(.all, edges: .top)
     }

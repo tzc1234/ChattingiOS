@@ -17,10 +17,15 @@ struct SignInView: View {
             Color.orange
             
             VStack(spacing: 0) {
-                Image(systemName: "person.circle")
-                    .font(.system(size: 110))
-                    .foregroundStyle(.foreground.opacity(0.8))
-                    .padding(.top, 10)
+                VStack(spacing: 6) {
+                    Image(systemName: "ellipsis.message")
+                        .font(.system(size: 85).weight(.bold))
+                        
+                    Text("Chatting!")
+                        .font(.title.weight(.semibold))
+                }
+                .foregroundStyle(.foreground.opacity(0.8))
+                .padding(.top, 12)
                 
                 VStack(spacing: 12) {
                     CustomTextField(placeholder: "Email", text: $email, keyboardType: .emailAddress)
@@ -54,7 +59,7 @@ struct SignInView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(.background)
             )
-            .padding()
+            .padding(24)
         }
         .ignoresSafeArea()
         .sheet(isPresented: $signUpTapped) {
