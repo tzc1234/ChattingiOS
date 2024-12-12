@@ -8,7 +8,13 @@
 import SwiftUI
 
 struct CustomSecureField: View {
+    enum FocusedField {
+        case secure
+        case text
+    }
+    
     @State private var isSecure = true
+    @FocusState private var focused: FocusedField?
     
     private let placeholder: String
     @Binding private var text: String
@@ -29,7 +35,10 @@ struct CustomSecureField: View {
                     .padding(8)
                     
                 Button {
-                    isSecure.toggle()
+                    withAnimation {
+                        isSecure.toggle()
+                        setFocused()
+                    }
                 } label: {
                     Image(systemName: isSecure ? "eye" : "eye.slash")
                         .font(.system(size: 20))
@@ -56,8 +65,21 @@ struct CustomSecureField: View {
     private var inputField: some View {
         if isSecure {
             SecureField(placeholder, text: $text)
+                .focused($focused, equals: .secure)
         } else {
             TextField(placeholder, text: $text)
+                .focused($focused, equals: .text)
+        }
+    }
+    
+    private func setFocused() {
+        switch focused {
+        case .secure:
+            focused = .text
+        case .text:
+            focused = .secure
+        default:
+            break
         }
     }
 }
