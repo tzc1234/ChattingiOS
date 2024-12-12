@@ -50,5 +50,10 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()
+    TabView {
+        ProfileView()
+            .tabItem {
+                Label("Profile", systemImage: "person")
+            }
+    }
 }
