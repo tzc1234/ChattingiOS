@@ -29,8 +29,8 @@ struct SignInView: View {
                     Image(systemName: "ellipsis.message")
                         .font(.system(size: 85).weight(.bold))
                         
-                    Text("Chatting!")
-                        .font(.title.weight(.semibold))
+                    Text("Chat with me👋!")
+                        .font(.title2.weight(.medium))
                 }
                 .foregroundStyle(.foreground.opacity(0.8))
                 .padding(.top, 12)
