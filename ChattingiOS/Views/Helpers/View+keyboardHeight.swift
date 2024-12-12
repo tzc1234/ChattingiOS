@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct KeyboardHeightProvider: ViewModifier {
-    var keyboardHeight: Binding<CGFloat>
+    let keyboardHeight: Binding<CGFloat>
     
     func body(content: Content) -> some View {
         content
