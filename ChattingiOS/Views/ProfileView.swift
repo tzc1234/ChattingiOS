@@ -15,8 +15,8 @@ struct ProfileView: View {
             VStack(spacing: 12) {
                 VStack(spacing: 2) {
                     Image(systemName: "person.circle")
-                        .font(.system(size: 120))
-                        .foregroundStyle(.gray)
+                        .font(.system(size: 110))
+                        .foregroundStyle(.foreground.opacity(0.8))
                     
                     VStack(spacing: 2) {
                         Text("Abc")
@@ -32,7 +32,7 @@ struct ProfileView: View {
                 } label: {
                     Text("Sign Out")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.background)
                         .frame(maxWidth: .infinity)
                         .padding(12)
                         .background(.red, in: .rect(cornerRadius: 8))
@@ -41,7 +41,7 @@ struct ProfileView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(.white)
+                    .fill(.background)
             )
             .padding()
         }

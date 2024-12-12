@@ -18,8 +18,8 @@ struct SignInView: View {
             
             VStack(spacing: 0) {
                 Image(systemName: "person.circle")
-                    .font(.system(size: 120))
-                    .foregroundStyle(.gray)
+                    .font(.system(size: 110))
+                    .foregroundStyle(.foreground.opacity(0.8))
                     .padding(.top, 10)
                 
                 VStack(spacing: 12) {
@@ -31,7 +31,7 @@ struct SignInView: View {
                     } label: {
                         Text("Sign In")
                             .font(.headline)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.background)
                             .frame(maxWidth: .infinity)
                             .padding(12)
                             .background(.orange, in: .rect(cornerRadius: 8))
@@ -42,7 +42,7 @@ struct SignInView: View {
                     } label: {
                         Text("Sign Up")
                             .font(.headline)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.background)
                             .frame(maxWidth: .infinity)
                             .padding(12)
                             .background(.blue, in: .rect(cornerRadius: 8))
@@ -52,7 +52,7 @@ struct SignInView: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(.white)
+                    .fill(.background)
             )
             .padding()
         }

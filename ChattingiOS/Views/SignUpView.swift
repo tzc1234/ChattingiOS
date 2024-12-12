@@ -25,7 +25,7 @@ struct SignUpView: View {
                 } label: {
                     Image(systemName: "person.fill.badge.plus")
                         .font(.system(size: 90))
-                        .foregroundStyle(.gray)
+                        .foregroundStyle(.foreground.opacity(0.8))
                         .padding(.top, 16)
                 }
 
@@ -40,7 +40,7 @@ struct SignUpView: View {
                     } label: {
                         Text("Sign Up")
                             .font(.headline)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.background)
                             .frame(maxWidth: .infinity)
                             .padding(12)
                             .background(.blue, in: .rect(cornerRadius: 8))
@@ -50,7 +50,7 @@ struct SignUpView: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(.white)
+                    .fill(.background)
             )
             .padding()
         }

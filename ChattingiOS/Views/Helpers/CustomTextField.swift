@@ -22,16 +22,14 @@ struct CustomTextField: View {
     
     var body: some View {
         VStack(spacing: 6) {
-            TextField("", text: $text, prompt: Text(placeholder).foregroundColor(.gray.opacity(0.5)))
+            TextField(placeholder, text: $text)
                 .frame(height: 24)
                 .textFieldStyle(.plain)
                 .keyboardType(keyboardType)
                 .padding(8)
-                .foregroundStyle(.black)
-                .background(.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(.gray, lineWidth: 0.5)
+                        .stroke(.foreground, lineWidth: 0.5)
                 )
                 .clipShape(.rect(cornerRadius: 8))
             
@@ -47,5 +45,5 @@ struct CustomTextField: View {
 }
 
 #Preview {
-    CustomTextField(placeholder: "Name", text: .constant(""))
+    CustomTextField(placeholder: "Name", text: .constant(""), error: "Error")
 }

@@ -27,21 +27,18 @@ struct CustomSecureField: View {
                     .frame(height: 24)
                     .textFieldStyle(.plain)
                     .padding(8)
-                    .foregroundStyle(.black)
                     
                 Button {
                     isSecure.toggle()
                 } label: {
                     Image(systemName: isSecure ? "eye" : "eye.slash")
-                        .foregroundStyle(.gray)
                         .font(.system(size: 20))
                         .padding(8)
                 }
             }
-            .background(.white)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(.gray, lineWidth: 0.5)
+                    .stroke(.foreground, lineWidth: 0.5)
             )
             .clipShape(.rect(cornerRadius: 8))
             
@@ -57,11 +54,10 @@ struct CustomSecureField: View {
     
     @ViewBuilder
     private var inputField: some View {
-        let prompt = Text(placeholder).foregroundColor(.gray.opacity(0.5))
         if isSecure {
-            SecureField("", text: $text, prompt: prompt)
+            SecureField(placeholder, text: $text)
         } else {
-            TextField("", text: $text, prompt: prompt)
+            TextField(placeholder, text: $text)
         }
     }
 }
