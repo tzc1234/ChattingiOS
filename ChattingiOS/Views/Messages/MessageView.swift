@@ -18,7 +18,7 @@ struct MessageView: View {
                 .font(.callout)
                 .foregroundStyle(.white)
                 .padding(8)
-                .background(isMine ? .orange : .gray, in: .rect(cornerRadii: cornerRadii))
+                .background(isMine ? .ctOrange : .gray, in: .rect(cornerRadii: cornerRadii))
                 .frame(maxWidth: width, alignment: isMine ? .trailing : .leading)
         }
         .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)

@@ -42,7 +42,7 @@ struct MessageListView: View {
                     textEditorFocused = false
                 } label: {
                     Image(systemName: "arrow.right.circle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundColor(.ctOrange)
                         .font(.system(size: 30))
                 }
             }

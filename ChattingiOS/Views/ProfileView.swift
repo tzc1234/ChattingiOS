@@ -10,7 +10,7 @@ import SwiftUI
 struct ProfileView: View {
     var body: some View {
         ZStack {
-            Color.orange
+            Color.ctOrange
             
             VStack(spacing: 12) {
                 VStack(spacing: 2) {
@@ -23,6 +23,7 @@ struct ProfileView: View {
                             .font(.headline)
                         
                         Text("abc@email.com")
+                            .foregroundStyle(.ctOrange)
                             .font(.subheadline)
                     }
                 }
@@ -35,7 +36,7 @@ struct ProfileView: View {
                         .foregroundStyle(.background)
                         .frame(maxWidth: .infinity)
                         .padding(12)
-                        .background(.red, in: .rect(cornerRadius: 8))
+                        .background(.ctRed, in: .rect(cornerRadius: 8))
                 }
             }
             .padding()

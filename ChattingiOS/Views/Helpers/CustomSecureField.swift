@@ -43,6 +43,7 @@ struct CustomSecureField: View {
                     }
                 } label: {
                     Image(systemName: isSecure ? "eye" : "eye.slash")
+                        .foregroundStyle(.ctOrange)
                         .font(.system(size: 20))
                         .padding(8)
                 }

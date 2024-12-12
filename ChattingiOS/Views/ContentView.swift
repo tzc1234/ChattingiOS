@@ -8,20 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State var isSignedIn = false
+    
     var body: some View {
-//        SignInView()
-        TabView {
-            NavigationStack {
-                ContactListView()
-            }
-            .tabItem {
-                Label("Contacts", systemImage: "person.3")
-            }
-            
-            ProfileView()
-                .tabItem {
-                    Label("Profile", systemImage: "person")
+        if isSignedIn {
+            TabView {
+                NavigationStack {
+                    ContactListView()
                 }
+                .tabItem {
+                    Label("Contacts", systemImage: "person.3")
+                }
+                
+                ProfileView()
+                    .tabItem {
+                        Label("Profile", systemImage: "person")
+                    }
+            }
+            .tint(.ctOrange)
+        } else {
+            SignInView(isSignedIn: $isSignedIn)
         }
     }
 }

@@ -30,7 +30,7 @@ struct ContactView: View {
                 .foregroundStyle(.white)
                 .font(.caption)
                 .frame(width: 30, height: 30)
-                .background(.orange)
+                .background(.ctOrange)
                 .clipShape(.circle)
                 .opacity(unreadCount > 0 ? 1 : 0)
         }

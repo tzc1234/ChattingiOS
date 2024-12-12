@@ -20,9 +20,11 @@ struct SignInView: View {
     
     @FocusState private var focused: FocusedField?
     
+    @Binding var isSignedIn: Bool
+    
     var body: some View {
         ZStack {
-            Color.orange
+            Color.ctOrange
             
             VStack(spacing: 0) {
                 VStack(spacing: 6) {
@@ -52,14 +54,16 @@ struct SignInView: View {
                         .focused($focused, equals: .password)
                     
                     Button {
-                        print("Sign In taped.")
+                        withAnimation {
+                            isSignedIn = true
+                        }
                     } label: {
                         Text("Sign In")
                             .font(.headline)
                             .foregroundStyle(.background)
                             .frame(maxWidth: .infinity)
                             .padding(12)
-                            .background(.orange, in: .rect(cornerRadius: 8))
+                            .background(.ctOrange, in: .rect(cornerRadius: 8))
                     }
                     
                     Button {
@@ -70,7 +74,7 @@ struct SignInView: View {
                             .foregroundStyle(.background)
                             .frame(maxWidth: .infinity)
                             .padding(12)
-                            .background(.blue, in: .rect(cornerRadius: 8))
+                            .background(.ctBlue, in: .rect(cornerRadius: 8))
                     }
                 }
                 .padding()
@@ -91,5 +95,5 @@ struct SignInView: View {
 }
 
 #Preview {
-    SignInView()
+    SignInView(isSignedIn: .constant(false))
 }

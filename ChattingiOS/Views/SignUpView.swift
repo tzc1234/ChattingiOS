@@ -26,7 +26,7 @@ struct SignUpView: View {
     
     var body: some View {
         ZStack {
-            Color.blue
+            Color.ctBlue
             
             VStack(spacing: 0) {
                 Button {
@@ -80,7 +80,7 @@ struct SignUpView: View {
                             .foregroundStyle(.background)
                             .frame(maxWidth: .infinity)
                             .padding(12)
-                            .background(.blue, in: .rect(cornerRadius: 8))
+                            .background(.ctBlue, in: .rect(cornerRadius: 8))
                     }
                 }
                 .padding(.horizontal)
