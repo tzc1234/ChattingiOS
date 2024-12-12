@@ -38,7 +38,7 @@ struct SignInView: View {
                 .padding(.top, 12)
                 
                 VStack(spacing: 12) {
-                    CustomTextField(
+                    CTTextField(
                         placeholder: "Email",
                         text: $email,
                         keyboardType: .emailAddress,

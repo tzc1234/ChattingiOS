@@ -1,5 +1,5 @@
 //
-//  CustomTextField.swift
+//  CTTextField.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 11/12/2024.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CustomTextField: View {
+struct CTTextField: View {
     private let placeholder: String
     @Binding private var text: String
     private let keyboardType: UIKeyboardType
@@ -52,5 +52,5 @@ struct CustomTextField: View {
 }
 
 #Preview {
-    CustomTextField(placeholder: "Name", text: .constant(""), error: "Error")
+    CTTextField(placeholder: "Name", text: .constant(""), error: "Error")
 }

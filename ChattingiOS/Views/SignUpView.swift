@@ -39,14 +39,14 @@ struct SignUpView: View {
                 }
 
                 VStack(spacing: 12) {
-                    CustomTextField(placeholder: "Name", text: $name, textContentType: .name)
+                    CTTextField(placeholder: "Name", text: $name, textContentType: .name)
                         .focused($focused, equals: .name)
                         .submitLabel(.next)
                         .onSubmit {
                             focused?.onNext()
                         }
                     
-                    CustomTextField(
+                    CTTextField(
                         placeholder: "Email",
                         text: $email,
                         keyboardType: .emailAddress,
