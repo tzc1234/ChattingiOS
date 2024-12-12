@@ -15,7 +15,7 @@ struct ProfileView: View {
             VStack(spacing: 12) {
                 VStack(spacing: 2) {
                     Image(systemName: "person.circle")
-                        .font(.system(size: 100))
+                        .font(.system(size: 80))
                         .foregroundStyle(.foreground.opacity(0.8))
                     
                     VStack(spacing: 2) {

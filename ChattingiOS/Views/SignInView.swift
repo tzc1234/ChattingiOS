@@ -11,6 +11,7 @@ struct SignInView: View {
     @State var email = ""
     @State var password = ""
     @State var signUpTapped = false
+    @State var keyboardHeight: CGFloat = 0
     
     var body: some View {
         ZStack {
@@ -61,6 +62,8 @@ struct SignInView: View {
             )
             .padding(24)
         }
+        .keyboardHeight($keyboardHeight)
+        .offset(y: -keyboardHeight / 2)
         .ignoresSafeArea()
         .sheet(isPresented: $signUpTapped) {
             SignUpView()

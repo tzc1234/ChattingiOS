@@ -19,13 +19,17 @@ struct KeyboardHeightProvider: ViewModifier {
                         return
                     }
                     
-                    keyboardHeight.wrappedValue = rect.height
+                    withAnimation {
+                        keyboardHeight.wrappedValue = rect.height
+                    }
                 }
             )
             .onReceive(
                 NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification),
                 perform: { _ in
-                    keyboardHeight.wrappedValue = 0
+                    withAnimation {
+                        keyboardHeight.wrappedValue = 0
+                    }
                 }
             )
     }
