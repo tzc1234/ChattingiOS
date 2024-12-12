@@ -15,6 +15,7 @@ struct ContactView: View {
     var body: some View {
         HStack {
             Image(systemName: "person.circle")
+                .foregroundStyle(.primary.opacity(0.6))
                 .font(.system(size: 40))
             
             VStack(alignment: .leading) {
