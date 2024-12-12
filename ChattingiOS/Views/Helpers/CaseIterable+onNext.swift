@@ -1,12 +1,12 @@
 //
-//  CaseIterable+next.swift
+//  CaseIterable+onNext.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 12/12/2024.
 //
 
 extension CaseIterable where Self: Equatable {
-    mutating func next() {
+    mutating func onNext() {
         let cases = Self.allCases
         let index = cases.firstIndex(of: self)!
         let nextIndex = cases.index(after: index)

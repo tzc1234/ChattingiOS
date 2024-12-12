@@ -45,7 +45,7 @@ struct SignInView: View {
                     .focused($focused, equals: .email)
                     .submitLabel(.next)
                     .onSubmit {
-                        focused?.next()
+                        focused?.onNext()
                     }
                     
                     CustomSecureField(placeholder: "Password", text: $password, textContentType: .password)

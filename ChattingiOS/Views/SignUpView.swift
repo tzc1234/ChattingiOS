@@ -43,7 +43,7 @@ struct SignUpView: View {
                         .focused($focused, equals: .name)
                         .submitLabel(.next)
                         .onSubmit {
-                            focused?.next()
+                            focused?.onNext()
                         }
                     
                     CustomTextField(
@@ -55,14 +55,14 @@ struct SignUpView: View {
                     .focused($focused, equals: .email)
                     .submitLabel(.next)
                     .onSubmit {
-                        focused?.next()
+                        focused?.onNext()
                     }
                     
                     CustomSecureField(placeholder: "Password", text: $password, textContentType: .newPassword)
                         .focused($focused, equals: .password)
                         .submitLabel(.next)
                         .onSubmit {
-                            focused?.next()
+                            focused?.onNext()
                         }
                     
                     CustomSecureField(
