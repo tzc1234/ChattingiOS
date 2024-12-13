@@ -35,12 +35,14 @@ enum TokenResponseMapper {
     }
     
     static func map(_ data: Data, response: HTTPURLResponse) throws(UserRegisterError) -> (user: User, token: Token) {
-        if !response.isOK {
+        guard response.isOK else {
             let reason = ErrorResponseMapper.map(errorData: data)
             throw .server(reason: reason ?? "Internal server error.")
         }
         
-        guard let response = try? JSONDecoder().decode(TokenResponse.self, from: data) else { throw .invalidData }
+        guard let response = try? JSONDecoder().decode(TokenResponse.self, from: data) else {
+            throw .invalidData
+        }
         
         let user = User(
             id: response.user.id,
