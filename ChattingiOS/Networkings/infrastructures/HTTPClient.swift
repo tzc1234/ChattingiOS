@@ -8,7 +8,7 @@
 import Foundation
 
 protocol HTTPClient {
-    func run(endpoint: Endpoint) async throws -> (data: Data, response: HTTPURLResponse)
+    func run(_ request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse)
 }
 
 final class URLSessionHTTPClient: HTTPClient {
@@ -22,8 +22,8 @@ final class URLSessionHTTPClient: HTTPClient {
         case unexpectedResponseRepresentationError
     }
     
-    func run(endpoint: Endpoint) async throws -> (data: Data, response: HTTPURLResponse) {
-        let (data, response) = try await session.data(for: endpoint.request)
+    func run(_ request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
+        let (data, response) = try await session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
             throw Error.unexpectedResponseRepresentationError
         }
