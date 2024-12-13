@@ -18,9 +18,9 @@ struct RegisterEndpoint: Endpoint {
     }
     
     let apiConstants: APIConstants
-    private let params: RegisterParams
+    private let params: UserRegisterParams
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), params: RegisterParams) {
+    init(apiConstants: APIConstants = DefaultAPIConstants(), params: UserRegisterParams) {
         self.apiConstants = apiConstants
         self.params = params
     }

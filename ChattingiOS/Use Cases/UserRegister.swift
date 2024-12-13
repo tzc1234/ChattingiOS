@@ -19,7 +19,7 @@ final class UserRegister {
         self.client = client
     }
     
-    func register(params: RegisterParams) async throws(UserRegisterError) -> (user: User, token: Token) {
+    func register(params: UserRegisterParams) async throws(UserRegisterError) -> (user: User, token: Token) {
         let endpoint = RegisterEndpoint(params: params)
         do {
             let (data, response) = try await client.run(endpoint: endpoint)

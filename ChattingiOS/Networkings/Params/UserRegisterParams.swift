@@ -1,5 +1,5 @@
 //
-//  RegisterParams.swift
+//  UserRegisterParams.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 13/12/2024.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RegisterParams {
+struct UserRegisterParams {
     let name: String
     let email: String
     let password: String
