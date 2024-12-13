@@ -1,5 +1,5 @@
 //
-//  RegisterEndpoint.swift
+//  UserRegisterEndpoint.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 13/12/2024.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RegisterEndpoint: Endpoint {
+struct UserRegisterEndpoint: Endpoint {
     var path: String { apiPath + "register" }
     var httpMethod: HTTPMethod { .post }
     
