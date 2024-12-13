@@ -28,30 +28,32 @@ struct RegisterEndpoint: Endpoint {
     var body: Data? {
         var body = Data()
         
-        var content = "--\(boundary)\r\n"
+        var content = ""
         [
             "name": params.name,
             "email": params.email,
             "password": params.password
         ].forEach { key, value in
+            content += "--\(boundary)\r\n"
             content += "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
-            content += "\(value)"
+            content += "\(value)\r\n"
         }
         
         body.append(Data(content.utf8))
         
         if let avatar = params.avatar {
-            let fieldName = "file"
+            let fieldName = "avatar"
             let fileName = "avatar.\(avatar.fileType)"
-            var avatarContent = "\r\n--\(boundary)\r\n"
+            var avatarContent = "--\(boundary)\r\n"
             avatarContent += "Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n"
             avatarContent += "Content-Type: image/\(avatar.fileType)\r\n\r\n"
             
             body.append(Data(avatarContent.utf8))
             body.append(avatar.data)
+            body.append(Data("\r\n".utf8))
         }
         
-        body.append(Data("\r\n--\(boundary)--\r\n".utf8))
+        body.append(Data("--\(boundary)--\r\n".utf8))
         return body
     }
 }
