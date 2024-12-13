@@ -15,8 +15,9 @@ enum HTTPMethod: String {
 protocol Endpoint {
     var scheme: String { get }
     var host: String { get }
-    var port: Int { get }
+    var port: Int? { get }
     var path: String { get }
+    var apiConstants: APIConstants { get }
     var queryItems: [String: String]? { get }
     var httpMethod: HTTPMethod { get }
     var headers: [String: String]? { get }
@@ -24,10 +25,10 @@ protocol Endpoint {
 }
 
 extension Endpoint {
-    var scheme: String { APIConstants.scheme }
-    var host: String { APIConstants.host }
-    var port: Int { APIConstants.port }
-    var apiPath: String { APIConstants.apiPath }
+    var scheme: String { apiConstants.scheme }
+    var host: String { apiConstants.host }
+    var port: Int? { apiConstants.port }
+    var apiPath: String { apiConstants.apiPath }
     var queryItems: [String: String]? { nil }
     var httpMethod: HTTPMethod { .get }
     var defaultHeaders: [String: String] {
@@ -36,8 +37,13 @@ extension Endpoint {
             "Content-Type": "application/json"
         ]
     }
+    var headers: [String: String]? { defaultHeaders }
     
-    var url: URL {
+    private var url: URL {
+        assert(!scheme.isEmpty, "scheme should not be empty")
+        assert(!host.isEmpty, "host should not be empty")
+        assert(!path.isEmpty, "path should not be empty")
+        
         var components = URLComponents()
         components.scheme = scheme
         components.host = host

@@ -8,35 +8,35 @@
 import Foundation
 
 struct RegisterEndpoint: Endpoint {
-    var path: String { apiPath + "/register" }
+    var path: String { apiPath + "register" }
     var httpMethod: HTTPMethod { .post }
     
     private let boundary = UUID().uuidString
-    private var additionalHeaders: [String: String] {
-        ["Content-Type": "multipart/form-data; boundary=\(boundary)"]
-    }
     var headers: [String: String]? {
-        defaultHeaders.merging(additionalHeaders) { $1 }
+        let multipartFormDataHeaders = ["Content-Type": "multipart/form-data; boundary=\(boundary)"]
+        return defaultHeaders.merging(multipartFormDataHeaders) { $1 }
     }
     
+    let apiConstants: APIConstants
     private let params: RegisterParams
     
-    init(params: RegisterParams) {
+    init(apiConstants: APIConstants = DefaultAPIConstants(), params: RegisterParams) {
+        self.apiConstants = apiConstants
         self.params = params
     }
     
     var body: Data? {
         var body = Data()
         
-        var content = ""
-        [
+        let content = [
             "name": params.name,
             "email": params.email,
             "password": params.password
-        ].forEach { key, value in
-            content += "--\(boundary)\r\n"
-            content += "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
-            content += "\(value)\r\n"
+        ].reduce("") { partialResult, pair in
+            partialResult +
+                "--\(boundary)\r\n" +
+                "Content-Disposition: form-data; name=\"\(pair.key)\"\r\n\r\n" +
+                "\(pair.value)\r\n"
         }
         
         body.append(Data(content.utf8))
@@ -44,9 +44,9 @@ struct RegisterEndpoint: Endpoint {
         if let avatar = params.avatar {
             let fieldName = "avatar"
             let fileName = "avatar.\(avatar.fileType)"
-            var avatarContent = "--\(boundary)\r\n"
-            avatarContent += "Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n"
-            avatarContent += "Content-Type: image/\(avatar.fileType)\r\n\r\n"
+            let avatarContent = "--\(boundary)\r\n" +
+                "Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n" +
+                "Content-Type: image/\(avatar.fileType)\r\n\r\n"
             
             body.append(Data(avatarContent.utf8))
             body.append(avatar.data)
