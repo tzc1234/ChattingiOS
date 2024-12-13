@@ -34,10 +34,8 @@ enum TokenResponseMapper {
         }
     }
     
-    private static var isOK: Int { 200 }
-    
     static func map(_ data: Data, response: HTTPURLResponse) throws(UserRegisterError) -> (user: User, token: Token) {
-        if response.statusCode != isOK {
+        if !response.isOK {
             let reason = ErrorResponseMapper.map(errorData: data)
             throw .server(reason: reason ?? "Internal server error.")
         }
