@@ -40,17 +40,17 @@ enum TokenResponseMapper {
             throw .server(reason: reason ?? "Internal server error.")
         }
         
-        guard let response = try? JSONDecoder().decode(TokenResponse.self, from: data) else {
+        guard let tokenResponse = try? JSONDecoder().decode(TokenResponse.self, from: data) else {
             throw .invalidData
         }
         
         let user = User(
-            id: response.user.id,
-            name: response.user.name,
-            email: response.user.email,
-            avatarURL: response.user.avatarURL
+            id: tokenResponse.user.id,
+            name: tokenResponse.user.name,
+            email: tokenResponse.user.email,
+            avatarURL: tokenResponse.user.avatarURL
         )
-        let token = Token(accessToken: response.accessToken, refreshToken: response.refreshToken)
+        let token = Token(accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken)
         return (user, token)
     }
 }
