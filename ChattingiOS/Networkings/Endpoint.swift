@@ -30,7 +30,12 @@ extension Endpoint {
     var apiPath: String { APIConstants.apiPath }
     var queryItems: [String: String]? { nil }
     var httpMethod: HTTPMethod { .get }
-    var defaultHeaders: [String: String] { ["Accept": "application/json"] }
+    var defaultHeaders: [String: String] {
+        [
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        ]
+    }
     
     var url: URL {
         var components = URLComponents()
