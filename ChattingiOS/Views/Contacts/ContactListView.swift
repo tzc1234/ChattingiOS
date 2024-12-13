@@ -22,6 +22,13 @@ struct ContactListView: View {
         }
         .listStyle(.plain)
         .navigationTitle("Contacts")
+        .toolbar {
+            Button {
+                print("Add button tapped.")
+            } label: {
+                Image(systemName: "plus")
+            }
+        }
     }
 }
 
