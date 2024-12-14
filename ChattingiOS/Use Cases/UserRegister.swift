@@ -14,15 +14,17 @@ enum UserRegisterError: Error {
 
 final class UserRegister {
     private let client: HTTPClient
+    private let getRequest: (UserRegisterParams) -> URLRequest
     
-    init(client: HTTPClient) {
+    init(client: HTTPClient, getRequest: @escaping (UserRegisterParams) -> URLRequest) {
         self.client = client
+        self.getRequest = getRequest
     }
     
-    func register(params: UserRegisterParams) async throws(UserRegisterError) -> (user: User, token: Token) {
-        let endpoint = UserRegisterEndpoint(params: params)
+    func register(by params: UserRegisterParams) async throws(UserRegisterError) -> (user: User, token: Token) {
+        let request = getRequest(params)
         do {
-            let (data, response) = try await client.send(endpoint.request)
+            let (data, response) = try await client.send(request)
             return try TokenResponseMapper.map(data, response: response)
         } catch let registerError as UserRegisterError {
             throw registerError
