@@ -20,7 +20,7 @@ struct UserSignInEndpoint: Endpoint {
     let apiConstants: APIConstants
     private let encodedContent: Data
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), params: SignInParams) throws {
+    init(apiConstants: APIConstants = DefaultAPIConstants(), params: UserSignInParams) throws {
         self.apiConstants = apiConstants
         self.encodedContent = try JSONEncoder().encode(Content(email: params.email, password: params.password))
     }

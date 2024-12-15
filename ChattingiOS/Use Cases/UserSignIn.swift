@@ -16,14 +16,14 @@ enum UserSignInError: Error {
 
 final class UserSignIn {
     private let client: HTTPClient
-    private let getRequest: (SignInParams) throws -> URLRequest
+    private let getRequest: (UserSignInParams) throws -> URLRequest
     
-    init(client: HTTPClient, getRequest: @escaping (SignInParams) throws -> URLRequest) {
+    init(client: HTTPClient, getRequest: @escaping (UserSignInParams) throws -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
     
-    func signIn(with params: SignInParams) async throws(UserSignInError) -> (user: User, token: Token) {
+    func signIn(with params: UserSignInParams) async throws(UserSignInError) -> (user: User, token: Token) {
         let request: URLRequest
         do {
             request = try getRequest(params)
