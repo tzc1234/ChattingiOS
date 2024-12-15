@@ -26,6 +26,8 @@ struct UserSignInEndpoint: Endpoint {
     
     var body: Data? {
         let content = Content(email: params.email, password: params.password)
-        return try? JSONEncoder().encode(content)
+        let encoded = try? JSONEncoder().encode(content)
+        assert(encoded != nil)
+        return encoded
     }
 }

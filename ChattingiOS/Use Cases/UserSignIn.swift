@@ -10,7 +10,7 @@ import Foundation
 enum UserSignInError: Error {
     case server(reason: String)
     case invalidData
-    case connection
+    case connectivity
 }
 
 final class UserSignIn {
@@ -39,7 +39,7 @@ final class UserSignIn {
         case .mapping:
             .invalidData
         case .none:
-            .connection
+            .connectivity
         }
     }
 }
