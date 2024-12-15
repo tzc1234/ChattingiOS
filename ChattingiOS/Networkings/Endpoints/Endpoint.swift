@@ -30,7 +30,6 @@ extension Endpoint {
     var port: Int? { apiConstants.port }
     var apiPath: String { apiConstants.apiPath }
     var queryItems: [String: String]? { nil }
-    var httpMethod: HTTPMethod { .get }
     var defaultHeaders: [String: String] {
         [
             "Accept": "application/json",
