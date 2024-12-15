@@ -11,19 +11,26 @@ enum UserSignInError: Error {
     case server(reason: String)
     case invalidData
     case connectivity
+    case requestConversion
 }
 
 final class UserSignIn {
     private let client: HTTPClient
-    private let getRequest: (SignInParams) -> URLRequest
+    private let getRequest: (SignInParams) throws -> URLRequest
     
-    init(client: HTTPClient, getRequest: @escaping (SignInParams) -> URLRequest) {
+    init(client: HTTPClient, getRequest: @escaping (SignInParams) throws -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
     
     func signIn(with params: SignInParams) async throws(UserSignInError) -> (user: User, token: Token) {
-        let request = getRequest(params)
+        let request: URLRequest
+        do {
+            request = try getRequest(params)
+        } catch {
+            throw .requestConversion
+        }
+        
         do {
             let (data, response) = try await client.send(request)
             return try TokenResponseMapper.map(data, response: response)

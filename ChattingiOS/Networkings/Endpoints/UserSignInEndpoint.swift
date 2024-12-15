@@ -8,26 +8,20 @@
 import Foundation
 
 struct UserSignInEndpoint: Endpoint {
-    var path: String { apiPath + "login" }
-    var httpMethod: HTTPMethod { .post }
-    
-    let apiConstants: APIConstants
-    private let params: SignInParams
-    
-    init(apiConstants: APIConstants = DefaultAPIConstants(), params: SignInParams) {
-        self.apiConstants = apiConstants
-        self.params = params
-    }
-    
     private struct Content: Encodable {
         let email: String
         let password: String
     }
     
-    var body: Data? {
-        let content = Content(email: params.email, password: params.password)
-        let encoded = try? JSONEncoder().encode(content)
-        assert(encoded != nil)
-        return encoded
+    var path: String { apiPath + "login" }
+    var httpMethod: HTTPMethod { .post }
+    var body: Data? { encodedContent }
+    
+    let apiConstants: APIConstants
+    private let encodedContent: Data
+    
+    init(apiConstants: APIConstants = DefaultAPIConstants(), params: SignInParams) throws {
+        self.apiConstants = apiConstants
+        self.encodedContent = try JSONEncoder().encode(Content(email: params.email, password: params.password))
     }
 }

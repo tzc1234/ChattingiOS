@@ -37,6 +37,7 @@ extension Endpoint {
         ]
     }
     var headers: [String: String]? { defaultHeaders }
+    var body: Data? { nil }
     
     private var url: URL {
         assert(!scheme.isEmpty, "scheme should not be empty")
