@@ -1,28 +1,28 @@
 //
-//  UserRegister.swift
+//  UserSignIn.swift
 //  ChattingiOS
 //
-//  Created by Tsz-Lung on 13/12/2024.
+//  Created by Tsz-Lung on 15/12/2024.
 //
 
 import Foundation
 
-enum UserRegisterError: Error {
+enum UserSignInError: Error {
     case server(reason: String)
     case invalidData
     case connection
 }
 
-final class UserRegister {
+final class UserSignIn {
     private let client: HTTPClient
-    private let getRequest: (UserRegisterParams) -> URLRequest
+    private let getRequest: (SignInParams) -> URLRequest
     
-    init(client: HTTPClient, getRequest: @escaping (UserRegisterParams) -> URLRequest) {
+    init(client: HTTPClient, getRequest: @escaping (SignInParams) -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
     
-    func register(by params: UserRegisterParams) async throws(UserRegisterError) -> (user: User, token: Token) {
+    func signIn(with params: SignInParams) async throws(UserSignInError) -> (user: User, token: Token) {
         let request = getRequest(params)
         do {
             let (data, response) = try await client.send(request)
@@ -32,7 +32,7 @@ final class UserRegister {
         }
     }
     
-    private func map(_ error: Error) -> UserRegisterError {
+    private func map(_ error: Error) -> UserSignInError {
         switch error as? TokenResponseMapper.Error {
         case .server(let reason):
             .server(reason: reason)

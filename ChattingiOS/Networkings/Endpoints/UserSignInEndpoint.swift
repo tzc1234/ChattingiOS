@@ -12,7 +12,7 @@ struct SignInParams {
     let password: String
 }
 
-struct SignInEndpoint: Endpoint {
+struct UserSignInEndpoint: Endpoint {
     var path: String { apiPath + "login" }
     var httpMethod: HTTPMethod { .post }
     
