@@ -7,11 +7,6 @@
 
 import Foundation
 
-struct SignInParams {
-    let email: String
-    let password: String
-}
-
 struct UserSignInEndpoint: Endpoint {
     var path: String { apiPath + "login" }
     var httpMethod: HTTPMethod { .post }
