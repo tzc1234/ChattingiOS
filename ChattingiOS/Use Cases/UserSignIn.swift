@@ -40,7 +40,7 @@ final class UserSignIn {
     }
     
     private func map(_ error: Error) -> UserSignInError {
-        switch error as? UserTokenResponseMapper.Error {
+        switch error as? MapperError {
         case .server(let reason):
             .server(reason: reason)
         case .mapping:

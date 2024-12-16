@@ -33,7 +33,7 @@ final class UserRegister {
     }
     
     private func map(_ error: Error) -> UserRegisterError {
-        switch error as? UserTokenResponseMapper.Error {
+        switch error as? MapperError {
         case .server(let reason):
             .server(reason: reason)
         case .mapping:

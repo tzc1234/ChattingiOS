@@ -15,12 +15,7 @@ enum UserResponseMapper {
         let avatar_url: String?
     }
     
-    enum Error: Swift.Error {
-        case server(reason: String)
-        case mapping
-    }
-    
-    static func map(_ data: Data, response: HTTPURLResponse) throws(Error) -> User {
+    static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> User {
         guard response.isOK else {
             let reason = ErrorResponseMapper.map(errorData: data)
             throw .server(reason: reason ?? "Internal server error.")

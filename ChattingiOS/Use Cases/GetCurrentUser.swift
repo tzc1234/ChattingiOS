@@ -34,7 +34,7 @@ final class GetCurrentUser {
     }
     
     private func map(_ error: Error) -> GetCurrentUserError {
-        switch error as? UserResponseMapper.Error {
+        switch error as? MapperError {
         case .server(let reason):
             .server(reason: reason)
         case .mapping:

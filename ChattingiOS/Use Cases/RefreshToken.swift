@@ -34,7 +34,7 @@ final class RefreshToken {
     }
     
     private func map(_ error: Error) -> RefreshTokenError {
-        switch error as? TokenResponseMapper.Error {
+        switch error as? MapperError {
         case .server(let reason):
             .server(reason: reason)
         case .mapping:
