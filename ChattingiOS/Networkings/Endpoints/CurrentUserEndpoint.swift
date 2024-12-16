@@ -17,7 +17,7 @@ struct CurrentUserEndpoint: Endpoint {
     let apiConstants: APIConstants
     private let accessToken: String
     
-    init(apiConstants: APIConstants, accessToken: String) {
+    init(apiConstants: APIConstants = DefaultAPIConstants(), accessToken: String) {
         self.apiConstants = apiConstants
         self.accessToken = accessToken
     }
