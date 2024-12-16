@@ -22,7 +22,7 @@ final class GetCurrentUser {
         self.getRequest = getRequest
     }
     
-    func get(with accessToken: String) async throws -> User {
+    func get(with accessToken: String) async throws(GetCurrentUserError) -> User {
         let request = getRequest(accessToken)
         
         do {
