@@ -7,13 +7,6 @@
 
 import Foundation
 
-enum UserSignInError: Error {
-    case server(reason: String)
-    case invalidData
-    case connectivity
-    case requestConversion
-}
-
 final class UserSignIn {
     private let client: HTTPClient
     private let getRequest: (UserSignInParams) throws -> URLRequest
@@ -23,7 +16,7 @@ final class UserSignIn {
         self.getRequest = getRequest
     }
     
-    func signIn(with params: UserSignInParams) async throws(UserSignInError) -> (user: User, token: Token) {
+    func signIn(with params: UserSignInParams) async throws(CommonUseCaseError) -> (user: User, token: Token) {
         let request: URLRequest
         do {
             request = try getRequest(params)
@@ -35,18 +28,7 @@ final class UserSignIn {
             let (data, response) = try await client.send(request)
             return try UserTokenResponseMapper.map(data, response: response)
         } catch {
-            throw map(error)
-        }
-    }
-    
-    private func map(_ error: Error) -> UserSignInError {
-        switch error as? MapperError {
-        case .server(let reason):
-            .server(reason: reason)
-        case .mapping:
-            .invalidData
-        case .none:
-            .connectivity
+            throw .map(error)
         }
     }
 }

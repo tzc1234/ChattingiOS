@@ -7,12 +7,6 @@
 
 import Foundation
 
-enum GetCurrentUserError: Error {
-    case server(reason: String)
-    case invalidData
-    case connectivity
-}
-
 final class GetCurrentUser {
     private let client: HTTPClient
     private let getRequest: (String) -> URLRequest
@@ -22,25 +16,13 @@ final class GetCurrentUser {
         self.getRequest = getRequest
     }
     
-    func get(with accessToken: String) async throws(GetCurrentUserError) -> User {
+    func get(with accessToken: String) async throws(CommonUseCaseError) -> User {
         let request = getRequest(accessToken)
-        
         do {
             let (data, response) = try await client.send(request)
             return try UserResponseMapper.map(data, response: response)
         } catch {
-            throw map(error)
-        }
-    }
-    
-    private func map(_ error: Error) -> GetCurrentUserError {
-        switch error as? MapperError {
-        case .server(let reason):
-            .server(reason: reason)
-        case .mapping:
-            .invalidData
-        case .none:
-            .connectivity
+            throw .map(error)
         }
     }
 }
