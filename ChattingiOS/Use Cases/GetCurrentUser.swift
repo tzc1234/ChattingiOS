@@ -9,17 +9,16 @@ import Foundation
 
 final class GetCurrentUser {
     private let client: HTTPClient
-    private let getRequest: (String) -> URLRequest
+    private let getRequest: () -> URLRequest
     
-    init(client: HTTPClient, getRequest: @escaping (String) -> URLRequest) {
+    init(client: HTTPClient, getRequest: @escaping () -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
     
-    func get(with accessToken: String) async throws(UseCaseError) -> User {
-        let request = getRequest(accessToken)
+    func get() async throws(UseCaseError) -> User {
         do {
-            let (data, response) = try await client.send(request)
+            let (data, response) = try await client.send(getRequest())
             return try UserResponseMapper.map(data, response: response)
         } catch {
             throw .map(error)
