@@ -16,7 +16,7 @@ final class RefreshToken {
         self.getRequest = getRequest
     }
     
-    func refresh(with token: String) async throws(CommonUseCaseError) -> Token {
+    func refresh(with token: String) async throws(UseCaseError) -> Token {
         let request = getRequest(token)
         do {
             let (data, response) = try await client.send(request)

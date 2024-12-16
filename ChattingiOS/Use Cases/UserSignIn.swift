@@ -16,7 +16,7 @@ final class UserSignIn {
         self.getRequest = getRequest
     }
     
-    func signIn(with params: UserSignInParams) async throws(CommonUseCaseError) -> (user: User, token: Token) {
+    func signIn(with params: UserSignInParams) async throws(UseCaseError) -> (user: User, token: Token) {
         let request: URLRequest
         do {
             request = try getRequest(params)

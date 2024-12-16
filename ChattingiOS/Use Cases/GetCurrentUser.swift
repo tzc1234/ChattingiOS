@@ -16,7 +16,7 @@ final class GetCurrentUser {
         self.getRequest = getRequest
     }
     
-    func get(with accessToken: String) async throws(CommonUseCaseError) -> User {
+    func get(with accessToken: String) async throws(UseCaseError) -> User {
         let request = getRequest(accessToken)
         do {
             let (data, response) = try await client.send(request)

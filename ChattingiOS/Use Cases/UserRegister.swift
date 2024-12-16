@@ -16,7 +16,7 @@ final class UserRegister {
         self.getRequest = getRequest
     }
     
-    func register(by params: UserRegisterParams) async throws(CommonUseCaseError) -> (user: User, token: Token) {
+    func register(by params: UserRegisterParams) async throws(UseCaseError) -> (user: User, token: Token) {
         let request = getRequest(params)
         do {
             let (data, response) = try await client.send(request)
