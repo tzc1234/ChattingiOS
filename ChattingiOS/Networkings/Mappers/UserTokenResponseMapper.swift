@@ -10,28 +10,15 @@ import Foundation
 enum UserTokenResponseMapper {
     private struct TokenResponse: Decodable {
         let user: UserResponse
-        let accessToken: String
-        let refreshToken: String
-        
-        enum CodingKeys: String, CodingKey {
-            case user = "user"
-            case accessToken = "access_token"
-            case refreshToken = "refresh_token"
-        }
+        let access_token: String
+        let refresh_token: String
     }
     
     private struct UserResponse: Decodable {
         let id: Int
         let name: String
         let email: String
-        let avatarURL: String?
-        
-        enum CodingKeys: String, CodingKey {
-            case id
-            case name
-            case email
-            case avatarURL = "avatar_url"
-        }
+        let avatar_url: String?
     }
     
     static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> (user: User, token: Token) {
@@ -48,9 +35,9 @@ enum UserTokenResponseMapper {
             id: tokenResponse.user.id,
             name: tokenResponse.user.name,
             email: tokenResponse.user.email,
-            avatarURL: tokenResponse.user.avatarURL
+            avatarURL: tokenResponse.user.avatar_url
         )
-        let token = Token(accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken)
+        let token = Token(accessToken: tokenResponse.access_token, refreshToken: tokenResponse.refresh_token)
         return (user, token)
     }
 }

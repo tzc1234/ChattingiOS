@@ -23,7 +23,6 @@ enum TokenResponseMapper {
             throw MapperError.mapping
         }
         
-        let token = Token(accessToken: tokenResponse.access_token, refreshToken: tokenResponse.refresh_token)
-        return token
+        return Token(accessToken: tokenResponse.access_token, refreshToken: tokenResponse.refresh_token)
     }
 }
