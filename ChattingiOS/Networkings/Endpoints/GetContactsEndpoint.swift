@@ -14,7 +14,10 @@ struct GetContactsEndpoint: Endpoint {
         defaultHeaders.merging(["Authorization": "Bearer \(accessToken)"]) { $1 }
     }
     var queryItems: [String: String]? {
-        params.before.map { ["before": "\($0.timeIntervalSince1970)"] }
+        [
+            "before": params.before.map { "\($0.timeIntervalSince1970)" },
+            "limit": params.limit.map { "\($0)" }
+        ].compactMapValues { $0 }
     }
     
     let apiConstants: APIConstants

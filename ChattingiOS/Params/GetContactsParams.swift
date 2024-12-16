@@ -7,6 +7,7 @@
 
 import Foundation
 
-struct GetContactsParams: Encodable {
+struct GetContactsParams {
     let before: Date?
+    let limit: UInt?
 }
