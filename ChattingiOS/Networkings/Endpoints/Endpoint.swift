@@ -17,11 +17,11 @@ protocol Endpoint {
     var host: String { get }
     var port: Int? { get }
     var path: String { get }
-    var apiConstants: APIConstants { get }
     var queryItems: [String: String]? { get }
     var httpMethod: HTTPMethod { get }
     var headers: [String: String]? { get }
     var body: Data? { get }
+    var apiConstants: APIConstants { get }
 }
 
 extension Endpoint {
