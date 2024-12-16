@@ -2,36 +2,15 @@
 //  TokenResponseMapper.swift
 //  ChattingiOS
 //
-//  Created by Tsz-Lung on 13/12/2024.
+//  Created by Tsz-Lung on 16/12/2024.
 //
 
 import Foundation
 
 enum TokenResponseMapper {
     private struct TokenResponse: Decodable {
-        let user: UserResponse
-        let accessToken: String
-        let refreshToken: String
-        
-        enum CodingKeys: String, CodingKey {
-            case user = "user"
-            case accessToken = "access_token"
-            case refreshToken = "refresh_token"
-        }
-    }
-    
-    private struct UserResponse: Decodable {
-        let id: Int
-        let name: String
-        let email: String
-        let avatarURL: String?
-        
-        enum CodingKeys: String, CodingKey {
-            case id
-            case name
-            case email
-            case avatarURL = "avatar_url"
-        }
+        let access_token: String
+        let refresh_token: String
     }
     
     enum Error: Swift.Error {
@@ -39,7 +18,7 @@ enum TokenResponseMapper {
         case mapping
     }
     
-    static func map(_ data: Data, response: HTTPURLResponse) throws(Error) -> (user: User, token: Token) {
+    static func map(_ data: Data, response: HTTPURLResponse) throws(Error) -> Token {
         guard response.isOK else {
             let reason = ErrorResponseMapper.map(errorData: data)
             throw .server(reason: reason ?? "Internal server error.")
@@ -49,13 +28,7 @@ enum TokenResponseMapper {
             throw .mapping
         }
         
-        let user = User(
-            id: tokenResponse.user.id,
-            name: tokenResponse.user.name,
-            email: tokenResponse.user.email,
-            avatarURL: tokenResponse.user.avatarURL
-        )
-        let token = Token(accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken)
-        return (user, token)
+        let token = Token(accessToken: tokenResponse.access_token, refreshToken: tokenResponse.refresh_token)
+        return token
     }
 }

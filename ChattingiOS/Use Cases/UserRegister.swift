@@ -26,14 +26,14 @@ final class UserRegister {
         let request = getRequest(params)
         do {
             let (data, response) = try await client.send(request)
-            return try TokenResponseMapper.map(data, response: response)
+            return try UserTokenResponseMapper.map(data, response: response)
         } catch {
             throw map(error)
         }
     }
     
     private func map(_ error: Error) -> UserRegisterError {
-        switch error as? TokenResponseMapper.Error {
+        switch error as? UserTokenResponseMapper.Error {
         case .server(let reason):
             .server(reason: reason)
         case .mapping:
