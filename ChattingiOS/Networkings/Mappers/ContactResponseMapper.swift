@@ -7,12 +7,9 @@
 
 import Foundation
 
-enum ContactResponseMapper {
+enum ContactResponseMapper: ResponseMapper {
     static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> Contact {
-        guard response.isOK else {
-            let reason = ErrorResponseMapper.map(errorData: data)
-            throw .server(reason: reason ?? "Internal server error.")
-        }
+        try validate(response, with: data)
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601

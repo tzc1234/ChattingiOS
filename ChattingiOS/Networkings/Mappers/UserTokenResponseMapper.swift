@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum UserTokenResponseMapper {
+enum UserTokenResponseMapper: ResponseMapper {
     private struct TokenResponse: Decodable {
         let user: UserResponse
         let access_token: String
@@ -15,10 +15,7 @@ enum UserTokenResponseMapper {
     }
     
     static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> (user: User, token: Token) {
-        guard response.isOK else {
-            let reason = ErrorResponseMapper.map(errorData: data)
-            throw .server(reason: reason ?? "Internal server error.")
-        }
+        try validate(response, with: data)
         
         guard let tokenResponse = try? JSONDecoder().decode(TokenResponse.self, from: data) else {
             throw .mapping
