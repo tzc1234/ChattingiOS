@@ -8,11 +8,6 @@
 import Foundation
 
 enum TokenResponseMapper: ResponseMapper {
-    private struct TokenResponse: Decodable {
-        let access_token: String
-        let refresh_token: String
-    }
-    
     static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> Token {
         try validate(response, with: data)
         
@@ -20,6 +15,6 @@ enum TokenResponseMapper: ResponseMapper {
             throw MapperError.mapping
         }
         
-        return Token(accessToken: tokenResponse.access_token, refreshToken: tokenResponse.refresh_token)
+        return Token(accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken)
     }
 }
