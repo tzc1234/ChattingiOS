@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol Response {
+protocol Response: Decodable {
     associatedtype Model
     
     var toModel: Model { get }

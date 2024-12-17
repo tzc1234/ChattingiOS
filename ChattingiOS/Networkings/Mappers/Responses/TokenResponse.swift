@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TokenResponse: Decodable {
+struct TokenResponse {
     let accessToken: String
     let refreshToken: String
     

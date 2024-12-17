@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ContactsResponse: Decodable {
+struct ContactsResponse {
     let contacts: [ContactResponse]
 }
 
@@ -17,7 +17,7 @@ extension ContactsResponse: Response {
     }
 }
 
-struct ContactResponse: Decodable {
+struct ContactResponse {
     let id: Int
     let responder: UserResponse
     let blockedByUserID: Int?

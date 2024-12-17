@@ -5,7 +5,7 @@
 //  Created by Tsz-Lung on 16/12/2024.
 //
 
-struct UserResponse: Decodable {
+struct UserResponse {
     let id: Int
     let name: String
     let email: String
