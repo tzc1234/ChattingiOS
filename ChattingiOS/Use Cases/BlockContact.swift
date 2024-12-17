@@ -10,7 +10,7 @@ import Foundation
 typealias BlockContact = GeneralUseCase<Int, ContactResponseMapper>
 
 extension BlockContact {
-    func block(with contactID: Params) async throws(UseCaseError) -> Mapper.Model {
-        try await execute(with: contactID)
+    func block(for contactID: Params) async throws(UseCaseError) -> Mapper.Model {
+        try await perform(with: contactID)
     }
 }

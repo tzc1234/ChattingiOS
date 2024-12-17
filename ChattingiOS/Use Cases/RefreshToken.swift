@@ -11,6 +11,6 @@ typealias RefreshToken = GeneralUseCase<String, TokenResponseMapper>
 
 extension RefreshToken {
     func refresh(with token: Params) async throws(UseCaseError) -> Mapper.Model {
-        try await execute(with: token)
+        try await perform(with: token)
     }
 }

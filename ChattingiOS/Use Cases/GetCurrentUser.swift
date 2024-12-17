@@ -11,6 +11,6 @@ typealias GetCurrentUser = GeneralUseCase<Void, UserResponseMapper>
 
 extension GetCurrentUser {
     func get() async throws(UseCaseError) -> Mapper.Model {
-        try await execute(with: ())
+        try await perform(with: ())
     }
 }

@@ -11,6 +11,6 @@ typealias UserSign = GeneralUseCase<UserSignInParams, UserTokenResponseMapper>
 
 extension UserSign {
     func signIn(with params: Params) async throws(UseCaseError) -> Mapper.Model {
-        try await execute(with: params)
+        try await perform(with: params)
     }
 }

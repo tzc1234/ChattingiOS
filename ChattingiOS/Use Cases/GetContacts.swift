@@ -11,6 +11,6 @@ typealias GetContacts = GeneralUseCase<GetContactsParams, ContactsResponseMapper
 
 extension GetContacts {
     func get(with params: Params) async throws(UseCaseError) -> Mapper.Model {
-        try await execute(with: params)
+        try await perform(with: params)
     }
 }

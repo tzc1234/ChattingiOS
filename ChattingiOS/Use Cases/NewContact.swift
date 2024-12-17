@@ -11,6 +11,6 @@ typealias NewContact = GeneralUseCase<String, ContactResponseMapper>
 
 extension NewContact {
     func add(by responderEmail: Params) async throws(UseCaseError) -> Mapper.Model {
-        try await execute(with: responderEmail)
+        try await perform(with: responderEmail)
     }
 }

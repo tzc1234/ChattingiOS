@@ -16,7 +16,7 @@ final class GeneralUseCase<Params, Mapper: ResponseMapper> {
         self.getRequest = getRequest
     }
     
-    func execute(with params: Params) async throws(UseCaseError) -> Mapper.Model {
+    func perform(with params: Params) async throws(UseCaseError) -> Mapper.Model {
         let request: URLRequest
         do {
             request = try getRequest(params)

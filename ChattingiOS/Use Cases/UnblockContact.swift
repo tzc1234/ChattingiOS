@@ -10,7 +10,7 @@ import Foundation
 typealias UnblockContact = GeneralUseCase<Int, ContactResponseMapper>
 
 extension UnblockContact {
-    func unblock(with contactID: Params) async throws(UseCaseError) -> Mapper.Model {
-        try await execute(with: contactID)
+    func unblock(for contactID: Params) async throws(UseCaseError) -> Mapper.Model {
+        try await perform(with: contactID)
     }
 }

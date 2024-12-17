@@ -11,6 +11,6 @@ typealias UserRegister = GeneralUseCase<UserRegisterParams, UserTokenResponseMap
 
 extension UserRegister {
     func register(by params: Params) async throws(UseCaseError) -> Mapper.Model {
-        try await execute(with: params)
+        try await perform(with: params)
     }
 }
