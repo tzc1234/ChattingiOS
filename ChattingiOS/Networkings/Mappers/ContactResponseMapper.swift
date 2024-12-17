@@ -15,6 +15,6 @@ enum ContactResponseMapper: ResponseMapper {
             throw .mapping
         }
         
-        return contactResponse.toContact
+        return contactResponse.toModel
     }
 }

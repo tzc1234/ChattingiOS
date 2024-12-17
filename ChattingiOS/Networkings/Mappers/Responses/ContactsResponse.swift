@@ -9,9 +9,11 @@ import Foundation
 
 struct ContactsResponse: Decodable {
     let contacts: [ContactResponse]
-    
-    var toContacts: [Contact] {
-        contacts.map(\.toContact)
+}
+
+extension ContactsResponse: Response {
+    var toModel: [Contact] {
+        contacts.map(\.toModel)
     }
 }
 
@@ -29,11 +31,13 @@ struct ContactResponse: Decodable {
         case unreadMessageCount = "unread_message_count"
         case lastUpdate = "last_update"
     }
-    
-    var toContact: Contact {
+}
+
+extension ContactResponse: Response {
+    var toModel: Contact {
         Contact(
             id: id,
-            responder: responder.toUser,
+            responder: responder.toModel,
             blockedByUserID: blockedByUserID,
             unreadMessageCount: unreadMessageCount,
             lastUpdate: lastUpdate

@@ -15,8 +15,6 @@ enum UserTokenResponseMapper: ResponseMapper {
             throw .mapping
         }
         
-        let user = userTokenResponse.user.toUser
-        let token = Token(accessToken: userTokenResponse.accessToken, refreshToken: userTokenResponse.refreshToken)
-        return (user, token)
+        return userTokenResponse.toModel
     }
 }

@@ -16,3 +16,9 @@ struct TokenResponse: Decodable {
         case refreshToken = "refresh_token"
     }
 }
+
+extension TokenResponse: Response {
+    var toModel: Token {
+        Token(accessToken: accessToken, refreshToken: refreshToken)
+    }
+}

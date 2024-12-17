@@ -15,6 +15,6 @@ enum TokenResponseMapper: ResponseMapper {
             throw MapperError.mapping
         }
         
-        return Token(accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken)
+        return tokenResponse.toModel
     }
 }

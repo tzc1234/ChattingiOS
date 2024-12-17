@@ -15,6 +15,6 @@ enum UserResponseMapper: ResponseMapper {
             throw .mapping
         }
         
-        return userResponse.toUser
+        return userResponse.toModel
     }
 }

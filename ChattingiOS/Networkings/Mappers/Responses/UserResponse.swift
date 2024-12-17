@@ -17,8 +17,10 @@ struct UserResponse: Decodable {
         case email
         case avatarURL = "avatar_url"
     }
-    
-    var toUser: User {
+}
+
+extension UserResponse: Response {
+    var toModel: User {
         User(id: id, name: name, email: email, avatarURL: avatarURL)
     }
 }

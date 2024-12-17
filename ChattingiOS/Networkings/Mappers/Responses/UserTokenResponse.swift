@@ -18,3 +18,11 @@ struct UserTokenResponse: Decodable {
         case refreshToken = "refresh_token"
     }
 }
+
+extension UserTokenResponse: Response {
+    var toModel: (user: User, token: Token) {
+        let user = user.toModel
+        let token = Token(accessToken: accessToken, refreshToken: refreshToken)
+        return (user, token)
+    }
+}
