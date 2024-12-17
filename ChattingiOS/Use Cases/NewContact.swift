@@ -7,22 +7,10 @@
 
 import Foundation
 
-final class NewContact {
-    private let client: HTTPClient
-    private let getRequest: (String) -> URLRequest
-    
-    init(client: HTTPClient, getRequest: @escaping (String) -> URLRequest) {
-        self.client = client
-        self.getRequest = getRequest
-    }
-    
-    func add(by responderEmail: String) async throws(UseCaseError) -> Contact {
-        let request = getRequest(responderEmail)
-        do {
-            let (data, response) = try await client.send(request)
-            return try ContactResponseMapper.map(data, response: response)
-        } catch {
-            throw .map(error)
-        }
+typealias NewContact = GeneralUseCase<String, ContactResponseMapper>
+
+extension NewContact {
+    func add(by responderEmail: Params) async throws(UseCaseError) -> Mapper.Model {
+        try await execute(with: responderEmail)
     }
 }
