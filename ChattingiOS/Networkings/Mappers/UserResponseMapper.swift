@@ -11,7 +11,7 @@ enum UserResponseMapper: ResponseMapper {
     static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> User {
         try validate(response, with: data)
         
-        guard let userResponse = try? JSONDecoder().decode(UserResponse.self, from: data) else {
+        guard let userResponse = try? decoder.decode(UserResponse.self, from: data) else {
             throw .mapping
         }
         

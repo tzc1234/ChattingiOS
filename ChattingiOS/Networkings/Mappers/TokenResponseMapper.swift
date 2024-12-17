@@ -11,7 +11,7 @@ enum TokenResponseMapper: ResponseMapper {
     static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> Token {
         try validate(response, with: data)
         
-        guard let tokenResponse = try? JSONDecoder().decode(TokenResponse.self, from: data) else {
+        guard let tokenResponse = try? decoder.decode(TokenResponse.self, from: data) else {
             throw MapperError.mapping
         }
         
