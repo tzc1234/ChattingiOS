@@ -1,5 +1,5 @@
 //
-//  AddContactEndpoint.swift
+//  NewContactEndpoint.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 17/12/2024.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct AddContactEndpoint: Endpoint {
+struct NewContactEndpoint: Endpoint {
     var path: String { apiPath + "contacts" }
     var httpMethod: HTTPMethod { .post }
     var headers: [String : String]? {
