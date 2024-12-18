@@ -7,22 +7,14 @@
 
 import Foundation
 
-final class RefreshToken {
-    private let client: HTTPClient
-    private let getRequest: (String) -> URLRequest
-    
-    init(client: HTTPClient, getRequest: @escaping (String) -> URLRequest) {
-        self.client = client
-        self.getRequest = getRequest
-    }
-    
+protocol RefreshToken {
+    func refresh(with token: String) async throws(UseCaseError) -> Token
+}
+
+typealias DefaultRefreshToken = GeneralUseCase<String, TokenResponseMapper>
+
+extension DefaultRefreshToken: RefreshToken {
     func refresh(with token: String) async throws(UseCaseError) -> Token {
-        let request = getRequest(token)
-        do {
-            let (data, response) = try await client.send(request)
-            return try TokenResponseMapper.map(data, response: response)
-        } catch {
-            throw .map(error)
-        }
+        try await perform(with: token)
     }
 }
