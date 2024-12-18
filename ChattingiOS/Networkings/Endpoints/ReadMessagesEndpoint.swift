@@ -14,7 +14,7 @@ struct ReadMessagesEndpoint: Endpoint {
         defaultHeaders.merging(["Authorization": "Bearer \(accessToken)"]) { $1 }
     }
     var body: Data? {
-        Data("{\"until_message_id\":\"\(params.untilMessageID)\"}".utf8)
+        Data("{\"until_message_id\":\(params.untilMessageID)}".utf8)
     }
     
     let apiConstants: APIConstants
