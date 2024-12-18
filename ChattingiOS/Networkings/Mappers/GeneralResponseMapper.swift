@@ -19,6 +19,7 @@ enum GeneralResponseMapper<R: Response>: ResponseMapper {
     }
 }
 
+typealias MessagesResponseMapper = GeneralResponseMapper<MessagesResponse>
 typealias ContactsResponseMapper = GeneralResponseMapper<ContactsResponse>
 typealias ContactResponseMapper = GeneralResponseMapper<ContactResponse>
 typealias TokenResponseMapper = GeneralResponseMapper<TokenResponse>
