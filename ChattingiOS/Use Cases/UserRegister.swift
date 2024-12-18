@@ -7,10 +7,14 @@
 
 import Foundation
 
-typealias UserRegister = GeneralUseCase<UserRegisterParams, UserTokenResponseMapper>
+protocol UserRegister {
+    func register(by params: UserRegisterParams) async throws(UseCaseError) -> (user: User, token: Token)
+}
 
-extension UserRegister {
-    func register(by params: Params) async throws(UseCaseError) -> Mapper.Model {
+typealias DefaultUserRegister = GeneralUseCase<UserRegisterParams, UserTokenResponseMapper>
+
+extension DefaultUserRegister: UserRegister {
+    func register(by params: UserRegisterParams) async throws(UseCaseError) -> (user: User, token: Token) {
         try await perform(with: params)
     }
 }

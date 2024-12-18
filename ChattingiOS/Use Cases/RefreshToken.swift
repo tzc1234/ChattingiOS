@@ -7,10 +7,14 @@
 
 import Foundation
 
-typealias RefreshToken = GeneralUseCase<String, TokenResponseMapper>
+protocol RefreshToken {
+    func refresh(with token: String) async throws(UseCaseError) -> Token
+}
 
-extension RefreshToken {
-    func refresh(with token: Params) async throws(UseCaseError) -> Mapper.Model {
+typealias DefaultRefreshToken = GeneralUseCase<String, TokenResponseMapper>
+
+extension DefaultRefreshToken: RefreshToken {
+    func refresh(with token: String) async throws(UseCaseError) -> Token {
         try await perform(with: token)
     }
 }

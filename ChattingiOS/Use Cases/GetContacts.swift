@@ -7,10 +7,14 @@
 
 import Foundation
 
-typealias GetContacts = GeneralUseCase<GetContactsParams, ContactsResponseMapper>
+protocol GetContacts {
+    func get(with params: GetContactsParams) async throws(UseCaseError) -> [Contact]
+}
 
-extension GetContacts {
-    func get(with params: Params) async throws(UseCaseError) -> Mapper.Model {
+typealias DefaultGetContacts = GeneralUseCase<GetContactsParams, ContactsResponseMapper>
+
+extension DefaultGetContacts: GetContacts {
+    func get(with params: GetContactsParams) async throws(UseCaseError) -> [Contact] {
         try await perform(with: params)
     }
 }

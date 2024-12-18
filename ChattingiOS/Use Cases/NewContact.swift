@@ -7,10 +7,14 @@
 
 import Foundation
 
-typealias NewContact = GeneralUseCase<String, ContactResponseMapper>
+protocol NewContact {
+    func add(by responderEmail: String) async throws(UseCaseError) -> Contact
+}
 
-extension NewContact {
-    func add(by responderEmail: Params) async throws(UseCaseError) -> Mapper.Model {
+typealias DefaultNewContact = GeneralUseCase<String, ContactResponseMapper>
+
+extension DefaultNewContact: NewContact {
+    func add(by responderEmail: String) async throws(UseCaseError) -> Contact {
         try await perform(with: responderEmail)
     }
 }

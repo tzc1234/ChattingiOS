@@ -7,10 +7,14 @@
 
 import Foundation
 
-typealias GetCurrentUser = GeneralUseCase<Void, UserResponseMapper>
+protocol GetCurrentUser {
+    func get() async throws(UseCaseError) -> User
+}
 
-extension GetCurrentUser {
-    func get() async throws(UseCaseError) -> Mapper.Model {
+typealias DefaultGetCurrentUser = GeneralUseCase<Void, UserResponseMapper>
+
+extension DefaultGetCurrentUser: GetCurrentUser {
+    func get() async throws(UseCaseError) -> User {
         try await perform(with: ())
     }
 }
