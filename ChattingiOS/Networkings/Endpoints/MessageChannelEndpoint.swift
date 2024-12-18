@@ -11,9 +11,7 @@ struct MessageChannelEndpoint: Endpoint {
     var scheme: String { apiConstants.webSocketScheme }
     var path: String { apiPath + "contacts/\(contactID)/messages/channel" }
     var httpMethod: HTTPMethod { .get }
-    var headers: [String: String]? {
-        defaultHeaders.merging(["Authorization": "Bearer \(accessToken)"]) { $1 }
-    }
+    var headers: [String: String]? { ["Authorization": "Bearer \(accessToken)"] }
     
     let apiConstants: APIConstants
     private let accessToken: String

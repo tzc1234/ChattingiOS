@@ -12,7 +12,8 @@ protocol WebSocketClient {
 }
 
 protocol WebSocketClientTask {
-    var receiveData: () async throws -> Data { get }
+    var receiveData: @Sendable () async throws -> Data { get }
+    var sendData: @Sendable (Data) async throws -> Void { get }
     
     func cancel()
 }
@@ -26,7 +27,8 @@ final class URLSessionWebSocketClient: WebSocketClient {
     
     private struct Wrapper: WebSocketClientTask {
         let task: URLSessionWebSocketTask
-        let receiveData: () async throws -> Data
+        let receiveData: @Sendable () async throws -> Data
+        let sendData: @Sendable (Data) async throws -> Void
         
         func cancel() {
             task.cancel(with: .normalClosure, reason: nil)
@@ -40,7 +42,11 @@ final class URLSessionWebSocketClient: WebSocketClient {
     func send(_ request: URLRequest) async throws -> WebSocketClientTask {
         let task = session.webSocketTask(with: request)
         task.resume()
-        return Wrapper(task: task) { try await Self.receiveData(from: task) }
+        return Wrapper(
+            task: task,
+            receiveData: { try await Self.receiveData(from: task) },
+            sendData: { try await Self.send($0, to: task) }
+        )
     }
     
     private static func receiveData(from task: URLSessionWebSocketTask) async throws -> Data {
@@ -48,9 +54,15 @@ final class URLSessionWebSocketClient: WebSocketClient {
         case .data(let data):
             return data
         case .string:
+            task.cancel(with: .unsupportedData, reason: nil)
             throw Error.invalidData
         @unknown default:
+            task.cancel(with: .unsupportedData, reason: nil)
             throw Error.invalidData
         }
+    }
+    
+    private static func send(_ data: Data, to task: URLSessionWebSocketTask) async throws {
+        try await task.send(.data(data))
     }
 }
