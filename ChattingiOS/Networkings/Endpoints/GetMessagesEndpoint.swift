@@ -9,7 +9,6 @@ import Foundation
 
 struct GetMessagesEndpoint: Endpoint {
     var path: String { apiPath + "contacts/\(params.contactID)/messages" }
-    var httpMethod: HTTPMethod { .get }
     var headers: [String: String]? {
         defaultHeaders.merging(["Authorization": "Bearer \(accessToken)"]) { $1 }
     }
