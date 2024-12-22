@@ -39,7 +39,7 @@ actor DefaultWebSocket {
         self.asyncChannel = asyncChannel
     }
     
-    func setObservers(dataObserver: @escaping DataObserver, errorObserver: @escaping ErrorObserver) async {
+    func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
         self.dataObserver = dataObserver
         self.errorObserver = errorObserver
         await handleChannel()
