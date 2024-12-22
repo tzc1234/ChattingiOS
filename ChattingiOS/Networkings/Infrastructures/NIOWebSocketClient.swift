@@ -103,13 +103,13 @@ actor DefaultWebSocket {
     }
 }
 
+enum UpgradeResult {
+    case webSocket(NIOAsyncChannel<WebSocketFrame, WebSocketFrame>)
+    case notUpgraded(status: HTTPResponseStatus)
+}
+
 // Reference: https://github.com/apple/swift-nio/blob/main/Sources/NIOWebSocketClient/Client.swift
 final class NIOWebSocketClient {
-    private enum UpgradeResult {
-        case webSocket(NIOAsyncChannel<WebSocketFrame, WebSocketFrame>)
-        case notUpgraded(statusCode: EventLoopFuture<HTTPResponseStatus>)
-    }
-    
     func connect(_ request: URLRequest) async throws(WebSocketClientError) -> DefaultWebSocket {
         guard let url = request.url,
               let host = url.host(),
@@ -118,18 +118,20 @@ final class NIOWebSocketClient {
             throw .invalidURL
         }
         
-        let upgradeResult: EventLoopFuture<UpgradeResult>
+        let group = MultiThreadedEventLoopGroup.singleton
+        let promise = group.next().makePromise(of: UpgradeResult.self)
+        
         do {
-            let bootstrap = ClientBootstrap(group: MultiThreadedEventLoopGroup.singleton)
-            upgradeResult = try await bootstrap.connect(host: host, port: port) { channel in
+            let bootstrap = ClientBootstrap(group: group)
+            let connect = try await bootstrap.connect(host: host, port: port) { channel in
                 channel.eventLoop.makeCompletedFuture {
-                    let upgrader = NIOTypedWebSocketClientUpgrader<UpgradeResult>(
+                    let upgrader = NIOTypedWebSocketClientUpgrader<Void>(
                         upgradePipelineHandler: { (channel, _) in
                             channel.eventLoop.makeCompletedFuture {
                                 let asyncChannel = try NIOAsyncChannel<WebSocketFrame, WebSocketFrame>(
                                     wrappingChannelSynchronously: channel
                                 )
-                                return UpgradeResult.webSocket(asyncChannel)
+                                promise.succeed(.webSocket(asyncChannel))
                             }
                         }
                     )
@@ -141,17 +143,11 @@ final class NIOWebSocketClient {
                         headers: HTTPHeaders([(.authorizationField, token)])
                     )
                     
-                    let clientUpgradeConfiguration = NIOTypedHTTPClientUpgradeConfiguration(
+                    let clientUpgradeConfiguration = NIOTypedHTTPClientUpgradeConfiguration<Void>(
                         upgradeRequestHead: requestHead,
                         upgraders: [upgrader],
                         notUpgradingCompletionHandler: { channel in
-                            let promise = channel.eventLoop.makePromise(of: HTTPResponseStatus.self)
-                            let handler = HTTPClientResponsePartHandler { promise.succeed($0) }
-                            _ = channel.pipeline.addHandler(handler)
-                            
-                            return channel.eventLoop.makeCompletedFuture {
-                                UpgradeResult.notUpgraded(statusCode: promise.futureResult)
-                            }
+                            channel.pipeline.addHandler(HTTPClientResponsePartHandler(promise: promise))
                         }
                     )
                     
@@ -164,35 +160,19 @@ final class NIOWebSocketClient {
                 }
             }
             
+            let upgradeResult = try await connect.flatMap { promise.futureResult }.get()
             return try await handleUpgradeResult(upgradeResult)
         } catch {
             throw .other(error)
         }
     }
     
-    private func handleUpgradeResult(_ futureUpgradeResult: EventLoopFuture<UpgradeResult>) async throws(WebSocketClientError) -> DefaultWebSocket {
-        switch try await getUpgradeResult(futureUpgradeResult) {
+    private func handleUpgradeResult(_ upgradeResult: UpgradeResult) async throws(WebSocketClientError) -> DefaultWebSocket {
+        switch upgradeResult {
         case .webSocket(let channel):
             return DefaultWebSocket(asyncChannel: channel)
-        case .notUpgraded(let futureStatus):
-            let status = try await getStatue(futureStatus)
+        case .notUpgraded(let status):
             throw mapError(from: status)
-        }
-    }
-    
-    private func getUpgradeResult(_ futureUpgradeResult: EventLoopFuture<UpgradeResult>) async throws(WebSocketClientError) -> UpgradeResult {
-        do {
-            return try await futureUpgradeResult.get()
-        } catch {
-            throw .other(error)
-        }
-    }
-    
-    private func getStatue(_ futureStatus: EventLoopFuture<HTTPResponseStatus>) async throws(WebSocketClientError) -> HTTPResponseStatus {
-        do {
-            return try await futureStatus.get()
-        } catch {
-            throw .other(error)
         }
     }
     
@@ -213,20 +193,21 @@ private extension String {
 private final class HTTPClientResponsePartHandler: ChannelInboundHandler {
     typealias InboundIn = HTTPClientResponsePart
     
-    private let status: (HTTPResponseStatus) -> Void
+    private let promise: EventLoopPromise<UpgradeResult>
     
-    init(_ status: @escaping (HTTPResponseStatus) -> Void) {
-        self.status = status
+    init(promise: EventLoopPromise<UpgradeResult>) {
+        self.promise = promise
     }
     
     func channelRead(context: ChannelHandlerContext, data: NIOAny) {
         let response = unwrapInboundIn(data)
         switch response {
         case .head(let responseHead):
-            status(responseHead.status)
+            promise.succeed(.notUpgraded(status: responseHead.status))
         case .body, .end:
             break
         }
+        
         context.fireChannelRead(data)
     }
 }
