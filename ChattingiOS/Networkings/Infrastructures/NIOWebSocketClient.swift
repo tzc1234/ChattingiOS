@@ -21,19 +21,21 @@ enum WebSocketClientError: Error {
     case other(Error)
 }
 
+typealias AsyncChannel = NIOAsyncChannel<WebSocketFrame, WebSocketFrame>
+
 actor DefaultWebSocket {
     typealias DataObserver = (Data?) throws -> Void
     typealias ErrorObserver = (WebSocketClientError) -> Void
     
-    var channel: Channel {
+    private var channel: Channel {
         asyncChannel.channel
     }
     
     private var dataObserver: DataObserver?
     private var errorObserver: ErrorObserver?
-    private let asyncChannel: NIOAsyncChannel<WebSocketFrame, WebSocketFrame>
+    private let asyncChannel: AsyncChannel
     
-    init(asyncChannel: NIOAsyncChannel<WebSocketFrame, WebSocketFrame>) {
+    init(asyncChannel: AsyncChannel) {
         self.asyncChannel = asyncChannel
     }
     
@@ -103,11 +105,6 @@ actor DefaultWebSocket {
     }
 }
 
-enum UpgradeResult {
-    case webSocket(NIOAsyncChannel<WebSocketFrame, WebSocketFrame>)
-    case notUpgraded(status: HTTPResponseStatus)
-}
-
 // Reference: https://github.com/apple/swift-nio/blob/main/Sources/NIOWebSocketClient/Client.swift
 final class NIOWebSocketClient {
     func connect(_ request: URLRequest) async throws(WebSocketClientError) -> DefaultWebSocket {
@@ -118,20 +115,17 @@ final class NIOWebSocketClient {
             throw .invalidURL
         }
         
-        let group = MultiThreadedEventLoopGroup.singleton
-        let promise = group.next().makePromise(of: UpgradeResult.self)
-        
         do {
+            let group = MultiThreadedEventLoopGroup.singleton
             let bootstrap = ClientBootstrap(group: group)
             let connect = try await bootstrap.connect(host: host, port: port) { channel in
                 channel.eventLoop.makeCompletedFuture {
+                    let promise = channel.eventLoop.makePromise(of: AsyncChannel.self)
+                    
                     let upgrader = NIOTypedWebSocketClientUpgrader<Void>(
                         upgradePipelineHandler: { (channel, _) in
                             channel.eventLoop.makeCompletedFuture {
-                                let asyncChannel = try NIOAsyncChannel<WebSocketFrame, WebSocketFrame>(
-                                    wrappingChannelSynchronously: channel
-                                )
-                                promise.succeed(.webSocket(asyncChannel))
+                                promise.succeed(try AsyncChannel(wrappingChannelSynchronously: channel))
                             }
                         }
                     )
@@ -156,32 +150,19 @@ final class NIOWebSocketClient {
                             configuration: .init(upgradeConfiguration: clientUpgradeConfiguration)
                         )
                     
-                    return negotiationResultFuture
+                    negotiationResultFuture.cascadeFailure(to: promise)
+                    return negotiationResultFuture.flatMap {
+                        promise.futureResult
+                    }
                 }
             }
             
-            let upgradeResult = try await connect.flatMap { promise.futureResult }.get()
-            return try await handleUpgradeResult(upgradeResult)
+            let asyncChannel = try await connect.get()
+            return DefaultWebSocket(asyncChannel: asyncChannel)
+        } catch let error as WebSocketClientError {
+            throw error
         } catch {
             throw .other(error)
-        }
-    }
-    
-    private func handleUpgradeResult(_ upgradeResult: UpgradeResult) async throws(WebSocketClientError) -> DefaultWebSocket {
-        switch upgradeResult {
-        case .webSocket(let channel):
-            return DefaultWebSocket(asyncChannel: channel)
-        case .notUpgraded(let status):
-            throw mapError(from: status)
-        }
-    }
-    
-    private func mapError(from status: HTTPResponseStatus) -> WebSocketClientError {
-        switch status {
-        case .unauthorized: .unauthorized
-        case .notFound: .notFound
-        case .forbidden: .forbidden
-        default: .unknown
         }
     }
 }
@@ -193,9 +174,9 @@ private extension String {
 private final class HTTPClientResponsePartHandler: ChannelInboundHandler {
     typealias InboundIn = HTTPClientResponsePart
     
-    private let promise: EventLoopPromise<UpgradeResult>
+    private let promise: EventLoopPromise<AsyncChannel>
     
-    init(promise: EventLoopPromise<UpgradeResult>) {
+    init(promise: EventLoopPromise<AsyncChannel>) {
         self.promise = promise
     }
     
@@ -203,11 +184,20 @@ private final class HTTPClientResponsePartHandler: ChannelInboundHandler {
         let response = unwrapInboundIn(data)
         switch response {
         case .head(let responseHead):
-            promise.succeed(.notUpgraded(status: responseHead.status))
+            promise.fail(mapError(responseHead.status))
         case .body, .end:
             break
         }
         
         context.fireChannelRead(data)
+    }
+    
+    private func mapError(_ status: HTTPResponseStatus) -> WebSocketClientError {
+        switch status {
+        case .unauthorized: .unauthorized
+        case .notFound: .notFound
+        case .forbidden: .forbidden
+        default: .unknown
+        }
     }
 }
