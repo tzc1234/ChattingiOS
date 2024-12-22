@@ -9,6 +9,7 @@ import Foundation
 import NIO
 import NIOHTTP1
 import NIOWebSocket
+import NIOFoundationCompat
 
 enum WebSocketClientError: Error {
     case invalidURL
@@ -16,7 +17,90 @@ enum WebSocketClientError: Error {
     case notFound
     case forbidden
     case unknown
+    case disconnected
     case other(Error)
+}
+
+actor DefaultWebSocket {
+    typealias DataObserver = (Data?) throws -> Void
+    typealias ErrorObserver = (WebSocketClientError) -> Void
+    
+    var channel: Channel {
+        asyncChannel.channel
+    }
+    
+    private var dataObserver: DataObserver?
+    private var errorObserver: ErrorObserver?
+    private let asyncChannel: NIOAsyncChannel<WebSocketFrame, WebSocketFrame>
+    
+    init(asyncChannel: NIOAsyncChannel<WebSocketFrame, WebSocketFrame>) {
+        self.asyncChannel = asyncChannel
+    }
+    
+    func setObservers(dataObserver: @escaping DataObserver, errorObserver: @escaping ErrorObserver) async {
+        self.dataObserver = dataObserver
+        self.errorObserver = errorObserver
+        await handleChannel()
+    }
+    
+    func close(code: WebSocketErrorCode) async throws {
+        try await sendClose(code: code)
+    }
+    
+    private func sendClose(code: WebSocketErrorCode) async throws {
+        let intCode = UInt16(webSocketErrorCode: code)
+        // Code 1005 and 1006 are used to report errors to the application, never send them out.
+        let codeToBeSent = if [1005, 1006].contains(intCode) {
+            WebSocketErrorCode.normalClosure
+        } else {
+            code
+        }
+        
+        var buffer = channel.allocator.buffer(capacity: 2)
+        buffer.write(webSocketErrorCode: codeToBeSent)
+        try await send(buffer: buffer, opcode: .connectionClose)
+    }
+    
+    func send(_ data: Data) async throws {
+        var buffer = channel.allocator.buffer(capacity: data.count)
+        buffer.writeBytes(data)
+        try await send(buffer: buffer, opcode: .binary)
+    }
+    
+    private func send(buffer: ByteBuffer, opcode: WebSocketOpcode, fin: Bool = true) async throws {
+        let frame = WebSocketFrame(fin: fin, opcode: opcode, data: buffer)
+        try await channel.writeAndFlush(frame)
+    }
+    
+    private func handleChannel() async {
+        do {
+            try await asyncChannel.executeThenClose { inbound, _ in
+                for try await frame in inbound {
+                    switch frame.opcode {
+                    case .binary:
+                        let data = Self.map(frame)
+                        try dataObserver?(data)
+                    case .connectionClose:
+                        errorObserver?(.disconnected)
+                        print("Received Close instruction from server.")
+                        return
+                    default:
+                        errorObserver?(.disconnected)
+                        return
+                    }
+                }
+            }
+        } catch {
+            errorObserver?(.other(error))
+        }
+    }
+    
+    private static func map(_ frame: WebSocketFrame) -> Data? {
+        var buffer = ByteBufferAllocator().buffer(capacity: 0)
+        var unmaskedData = frame.unmaskedData
+        buffer.writeBuffer(&unmaskedData)
+        return buffer.readData(length: buffer.readableBytes)
+    }
 }
 
 // Reference: https://github.com/apple/swift-nio/blob/main/Sources/NIOWebSocketClient/Client.swift
@@ -26,7 +110,7 @@ final class NIOWebSocketClient {
         case notUpgraded(statusCode: EventLoopFuture<HTTPResponseStatus>)
     }
     
-    func connect(_ request: URLRequest) async throws(WebSocketClientError) {
+    func connect(_ request: URLRequest) async throws(WebSocketClientError) -> DefaultWebSocket {
         guard let url = request.url,
               let host = url.host(),
               let port = url.port,
@@ -62,8 +146,8 @@ final class NIOWebSocketClient {
                         upgraders: [upgrader],
                         notUpgradingCompletionHandler: { channel in
                             let promise = channel.eventLoop.makePromise(of: HTTPResponseStatus.self)
-                            let hander = HTTPClientResponsePartHandler { promise.succeed($0) }
-                            _ = channel.pipeline.addHandler(hander)
+                            let handler = HTTPClientResponsePartHandler { promise.succeed($0) }
+                            _ = channel.pipeline.addHandler(handler)
                             
                             return channel.eventLoop.makeCompletedFuture {
                                 UpgradeResult.notUpgraded(statusCode: promise.futureResult)
@@ -79,17 +163,17 @@ final class NIOWebSocketClient {
                     return negotiationResultFuture
                 }
             }
+            
+            return try await handleUpgradeResult(upgradeResult)
         } catch {
             throw .other(error)
         }
-        
-        try await handleUpgradeResult(upgradeResult)
     }
     
-    private func handleUpgradeResult(_ futureUpgradeResult: EventLoopFuture<UpgradeResult>) async throws(WebSocketClientError) {
+    private func handleUpgradeResult(_ futureUpgradeResult: EventLoopFuture<UpgradeResult>) async throws(WebSocketClientError) -> DefaultWebSocket {
         switch try await getUpgradeResult(futureUpgradeResult) {
         case .webSocket(let channel):
-            print("Handling websocket connection")
+            return DefaultWebSocket(asyncChannel: channel)
         case .notUpgraded(let futureStatus):
             let status = try await getStatue(futureStatus)
             throw mapError(from: status)

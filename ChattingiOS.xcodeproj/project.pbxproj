@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BE2F75722D186E33003BCCD2 /* NIOFoundationCompat in Frameworks */ = {isa = PBXBuildFile; productRef = BE2F75712D186E33003BCCD2 /* NIOFoundationCompat */; };
 		BEA9F0042D145A6300A5CB22 /* NIO in Frameworks */ = {isa = PBXBuildFile; productRef = BEA9F0032D145A6300A5CB22 /* NIO */; };
 		BEA9F0062D145A6300A5CB22 /* NIOHTTP1 in Frameworks */ = {isa = PBXBuildFile; productRef = BEA9F0052D145A6300A5CB22 /* NIOHTTP1 */; };
 		BEA9F0082D145A6300A5CB22 /* NIOWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = BEA9F0072D145A6300A5CB22 /* NIOWebSocket */; };
@@ -29,6 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE2F75722D186E33003BCCD2 /* NIOFoundationCompat in Frameworks */,
 				BEA9F0042D145A6300A5CB22 /* NIO in Frameworks */,
 				BEA9F0062D145A6300A5CB22 /* NIOHTTP1 in Frameworks */,
 				BEA9F0082D145A6300A5CB22 /* NIOWebSocket in Frameworks */,
@@ -42,6 +44,7 @@
 			isa = PBXGroup;
 			children = (
 				BE206E892D088DDC007530E1 /* ChattingiOS */,
+				BE2F75702D186E33003BCCD2 /* Frameworks */,
 				BE206E882D088DDC007530E1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -52,6 +55,13 @@
 				BE206E872D088DDC007530E1 /* ChattingiOS.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BE2F75702D186E33003BCCD2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -77,6 +87,7 @@
 				BEA9F0032D145A6300A5CB22 /* NIO */,
 				BEA9F0052D145A6300A5CB22 /* NIOHTTP1 */,
 				BEA9F0072D145A6300A5CB22 /* NIOWebSocket */,
+				BE2F75712D186E33003BCCD2 /* NIOFoundationCompat */,
 			);
 			productName = ChattingiOS;
 			productReference = BE206E872D088DDC007530E1 /* ChattingiOS.app */;
@@ -362,6 +373,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		BE2F75712D186E33003BCCD2 /* NIOFoundationCompat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BEA9F0022D145A6300A5CB22 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIOFoundationCompat;
+		};
 		BEA9F0032D145A6300A5CB22 /* NIO */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = BEA9F0022D145A6300A5CB22 /* XCRemoteSwiftPackageReference "swift-nio" */;
