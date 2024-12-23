@@ -7,11 +7,24 @@
 
 import Foundation
 
+enum MessageChannelError: Error {
+    case invalidURL
+    case unauthorized
+    case notFound
+    case forbidden
+    case unknown
+    case disconnected
+    case other(Error)
+}
+
 protocol MessageChannelConnection {
     typealias MessageObserver = (Message?) throws -> Void
     typealias ErrorObserver = (MessageChannelError) -> Void
     
-    func setObservers(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async
+    var messageObserver: MessageObserver? { get set }
+    var errorObserver: ErrorObserver? { get set }
+    
+    func startObserving() async
     func send(text: String) async throws
     func close() async throws
 }
@@ -26,13 +39,16 @@ final class DefaultMessageChannel {
     }
     
     private struct Connection: MessageChannelConnection {
+        var messageObserver: MessageObserver?
+        var errorObserver: ErrorObserver?
+        
         private let webSocket: WebSocket
         
-        init(webSocket: WebSocket) async {
+        init(webSocket: WebSocket) {
             self.webSocket = webSocket
         }
         
-        func setObservers(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async {
+        func startObserving() async {
             await webSocket.setObservers { data in
                 guard let data else {
                     try messageObserver?(nil)
@@ -60,21 +76,11 @@ final class DefaultMessageChannel {
         let request = getRequest(contactID)
         do {
             let webSocket = try await client.connect(request)
-            return await Connection(webSocket: webSocket)
+            return Connection(webSocket: webSocket)
         } catch {
             throw error.toMessageChannelError
         }
     }
-}
-
-enum MessageChannelError: Error {
-    case invalidURL
-    case unauthorized
-    case notFound
-    case forbidden
-    case unknown
-    case disconnected
-    case other(Error)
 }
 
 private extension WebSocketClientError {
