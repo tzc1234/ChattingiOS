@@ -28,7 +28,7 @@ actor DefaultWebSocket: WebSocket {
     }
     
     func close() async throws {
-        try await sendClose(code: .goingAway)
+        try await sendClose(code: .normalClosure)
     }
     
     private func sendClose(code: WebSocketErrorCode) async throws {
