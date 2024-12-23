@@ -51,8 +51,6 @@ final class DefaultMessageChannel {
         
         func startObserving() async {
             await webSocket.setObservers { data in
-                guard let data else { return }
-                
                 do {
                     let message = try MessageChannelReceivedMessageMapper.map(data)
                     messageObserver?(message)

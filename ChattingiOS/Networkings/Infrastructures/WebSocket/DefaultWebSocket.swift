@@ -78,10 +78,7 @@ actor DefaultWebSocket: WebSocket {
         }
     }
     
-    private static func map(_ frame: WebSocketFrame) -> Data? {
-        var buffer = ByteBufferAllocator().buffer(capacity: 0)
-        var unmaskedData = frame.unmaskedData
-        buffer.writeBuffer(&unmaskedData)
-        return buffer.readData(length: buffer.readableBytes)
+    private static func map(_ frame: WebSocketFrame) -> Data {
+        Data(buffer: frame.data)
     }
 }
