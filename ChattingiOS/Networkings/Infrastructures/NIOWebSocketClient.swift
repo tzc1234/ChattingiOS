@@ -11,22 +11,9 @@ import NIOHTTP1
 import NIOWebSocket
 import NIOFoundationCompat
 
-enum WebSocketClientError: Error {
-    case invalidURL
-    case unauthorized
-    case notFound
-    case forbidden
-    case unknown
-    case disconnected
-    case other(Error)
-}
-
 typealias AsyncChannel = NIOAsyncChannel<WebSocketFrame, WebSocketFrame>
 
-actor DefaultWebSocket {
-    typealias DataObserver = (Data?) throws -> Void
-    typealias ErrorObserver = (WebSocketClientError) -> Void
-    
+actor DefaultWebSocket: WebSocket {
     private var channel: Channel {
         asyncChannel.channel
     }
@@ -45,8 +32,8 @@ actor DefaultWebSocket {
         await handleChannel()
     }
     
-    func close(code: WebSocketErrorCode) async throws {
-        try await sendClose(code: code)
+    func close() async throws {
+        try await sendClose(code: .goingAway)
     }
     
     private func sendClose(code: WebSocketErrorCode) async throws {
@@ -63,7 +50,7 @@ actor DefaultWebSocket {
         try await send(buffer: buffer, opcode: .connectionClose)
     }
     
-    func send(_ data: Data) async throws {
+    func send(data: Data) async throws {
         var buffer = channel.allocator.buffer(capacity: data.count)
         buffer.writeBytes(data)
         try await send(buffer: buffer, opcode: .binary)
@@ -106,8 +93,8 @@ actor DefaultWebSocket {
 }
 
 // Reference: https://github.com/apple/swift-nio/blob/main/Sources/NIOWebSocketClient/Client.swift
-final class NIOWebSocketClient {
-    func connect(_ request: URLRequest) async throws(WebSocketClientError) -> DefaultWebSocket {
+final class NIOWebSocketClient: WebSocketClient {
+    func connect(_ request: URLRequest) async throws(WebSocketClientError) -> WebSocket {
         guard let url = request.url,
               let host = url.host(),
               let port = url.port,

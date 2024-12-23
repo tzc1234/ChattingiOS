@@ -7,13 +7,16 @@
 
 import Foundation
 
-enum MessageChannelError: Error {
-    case connectivity
+protocol MessageChannelConnection {
+    typealias MessageObserver = (Message?) throws -> Void
+    typealias ErrorObserver = (MessageChannelError) -> Void
+    
+    func setObservers(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async
+    func send(text: String) async throws
+    func close() async throws
 }
 
 final class DefaultMessageChannel {
-    private(set) var webSocketTask: WebSocketClientTask?
-    
     private let client: WebSocketClient
     private let getRequest: (Int) -> URLRequest
     
@@ -22,36 +25,75 @@ final class DefaultMessageChannel {
         self.getRequest = getRequest
     }
     
-    func establish(for contactID: Int) async throws(MessageChannelError) -> AsyncThrowingStream<Message, Error> {
+    private struct Connection: MessageChannelConnection {
+        private let webSocket: WebSocket
+        
+        init(webSocket: WebSocket) async {
+            self.webSocket = webSocket
+        }
+        
+        func setObservers(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async {
+            await webSocket.setObservers { data in
+                guard let data else {
+                    try messageObserver?(nil)
+                    return
+                }
+                
+                let message = try MessageChannelReceivedMessageMapper.map(data)
+                try messageObserver?(message)
+            } errorObserver: { error in
+                errorObserver?(error.toMessageChannelError)
+            }
+        }
+        
+        func send(text: String) async throws {
+            let data = MessageChannelSentTextMapper.map(text)
+            try await webSocket.send(data: data)
+        }
+        
+        func close() async throws {
+            try await webSocket.close()
+        }
+    }
+    
+    func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
         let request = getRequest(contactID)
         do {
-            let webSocketTask = try await client.send(request)
-            self.webSocketTask = webSocketTask
-            return makeStream(from: webSocketTask)
+            let webSocket = try await client.connect(request)
+            return await Connection(webSocket: webSocket)
         } catch {
-            throw .connectivity
+            throw error.toMessageChannelError
         }
     }
-    
-    private func makeStream(from webSocketTask: WebSocketClientTask) -> AsyncThrowingStream<Message, Error> {
-        AsyncThrowingStream { [receiveData = webSocketTask.receiveData] in
-            let data = try await receiveData()
-            let message = try MessageChannelReceivedMessageMapper.map(data)
-            return Task.isCancelled ? nil : message
+}
+
+enum MessageChannelError: Error {
+    case invalidURL
+    case unauthorized
+    case notFound
+    case forbidden
+    case unknown
+    case disconnected
+    case other(Error)
+}
+
+private extension WebSocketClientError {
+    var toMessageChannelError: MessageChannelError {
+        switch self {
+        case .invalidURL:
+            .invalidURL
+        case .unauthorized:
+            .unauthorized
+        case .notFound:
+            .notFound
+        case .forbidden:
+            .forbidden
+        case .unknown:
+            .unknown
+        case .disconnected:
+            .disconnected
+        case .other(let error):
+            .other(error)
         }
-    }
-    
-    func send(_ text: String) async throws(MessageChannelError) {
-        guard let task = webSocketTask else { throw .connectivity }
-        
-        do {
-            try await task.sendData(MessageChannelSentTextMapper.map(text))
-        } catch {
-            throw .connectivity
-        }
-    }
-    
-    deinit {
-        webSocketTask?.cancel()
     }
 }
