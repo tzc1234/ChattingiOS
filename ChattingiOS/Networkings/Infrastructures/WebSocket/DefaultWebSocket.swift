@@ -62,7 +62,7 @@ actor DefaultWebSocket: WebSocket {
                 for try await frame in inbound {
                     switch frame.opcode {
                     case .binary:
-                        dataObserver?(Self.map(frame))
+                        dataObserver?(frame.toData)
                     case .connectionClose:
                         errorObserver?(.disconnected)
                         return // return to close channel
@@ -77,8 +77,10 @@ actor DefaultWebSocket: WebSocket {
             errorObserver?(.other(error))
         }
     }
-    
-    private static func map(_ frame: WebSocketFrame) -> Data {
-        Data(buffer: frame.data)
+}
+
+private extension WebSocketFrame {
+    var toData: Data {
+        Data(buffer: data)
     }
 }
