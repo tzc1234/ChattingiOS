@@ -62,10 +62,10 @@ actor DefaultWebSocket: WebSocket {
                 for try await frame in inbound {
                     switch frame.opcode {
                     case .binary:
-                        try dataObserver?(Self.map(frame))
+                        dataObserver?(Self.map(frame))
                     case .connectionClose:
                         errorObserver?(.disconnected)
-                        return
+                        return // return to close channel
                     case .ping, .pong:
                         break
                     default:

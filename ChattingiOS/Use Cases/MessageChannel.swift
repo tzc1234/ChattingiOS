@@ -14,11 +14,12 @@ enum MessageChannelError: Error {
     case forbidden
     case unknown
     case disconnected
+    case decoding
     case other(Error)
 }
 
 protocol MessageChannelConnection {
-    typealias MessageObserver = (Message?) throws -> Void
+    typealias MessageObserver = (Message) -> Void
     typealias ErrorObserver = (MessageChannelError) -> Void
     
     var messageObserver: MessageObserver? { get set }
@@ -50,13 +51,14 @@ final class DefaultMessageChannel {
         
         func startObserving() async {
             await webSocket.setObservers { data in
-                guard let data else {
-                    try messageObserver?(nil)
-                    return
-                }
+                guard let data else { return }
                 
-                let message = try MessageChannelReceivedMessageMapper.map(data)
-                try messageObserver?(message)
+                do {
+                    let message = try MessageChannelReceivedMessageMapper.map(data)
+                    messageObserver?(message)
+                } catch {
+                    errorObserver?(.decoding)
+                }
             } errorObserver: { error in
                 errorObserver?(error.toMessageChannelError)
             }
