@@ -68,7 +68,6 @@ actor DefaultWebSocket: WebSocket {
                         try dataObserver?(data)
                     case .connectionClose:
                         errorObserver?(.disconnected)
-                        print("Received Close instruction from server.")
                         return
                     default:
                         errorObserver?(.disconnected)
