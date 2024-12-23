@@ -11,9 +11,7 @@ import NIOWebSocket
 import NIOFoundationCompat
 
 actor DefaultWebSocket: WebSocket {
-    private var channel: Channel {
-        asyncChannel.channel
-    }
+    private var channel: Channel { asyncChannel.channel }
     
     private var dataObserver: DataObserver?
     private var errorObserver: ErrorObserver?
@@ -64,14 +62,14 @@ actor DefaultWebSocket: WebSocket {
                 for try await frame in inbound {
                     switch frame.opcode {
                     case .binary:
-                        let data = Self.map(frame)
-                        try dataObserver?(data)
+                        try dataObserver?(Self.map(frame))
                     case .connectionClose:
                         errorObserver?(.disconnected)
                         return
+                    case .ping, .pong:
+                        break
                     default:
-                        errorObserver?(.disconnected)
-                        return
+                        try await sendClose(code: .unacceptableData)
                     }
                 }
             }
