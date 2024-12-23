@@ -18,6 +18,10 @@ enum MessageChannelError: Error {
     case other(Error)
 }
 
+protocol MessageChannel {
+    func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection
+}
+
 protocol MessageChannelConnection {
     typealias MessageObserver = (Message) -> Void
     typealias ErrorObserver = (MessageChannelError) -> Void
@@ -30,7 +34,7 @@ protocol MessageChannelConnection {
     func close() async throws
 }
 
-final class DefaultMessageChannel {
+final class DefaultMessageChannel: MessageChannel {
     private let client: WebSocketClient
     private let getRequest: (Int) -> URLRequest
     
