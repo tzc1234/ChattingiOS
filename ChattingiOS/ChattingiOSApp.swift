@@ -9,22 +9,21 @@ import SwiftUI
 
 final class DependenciesContainer {
     private let httpClient = URLSessionHTTPClient(session: .shared)
-    private lazy var userSignIn = DefaultUserSign(client: httpClient) { try UserSignInEndpoint(params: $0).request }
-    private lazy var signInViewModel = SignInViewModel { params throws(UseCaseError) in
-        let user = try await self.userSignIn.signIn(with: params)
-        print("user: \(user)")
-    }
-    private(set) lazy var flow = Flow(signInView: SignInView(viewModel: signInViewModel, signUpTapped: {}))
+    private(set) lazy var userSignIn = DefaultUserSign(client: httpClient) { try UserSignInEndpoint(params: $0).request }
 }
-
 
 @main
 struct ChattingiOSApp: App {
-    private let dependenciesContainer = DependenciesContainer()
+    private let dependencies = DependenciesContainer()
+    private let flow: Flow
+    
+    init() {
+        flow = Flow(dependencies: dependencies)
+    }
     
     var body: some Scene {
         WindowGroup {
-            dependenciesContainer.flow.startView()
+            flow.startView()
         }
     }
 }

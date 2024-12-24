@@ -28,23 +28,36 @@ final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
     private var showSheet: (() -> AnyView)?
     
-    private let signInView: SignInView
+    private let dependencies: DependenciesContainer
     
-    init(signInView: SignInView) {
-        self.signInView = signInView
+    init(dependencies: DependenciesContainer) {
+        self.dependencies = dependencies
     }
     
-    @ViewBuilder
     func startView() -> some View {
         NavigationControlView(
             viewModel: navigationControlViewModel,
             content: { [weak self] in
-                self?.signInView
+                self?.signInView()
             },
             sheet: { [weak self] in
                 self?.showSheet?()
             }
         )
+    }
+    
+    private func signInView() -> SignInView {
+        let viewModel = SignInViewModel { [userSignIn = dependencies.userSignIn] params throws(UseCaseError) in
+            let user = try await userSignIn.signIn(with: params)
+            print("user: \(user)")
+        }
+        return SignInView(viewModel: viewModel, signUpTapped: {})
+    }
+}
+
+extension View {
+    func navigationDestinationFor<V: View>(_ viewType: V.Type) -> some View {
+        modifier(NavigationDestinationViewModifier<V>())
     }
 }
 
@@ -52,11 +65,5 @@ struct NavigationDestinationViewModifier<V: View>: ViewModifier {
     func body(content: Content) -> some View {
         content
             .navigationDestination(for: NavigationDestination<V>.self) { $0.view }
-    }
-}
-
-extension View {
-    func navigationDestinationFor<V: View>(_ viewType: V.Type) -> some View {
-        modifier(NavigationDestinationViewModifier<V>())
     }
 }
