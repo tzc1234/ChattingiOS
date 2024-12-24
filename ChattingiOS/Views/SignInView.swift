@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SignInView: View {
     @ObservedObject var viewModel: SignInViewModel
-    let signInTapped: () -> Void
     let signUpTapped: () -> Void
     
     var body: some View {
@@ -19,7 +18,7 @@ struct SignInView: View {
             emailError: viewModel.emailError,
             passwordError: viewModel.passwordError,
             isLoading: viewModel.isLoading,
-            signInTapped: signInTapped,
+            signInTapped: viewModel.signIn,
             signUpTapped: signUpTapped
         )
     }

@@ -11,7 +11,7 @@ final class GeneralUseCase<Params, Mapper: ResponseMapper> {
     private let client: HTTPClient
     private let getRequest: (Params) throws -> URLRequest
     
-    init(client: HTTPClient, getRequest: @escaping (Params) -> URLRequest) {
+    init(client: HTTPClient, getRequest: @escaping (Params) throws -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
