@@ -8,19 +8,38 @@
 import SwiftUI
 
 struct SignInView: View {
+    @ObservedObject var viewModel: SignInViewModel
+    let signInTapped: () -> Void
+    let signUpTapped: () -> Void
+    
+    var body: some View {
+        SignInContentView(
+            email: $viewModel.email,
+            password: $viewModel.password,
+            emailError: viewModel.emailError,
+            passwordError: viewModel.passwordError,
+            isLoading: viewModel.isLoading,
+            signInTapped: signInTapped,
+            signUpTapped: signUpTapped
+        )
+    }
+}
+
+struct SignInContentView: View {
     private enum FocusedField: CaseIterable {
-        case email
-        case password
+        case email, password
     }
     
-    @State var email = ""
-    @State var password = ""
-    @State var signUpTapped = false
-    @State var keyboardHeight: CGFloat = 0
+    @Binding var email: String
+    @Binding var password: String
+    let emailError: String?
+    let passwordError: String?
+    let isLoading: Bool
+    let signInTapped: () -> Void
+    let signUpTapped: () -> Void
     
+    @State private var keyboardHeight: CGFloat = 0
     @FocusState private var focused: FocusedField?
-    
-    @Binding var isSignedIn: Bool
     
     var body: some View {
         ZStack {
@@ -42,7 +61,8 @@ struct SignInView: View {
                         placeholder: "Email",
                         text: $email,
                         keyboardType: .emailAddress,
-                        textContentType: .emailAddress
+                        textContentType: .emailAddress,
+                        error: emailError
                     )
                     .focused($focused, equals: .email)
                     .submitLabel(.next)
@@ -50,15 +70,18 @@ struct SignInView: View {
                         focused?.onNext()
                     }
                     
-                    CTSecureField(placeholder: "Password", text: $password, textContentType: .password)
-                        .focused($focused, equals: .password)
+                    CTSecureField(
+                        placeholder: "Password",
+                        text: $password,
+                        textContentType: .password,
+                        error: passwordError
+                    )
+                    .focused($focused, equals: .password)
                     
                     Button {
-                        withAnimation {
-                            isSignedIn = true
-                        }
+                        withAnimation { signInTapped() }
                     } label: {
-                        Text("Sign In")
+                        loadingButtonLabel(title: "Sign In")
                             .font(.headline)
                             .foregroundStyle(.background)
                             .frame(maxWidth: .infinity)
@@ -66,9 +89,7 @@ struct SignInView: View {
                             .background(.ctOrange, in: .rect(cornerRadius: 8))
                     }
                     
-                    Button {
-                        signUpTapped.toggle()
-                    } label: {
+                    Button(action: signUpTapped) {
                         Text("Sign Up")
                             .font(.headline)
                             .foregroundStyle(.background)
@@ -84,16 +105,33 @@ struct SignInView: View {
                     .fill(.background)
             )
             .padding(24)
+            .disabled(isLoading)
+            .brightness(isLoading ? -0.15 : 0)
         }
         .keyboardHeight($keyboardHeight)
         .offset(y: -keyboardHeight / 2)
         .ignoresSafeArea()
-        .sheet(isPresented: $signUpTapped) {
-            SignUpView()
+    }
+    
+    @ViewBuilder
+    private func loadingButtonLabel(title: String) -> some View {
+        if isLoading {
+            ProgressView()
+                .tint(.white)
+        } else {
+            Text(title)
         }
     }
 }
 
 #Preview {
-    SignInView(isSignedIn: .constant(false))
+    SignInContentView(
+        email: .constant(""),
+        password: .constant(""),
+        emailError: nil,
+        passwordError: nil,
+        isLoading: false,
+        signInTapped: {},
+        signUpTapped: {}
+    )
 }

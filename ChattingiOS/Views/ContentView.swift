@@ -7,11 +7,15 @@
 
 import SwiftUI
 
+final class ContentViewModel: ObservableObject {
+    @Published var isSignedIn = false
+}
+
 struct ContentView: View {
-    @State var isSignedIn = false
+    @StateObject var viewModel = ContentViewModel()
     
     var body: some View {
-        if isSignedIn {
+        if viewModel.isSignedIn {
             TabView {
                 NavigationStack {
                     ContactListView()
@@ -27,7 +31,7 @@ struct ContentView: View {
             }
             .tint(.ctOrange)
         } else {
-            SignInView(isSignedIn: $isSignedIn)
+            
         }
     }
 }

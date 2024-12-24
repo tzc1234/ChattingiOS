@@ -11,10 +11,10 @@ final class SignInViewModel: ObservableObject {
     @Published var email = ""
     @Published var password = ""
     @Published var generalError: String = ""
-    @Published private(set) var emailError: String = ""
-    @Published private(set) var passwordError: String = ""
+    @Published private(set) var emailError: String?
+    @Published private(set) var passwordError: String?
     @Published private(set) var isLoading = false
-    @Published private(set) var isSignIn = false
+    @Published private(set) var isSignInSuccess = false
     
     private var canSignIn: Bool {
         isEmailValid() && isPasswordValid()
@@ -34,7 +34,7 @@ final class SignInViewModel: ObservableObject {
         Task { @MainActor in
             do {
                 try await userSignIn(param)
-                isSignIn = true
+                isSignInSuccess = true
             } catch let error as UseCaseError {
                 generalError = error.toGeneralErrorMessage()
             }
@@ -51,17 +51,17 @@ final class SignInViewModel: ObservableObject {
             return false
         }
         
-        emailError = ""
+        emailError = nil
         return true
     }
     
     private func isPasswordValid() -> Bool {
         guard password.count >= 3 else {
-            passwordError = "Password should contain 3 or more characters."
+            passwordError = "Password should be 3 or more characters."
             return false
         }
         
-        passwordError = ""
+        passwordError = nil
         return true
     }
 }
