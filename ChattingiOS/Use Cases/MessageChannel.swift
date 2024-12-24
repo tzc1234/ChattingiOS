@@ -14,7 +14,7 @@ enum MessageChannelError: Error {
     case forbidden
     case unknown
     case disconnected
-    case decoding
+    case unsupportedData
     case other(Error)
 }
 
@@ -59,7 +59,7 @@ final class DefaultMessageChannel: MessageChannel {
                     let message = try MessageChannelReceivedMessageMapper.map(data)
                     messageObserver?(message)
                 } catch {
-                    errorObserver?(.decoding)
+                    errorObserver?(.unsupportedData)
                 }
             } errorObserver: { error in
                 errorObserver?(error.toMessageChannelError)
@@ -102,6 +102,8 @@ private extension WebSocketClientError {
             .unknown
         case .disconnected:
             .disconnected
+        case .unsupportedData:
+            .unsupportedData
         case .other(let error):
             .other(error)
         }

@@ -27,5 +27,6 @@ enum WebSocketClientError: Error {
     case forbidden
     case unknown
     case disconnected
+    case unsupportedData
     case other(Error)
 }

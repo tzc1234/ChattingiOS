@@ -68,6 +68,8 @@ actor DefaultWebSocket: WebSocket {
                         return // return to close channel
                     case .ping, .pong:
                         break
+                    case .continuation, .text:
+                        errorObserver?(.unsupportedData)
                     default:
                         try await sendClose(code: .unacceptableData)
                     }
