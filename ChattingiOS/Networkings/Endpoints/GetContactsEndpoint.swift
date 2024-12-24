@@ -9,7 +9,6 @@ import Foundation
 
 struct GetContactsEndpoint: Endpoint {
     var path: String { apiPath + "contacts" }
-    var httpMethod: HTTPMethod { .get }
     var headers: [String: String]? {
         defaultHeaders.merging(["Authorization": "Bearer \(accessToken)"]) { $1 }
     }
