@@ -1,5 +1,5 @@
 //
-//  CurrentUserVault.swift
+//  CurrentUserCredentialVault.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 25/12/2024.
@@ -8,11 +8,11 @@
 import Foundation
 import Security
 
-actor CurrentUserVault {
+actor CurrentUserCredentialVault {
     private let defaults = UserDefaults.standard
 }
 
-extension CurrentUserVault {
+extension CurrentUserCredentialVault {
     private struct CodableUser: Codable {
         let id: Int
         let name: String
@@ -49,7 +49,7 @@ extension CurrentUserVault {
     }
 }
 
-extension CurrentUserVault {
+extension CurrentUserCredentialVault {
     private struct CodableToken: Codable {
         let accessToken: String
         let refreshToken: String
@@ -72,7 +72,7 @@ extension CurrentUserVault {
     private static var tokenKey: String { "token" }
     
     func saveToken(_ token: Token) throws {
-        let data = try map(token)
+        let data = try JSONEncoder().encode(CodableToken(token))
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: Self.tokenKey,
@@ -83,12 +83,8 @@ extension CurrentUserVault {
         if status == errSecDuplicateItem {
             try updateToken(data: data)
         } else if status != errSecSuccess {
-            throw CurrentUserVault.Error.saveTokenFail
+            throw CurrentUserCredentialVault.Error.saveTokenFail
         }
-    }
-    
-    private func map(_ token: Token) throws -> Data {
-        try JSONEncoder().encode(CodableToken(token))
     }
     
     private func updateToken(data: Data) throws {
@@ -103,7 +99,7 @@ extension CurrentUserVault {
         
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         if status != errSecSuccess {
-            throw CurrentUserVault.Error.saveTokenFail
+            throw CurrentUserCredentialVault.Error.saveTokenFail
         }
     }
     
@@ -134,7 +130,7 @@ extension CurrentUserVault {
         
         let status = SecItemDelete(query as CFDictionary)
         if status != errSecSuccess {
-            throw CurrentUserVault.Error.deleteTokenFail
+            throw CurrentUserCredentialVault.Error.deleteTokenFail
         }
     }
 }
