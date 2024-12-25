@@ -13,7 +13,7 @@ import NIOWebSocket
 typealias AsyncChannel = NIOAsyncChannel<WebSocketFrame, Never>
 
 // Reference: https://github.com/apple/swift-nio/blob/main/Sources/NIOWebSocketClient/Client.swift
-final class NIOWebSocketClient: WebSocketClient {
+actor NIOWebSocketClient: WebSocketClient {
     func connect(_ request: URLRequest) async throws(WebSocketClientError) -> WebSocket {
         guard let url = request.url,
               let host = url.host(),

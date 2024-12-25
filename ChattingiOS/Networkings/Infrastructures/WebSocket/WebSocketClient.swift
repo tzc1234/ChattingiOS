@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol WebSocketClient {
+protocol WebSocketClient: Sendable {
     func connect(_ request: URLRequest) async throws(WebSocketClientError) -> WebSocket
 }
 

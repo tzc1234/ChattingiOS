@@ -18,7 +18,7 @@ enum MessageChannelError: Error {
     case other(Error)
 }
 
-protocol MessageChannel {
+protocol MessageChannel: Sendable {
     func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection
 }
 
@@ -34,11 +34,11 @@ protocol MessageChannelConnection: Sendable {
     func close() async throws
 }
 
-final class DefaultMessageChannel: MessageChannel {
+actor DefaultMessageChannel: MessageChannel {
     private let client: WebSocketClient
-    private let getRequest: (Int) async -> URLRequest
+    private let getRequest: @Sendable (Int) -> URLRequest
     
-    init(client: WebSocketClient, getRequest: @escaping (Int) async -> URLRequest) {
+    init(client: WebSocketClient, getRequest: @escaping @Sendable (Int) -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
@@ -77,7 +77,7 @@ final class DefaultMessageChannel: MessageChannel {
     }
     
     func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
-        let request = await getRequest(contactID)
+        let request = getRequest(contactID)
         do {
             let webSocket = try await client.connect(request)
             return Connection(webSocket: webSocket)
