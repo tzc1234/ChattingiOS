@@ -5,6 +5,7 @@
 //  Created by Tsz-Lung on 11/12/2024.
 //
 
+import PhotosUI
 import SwiftUI
 
 struct SignUpView: View {
@@ -20,6 +21,9 @@ struct SignUpView: View {
     @State var password = ""
     @State var confirmPassword = ""
     
+    @State private var avatarItem: PhotosPickerItem?
+    @State private var avatarUIImage: UIImage?
+    
     @Environment(\.dismiss) private var dismiss
     @State private var keyboardHeight: CGFloat = 0
     @FocusState private var focused: FocusedField?
@@ -29,14 +33,26 @@ struct SignUpView: View {
             Color.ctBlue
             
             VStack(spacing: 0) {
-                Button {
-                    print("Add avatar taped.")
-                } label: {
-                    Image(systemName: "person.fill.badge.plus")
-                        .font(.system(size: 85).weight(.ultraLight))
-                        .foregroundStyle(.foreground.opacity(0.8))
-                        .padding(.top, 16)
+                ZStack {
+                    avatarImage()
+                        .frame(width: 100, height: 100, alignment: .center)
+                        .clipShape(.circle)
+                    
+                    PhotosPicker(selection: $avatarItem, matching: .images, preferredItemEncoding: .automatic) {
+                        Image(systemName: "photo.circle")
+                            .font(.system(size: 30).weight(.regular))
+                            .foregroundStyle(.ctOrange)
+                            .frame(width: 105, height: 105, alignment: .bottomTrailing)
+                    }
+                    .onChange(of: avatarItem) { newValue in
+                        Task {
+                            if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                avatarUIImage = UIImage(data: data)
+                            }
+                        }
+                    }
                 }
+                .padding()
 
                 VStack(spacing: 12) {
                     CTTextField(placeholder: "Name", text: $name, textContentType: .name)
@@ -95,6 +111,19 @@ struct SignUpView: View {
         .keyboardHeight($keyboardHeight)
         .offset(y: -keyboardHeight / 2)
         .ignoresSafeArea()
+    }
+    
+    @ViewBuilder
+    private func avatarImage() -> some View {
+        if let avatarUIImage {
+            Image(uiImage: avatarUIImage)
+                .resizable()
+                .scaledToFill()
+        } else {
+            Image(systemName: "person.fill")
+                .font(.system(size: 75).weight(.ultraLight))
+                .foregroundStyle(Color(uiColor: .systemGray))
+        }
     }
 }
 
