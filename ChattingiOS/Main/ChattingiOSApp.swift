@@ -7,13 +7,6 @@
 
 import SwiftUI
 
-final class DependenciesContainer {
-    private let httpClient = URLSessionHTTPClient(session: .shared)
-    private(set) lazy var userSignIn: UserSignIn = DefaultUserSign(client: httpClient) {
-        try UserSignInEndpoint(params: $0).request
-    }
-}
-
 @main
 struct ChattingiOSApp: App {
     private let dependencies = DependenciesContainer()
