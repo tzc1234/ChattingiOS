@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class GeneralUseCase<Params, Mapper: ResponseMapper> {
+actor GeneralUseCase<Params, Mapper: ResponseMapper> {
     private let client: HTTPClient
     private let getRequest: (Params) throws -> URLRequest
     

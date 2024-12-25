@@ -10,7 +10,7 @@ import NIO
 import NIOHTTP1
 import NIOWebSocket
 
-typealias AsyncChannel = NIOAsyncChannel<WebSocketFrame, WebSocketFrame>
+typealias AsyncChannel = NIOAsyncChannel<WebSocketFrame, Never>
 
 // Reference: https://github.com/apple/swift-nio/blob/main/Sources/NIOWebSocketClient/Client.swift
 final class NIOWebSocketClient: WebSocketClient {

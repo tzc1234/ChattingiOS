@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol UserSignIn {
+protocol UserSignIn: Sendable {
     func signIn(with params: UserSignInParams) async throws(UseCaseError) -> (user: User, token: Token)
 }
 

@@ -22,9 +22,9 @@ protocol MessageChannel {
     func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection
 }
 
-protocol MessageChannelConnection {
-    typealias MessageObserver = (Message) -> Void
-    typealias ErrorObserver = (MessageChannelError) -> Void
+protocol MessageChannelConnection: Sendable {
+    typealias MessageObserver = @Sendable (Message) -> Void
+    typealias ErrorObserver = @Sendable (MessageChannelError) -> Void
     
     var messageObserver: MessageObserver? { get set }
     var errorObserver: ErrorObserver? { get set }
@@ -36,9 +36,9 @@ protocol MessageChannelConnection {
 
 final class DefaultMessageChannel: MessageChannel {
     private let client: WebSocketClient
-    private let getRequest: (Int) -> URLRequest
+    private let getRequest: (Int) async -> URLRequest
     
-    init(client: WebSocketClient, getRequest: @escaping (Int) -> URLRequest) {
+    init(client: WebSocketClient, getRequest: @escaping (Int) async -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
@@ -77,7 +77,7 @@ final class DefaultMessageChannel: MessageChannel {
     }
     
     func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
-        let request = getRequest(contactID)
+        let request = await getRequest(contactID)
         do {
             let webSocket = try await client.connect(request)
             return Connection(webSocket: webSocket)

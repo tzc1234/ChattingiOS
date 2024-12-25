@@ -26,13 +26,14 @@ final class SignInViewModel: ObservableObject {
         self.userSignIn = userSignIn
     }
     
+    @MainActor
     func signIn() {
         guard canSignIn else { return }
         
         isLoading = true
-        let param = UserSignInParams(email: email, password: password)
-        Task { @MainActor in
+        Task {
             do {
+                let param = UserSignInParams(email: email, password: password)
                 try await userSignIn(param)
                 isSignInSuccess = true
             } catch let error as UseCaseError {

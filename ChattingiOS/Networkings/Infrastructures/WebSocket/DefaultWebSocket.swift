@@ -12,9 +12,9 @@ import NIOFoundationCompat
 
 actor DefaultWebSocket: WebSocket {
     private var channel: Channel { asyncChannel.channel }
-    
     private var dataObserver: DataObserver?
     private var errorObserver: ErrorObserver?
+    
     private let asyncChannel: AsyncChannel
     
     init(asyncChannel: AsyncChannel) {
@@ -58,25 +58,32 @@ actor DefaultWebSocket: WebSocket {
     
     private func handleChannel() async {
         do {
-            try await asyncChannel.executeThenClose { inbound, _ in
+            try await asyncChannel.executeThenClose { [weak self] inbound in
                 for try await frame in inbound {
-                    switch frame.opcode {
-                    case .binary:
-                        dataObserver?(frame.toData)
-                    case .connectionClose:
-                        errorObserver?(.disconnected)
-                        return // return to close channel
-                    case .ping, .pong:
-                        break
-                    case .continuation, .text:
-                        errorObserver?(.unsupportedData)
-                    default:
-                        try await sendClose(code: .unacceptableData)
+                    try await self?.handleFrame(frame)
+                    
+                    if frame.opcode == .connectionClose {
+                        return // close the channel
                     }
                 }
             }
         } catch {
             errorObserver?(.other(error))
+        }
+    }
+    
+    private func handleFrame(_ frame: WebSocketFrame) async throws {
+        switch frame.opcode {
+        case .binary:
+            dataObserver?(frame.toData)
+        case .connectionClose:
+            errorObserver?(.disconnected)
+        case .ping, .pong:
+            break
+        case .continuation, .text:
+            errorObserver?(.unsupportedData)
+        default:
+            try await sendClose(code: .unacceptableData)
         }
     }
 }

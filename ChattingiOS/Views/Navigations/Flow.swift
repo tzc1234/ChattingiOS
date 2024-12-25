@@ -34,6 +34,7 @@ final class Flow {
         self.dependencies = dependencies
     }
     
+    @MainActor
     func startView() -> some View {
         NavigationControlView(
             viewModel: navigationControlViewModel,
@@ -46,6 +47,7 @@ final class Flow {
         )
     }
     
+    @MainActor
     private func signInView() -> SignInView {
         let viewModel = SignInViewModel { [userSignIn = dependencies.userSignIn] params throws(UseCaseError) in
             let user = try await userSignIn.signIn(with: params)

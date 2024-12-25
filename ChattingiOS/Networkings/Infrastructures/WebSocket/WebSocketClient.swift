@@ -12,8 +12,8 @@ protocol WebSocketClient {
 }
 
 protocol WebSocket: Sendable {
-    typealias DataObserver = (Data) -> Void
-    typealias ErrorObserver = (WebSocketClientError) -> Void
+    typealias DataObserver = @Sendable (Data) -> Void
+    typealias ErrorObserver = @Sendable (WebSocketClientError) -> Void
     
     func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async
     func send(data: Data) async throws
