@@ -65,17 +65,4 @@ final class SignInViewModel: ObservableObject {
     }
 }
 
-extension UseCaseError {
-    func toGeneralErrorMessage() -> String {
-        switch self {
-        case .server(let reason):
-            reason
-        case .invalidData:
-            "Invalid data received."
-        case .connectivity:
-            "Connection error occurred, please try it later."
-        case .requestConversion:
-            "Request conversion error."
-        }
-    }
-}
+
