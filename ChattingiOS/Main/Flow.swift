@@ -40,7 +40,6 @@ final class Flow {
             viewModel: navigationControlViewModel,
             content: { [weak self] in
                 self?.signInView()
-                    .navigationDestinationFor(SignUpView.self)
             },
             sheet: { [weak self] in
                 self?.showSheet?()
