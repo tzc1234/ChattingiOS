@@ -25,9 +25,9 @@ final class SignUpViewModel: ObservableObject {
         isValidName() && isValidEmail() && isValidPassword() && isCorrectConfirmPassword()
     }
     
-    private let userSignUp: (UserRegisterParams) async throws(UseCaseError) -> Void
+    private let userSignUp: (UserSignUpParams) async throws(UseCaseError) -> Void
     
-    init(userSignUp: @escaping (UserRegisterParams) async throws(UseCaseError) -> Void) {
+    init(userSignUp: @escaping (UserSignUpParams) async throws(UseCaseError) -> Void) {
         self.userSignUp = userSignUp
     }
     
@@ -39,7 +39,7 @@ final class SignUpViewModel: ObservableObject {
         Task {
             do {
                 let avatarParams = avatarData.map { AvatarParams(data: $0, fileType: "jpeg") }
-                let params = UserRegisterParams(name: name, email: email, password: password, avatar: avatarParams)
+                let params = UserSignUpParams(name: name, email: email, password: password, avatar: avatarParams)
                 try await userSignUp(params)
                 isSignUpSuccess = true
             } catch let error as UseCaseError {

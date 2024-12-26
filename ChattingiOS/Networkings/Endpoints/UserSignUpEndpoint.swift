@@ -1,5 +1,5 @@
 //
-//  UserRegisterEndpoint.swift
+//  UserSignUpEndpoint.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 13/12/2024.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct UserRegisterEndpoint: Endpoint {
+struct UserSignUpEndpoint: Endpoint {
     var path: String { apiPath + "register" }
     var httpMethod: HTTPMethod { .post }
     
@@ -18,9 +18,9 @@ struct UserRegisterEndpoint: Endpoint {
     }
     
     let apiConstants: APIConstants
-    private let params: UserRegisterParams
+    private let params: UserSignUpParams
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), params: UserRegisterParams) {
+    init(apiConstants: APIConstants = DefaultAPIConstants(), params: UserSignUpParams) {
         self.apiConstants = apiConstants
         self.params = params
     }
