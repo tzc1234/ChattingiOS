@@ -12,6 +12,7 @@ actor CurrentUserCredentialVault {
     private let defaults = UserDefaults.standard
 }
 
+// MARK: - User Vault
 extension CurrentUserCredentialVault {
     private struct CodableUser: Codable {
         let id: Int
@@ -49,6 +50,7 @@ extension CurrentUserCredentialVault {
     }
 }
 
+// MARK: - Token Vault
 extension CurrentUserCredentialVault {
     private struct CodableToken: Codable {
         let accessToken: String
@@ -65,8 +67,8 @@ extension CurrentUserCredentialVault {
     }
     
     enum Error: Swift.Error {
-        case saveTokenFail
-        case deleteTokenFail
+        case saveTokenFailed
+        case deleteTokenFailed
     }
     
     private static var tokenKey: String { "token" }
@@ -80,10 +82,14 @@ extension CurrentUserCredentialVault {
         ]
         
         let status = SecItemAdd(query as CFDictionary, nil)
+        
         if status == errSecDuplicateItem {
             try updateToken(data: data)
-        } else if status != errSecSuccess {
-            throw CurrentUserCredentialVault.Error.saveTokenFail
+            return
+        }
+        
+        guard status == errSecSuccess else {
+            throw CurrentUserCredentialVault.Error.saveTokenFailed
         }
     }
     
@@ -98,8 +104,8 @@ extension CurrentUserCredentialVault {
         ]
         
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
-        if status != errSecSuccess {
-            throw CurrentUserCredentialVault.Error.saveTokenFail
+        guard status == errSecSuccess else {
+            throw CurrentUserCredentialVault.Error.saveTokenFailed
         }
     }
     
@@ -129,8 +135,8 @@ extension CurrentUserCredentialVault {
         ]
         
         let status = SecItemDelete(query as CFDictionary)
-        if status != errSecSuccess {
-            throw CurrentUserCredentialVault.Error.deleteTokenFail
+        guard status == errSecSuccess else {
+            throw CurrentUserCredentialVault.Error.deleteTokenFailed
         }
     }
 }
