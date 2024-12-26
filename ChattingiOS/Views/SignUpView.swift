@@ -59,12 +59,6 @@ struct SignUpContentView: View {
     let signUpTapped: () -> Void
     
     @State private var avatarItem: PhotosPickerItem?
-    @State private var avatarUIImage: UIImage? {
-        didSet {
-            avatarData = avatarUIImage?.jpegData(compressionQuality: 0.8)
-        }
-    }
-    
     @State private var keyboardHeight: CGFloat = 0
     @FocusState private var focused: FocusedField?
     
@@ -74,7 +68,7 @@ struct SignUpContentView: View {
             
             VStack(spacing: 0) {
                 ZStack {
-                    avatarImage()
+                    avatarImage
                         .frame(width: 100, height: 100, alignment: .center)
                         .clipShape(.circle)
                     
@@ -87,7 +81,7 @@ struct SignUpContentView: View {
                     .onChange(of: avatarItem) { newValue in
                         Task {
                             if let data = try? await newValue?.loadTransferable(type: Data.self) {
-                                avatarUIImage = UIImage(data: data)
+                                avatarData = UIImage(data: data)?.jpegData(compressionQuality: 0.8)
                             }
                         }
                     }
@@ -165,9 +159,9 @@ struct SignUpContentView: View {
     }
     
     @ViewBuilder
-    private func avatarImage() -> some View {
-        if let avatarUIImage {
-            Image(uiImage: avatarUIImage)
+    private var avatarImage: some View {
+        if let avatarData, let uiImage = UIImage(data: avatarData) {
+            Image(uiImage: uiImage)
                 .resizable()
                 .scaledToFill()
         } else {
