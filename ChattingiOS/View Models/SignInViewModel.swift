@@ -17,7 +17,7 @@ final class SignInViewModel: ObservableObject {
     @Published private(set) var isSignInSuccess = false
     
     private var canSignIn: Bool {
-        isEmailValid() && isPasswordValid()
+        isValidEmail() && isValidPassword()
     }
     
     private let userSignIn: (UserSignInParams) async throws(UseCaseError) -> Void
@@ -44,11 +44,9 @@ final class SignInViewModel: ObservableObject {
         }
     }
     
-    private func isEmailValid() -> Bool {
-        let regex = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$"
-        let predicate = NSPredicate(format: "SELF MATCHES[c] %@", regex)
-        guard predicate.evaluate(with: email) else {
-            emailError = "Email format invalid."
+    private func isValidEmail() -> Bool {
+        guard email.isValidEmail else {
+            emailError = .emailErrorMessage
             return false
         }
         
@@ -56,9 +54,9 @@ final class SignInViewModel: ObservableObject {
         return true
     }
     
-    private func isPasswordValid() -> Bool {
-        guard password.count >= 3 else {
-            passwordError = "Password should be 3 or more characters."
+    private func isValidPassword() -> Bool {
+        guard password.isValidPassword else {
+            passwordError = .passwordErrorMessage
             return false
         }
         
