@@ -7,27 +7,14 @@
 
 import SwiftUI
 
-struct NavigationDestination<Content: View>: Hashable {
-    private let id = UUID()
-    let view: Content
-    
-    init(view: Content) {
-        self.view = view
-    }
-    
-    static func == (lhs: NavigationDestination, rhs: NavigationDestination) -> Bool {
-        lhs.id == rhs.id
-    }
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-}
-
 @MainActor
 final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
-    private var showSheet: (() -> AnyView?)?
+    private var showSheet: (() -> AnyView?)? {
+        didSet {
+            navigationControlViewModel.showSheet()
+        }
+    }
     
     private let dependencies: DependenciesContainer
     
@@ -60,7 +47,6 @@ final class Flow {
         showSheet = { [weak self] in
             self?.signUpView().toAnyView
         }
-        navigationControlViewModel.showSheet()
     }
     
     private func signUpView() -> SignUpView {
@@ -88,5 +74,22 @@ struct NavigationDestinationViewModifier<V: View>: ViewModifier {
     func body(content: Content) -> some View {
         content
             .navigationDestination(for: NavigationDestination<V>.self) { $0.view }
+    }
+}
+
+struct NavigationDestination<Content: View>: Hashable {
+    private let id = UUID()
+    let view: Content
+    
+    init(view: Content) {
+        self.view = view
+    }
+    
+    static func == (lhs: NavigationDestination, rhs: NavigationDestination) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
