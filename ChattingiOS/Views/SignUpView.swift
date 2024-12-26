@@ -141,6 +141,10 @@ struct SignUpContentView: View {
                 .padding(.horizontal)
                 .padding(.bottom)
             }
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(uiColor: .systemGray), lineWidth: 1)
+            )
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(.background)
