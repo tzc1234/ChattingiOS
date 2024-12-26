@@ -13,6 +13,7 @@ final class SignUpViewModel: ObservableObject {
     @Published var password = ""
     @Published var confirmPassword = ""
     @Published var generalError = ""
+    @Published var avatarData: Data?
     @Published private(set) var nameError: String?
     @Published private(set) var emailError: String?
     @Published private(set) var passwordError: String?
@@ -37,7 +38,8 @@ final class SignUpViewModel: ObservableObject {
         isLoading = true
         Task {
             do {
-                let params = UserRegisterParams(name: name, email: email, password: password, avatar: nil)
+                let avatarParams = avatarData.map { AvatarParams(data: $0, fileType: "jpeg") }
+                let params = UserRegisterParams(name: name, email: email, password: password, avatar: avatarParams)
                 try await userSignUp(params)
                 isSignUpSuccess = true
             } catch let error as UseCaseError {
