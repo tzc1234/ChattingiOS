@@ -112,11 +112,11 @@ struct SignInContentView: View {
         .keyboardHeight($keyboardHeight)
         .offset(y: -keyboardHeight / 2)
         .ignoresSafeArea()
-        .alert("⚠️Oops!", isPresented: $generalError.toBool, actions: {
+        .alert("⚠️Oops!", isPresented: $generalError.toBool) {
             Button("Cancel", role: .cancel) {}
-        }, message: {
+        } message: {
             Text(generalError ?? "")
-        })
+        }
     }
     
     @ViewBuilder
