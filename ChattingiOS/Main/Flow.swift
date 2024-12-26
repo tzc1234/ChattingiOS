@@ -24,9 +24,10 @@ struct NavigationDestination<Content: View>: Hashable {
     }
 }
 
+@MainActor
 final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
-    private var showSheet: (() -> AnyView)?
+    private var showSheet: (() -> AnyView?)?
     
     private let dependencies: DependenciesContainer
     
@@ -34,12 +35,12 @@ final class Flow {
         self.dependencies = dependencies
     }
     
-    @MainActor
     func startView() -> some View {
         NavigationControlView(
             viewModel: navigationControlViewModel,
             content: { [weak self] in
                 self?.signInView()
+                    .navigationDestinationFor(SignUpView.self)
             },
             sheet: { [weak self] in
                 self?.showSheet?()
@@ -47,13 +48,28 @@ final class Flow {
         )
     }
     
-    @MainActor
     private func signInView() -> SignInView {
         let viewModel = SignInViewModel { [userSignIn = dependencies.userSignIn] params throws(UseCaseError) in
             let user = try await userSignIn.signIn(with: params)
             print("user: \(user)")
         }
-        return SignInView(viewModel: viewModel, signUpTapped: {})
+        
+        return SignInView(viewModel: viewModel, signUpTapped: showSignUpView)
+    }
+    
+    private func showSignUpView() {
+        showSheet = { [weak self] in
+            self?.signUpView().toAnyView
+        }
+        navigationControlViewModel.showSheet()
+    }
+    
+    private func signUpView() -> SignUpView {
+        let viewModel = SignUpViewModel { [userSignUp = dependencies.userSignUp] params throws(UseCaseError) in
+            let user = try await userSignUp.signUp(by: params)
+            print("user: \(user)")
+        }
+        return SignUpView(viewModel: viewModel)
     }
 }
 

@@ -134,9 +134,7 @@ struct SignUpContentView: View {
                     )
                     .focused($focused, equals: .confirmPassword)
                     
-                    Button {
-                        
-                    } label: {
+                    Button(action: signUpTapped) {
                         loadingButtonLabel(title: "Sign Up")
                             .font(.headline)
                             .foregroundStyle(.background)
