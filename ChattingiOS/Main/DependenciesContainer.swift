@@ -8,6 +8,7 @@
 import Foundation
 
 final class DependenciesContainer {
+    let userVault = CurrentUserCredentialVault()
     private let httpClient = URLSessionHTTPClient(session: .shared)
     
     private(set) lazy var userSignIn: UserSignIn = DefaultUserSign(client: httpClient) {

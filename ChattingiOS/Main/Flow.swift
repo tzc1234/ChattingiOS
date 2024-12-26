@@ -48,14 +48,15 @@ final class Flow {
     }
     
     private func signInView() -> SignInView {
-        let viewModel = SignInViewModel { [userSignIn = dependencies.userSignIn] params throws(UseCaseError) in
-            let result = try await userSignIn.signIn(with: params)
-            print("result: \(result)")
+        let viewModel = SignInViewModel { [weak self] params throws(UseCaseError) in
+            guard let self else { return }
+            
+            try await save(userCredential: dependencies.userSignIn.signIn(with: params))
         }
-        return SignInView(viewModel: viewModel, signUpTapped: showSignUpView)
+        return SignInView(viewModel: viewModel, signUpTapped: showSignUp)
     }
     
-    private func showSignUpView() {
+    private func showSignUp() {
         showSheet = { [weak self] in
             self?.signUpView().toAnyView
         }
@@ -63,11 +64,17 @@ final class Flow {
     }
     
     private func signUpView() -> SignUpView {
-        let viewModel = SignUpViewModel { [userSignUp = dependencies.userSignUp] params throws(UseCaseError) in
-            let result = try await userSignUp.signUp(by: params)
-            print("result: \(result)")
+        let viewModel = SignUpViewModel { [weak self] params throws(UseCaseError) in
+            guard let self else { return }
+            
+            try await save(userCredential: dependencies.userSignUp.signUp(by: params))
         }
         return SignUpView(viewModel: viewModel)
+    }
+    
+    private func save(userCredential: (user: User, token: Token)) async {
+        try? await dependencies.userVault.saveUser(userCredential.user)
+        try? await dependencies.userVault.saveToken(userCredential.token)
     }
 }
 
