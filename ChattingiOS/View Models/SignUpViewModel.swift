@@ -12,7 +12,7 @@ final class SignUpViewModel: ObservableObject {
     @Published var email = ""
     @Published var password = ""
     @Published var confirmPassword = ""
-    @Published var generalError = ""
+    @Published var generalError: String?
     @Published var avatarData: Data?
     @Published private(set) var nameError: String?
     @Published private(set) var emailError: String?

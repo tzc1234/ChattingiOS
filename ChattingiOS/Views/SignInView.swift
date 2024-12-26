@@ -17,6 +17,7 @@ struct SignInView: View {
             password: $viewModel.password,
             emailError: viewModel.emailError,
             passwordError: viewModel.passwordError,
+            generalError: $viewModel.generalError,
             isLoading: viewModel.isLoading,
             signInTapped: viewModel.signIn,
             signUpTapped: signUpTapped
@@ -33,6 +34,7 @@ struct SignInContentView: View {
     @Binding var password: String
     let emailError: String?
     let passwordError: String?
+    @Binding var generalError: String?
     let isLoading: Bool
     let signInTapped: () -> Void
     let signUpTapped: () -> Void
@@ -110,6 +112,11 @@ struct SignInContentView: View {
         .keyboardHeight($keyboardHeight)
         .offset(y: -keyboardHeight / 2)
         .ignoresSafeArea()
+        .alert("⚠️Oops!", isPresented: $generalError.toBool, actions: {
+            Button("Cancel", role: .cancel) {}
+        }, message: {
+            Text(generalError ?? "")
+        })
     }
     
     @ViewBuilder
@@ -129,6 +136,7 @@ struct SignInContentView: View {
         password: .constant(""),
         emailError: nil,
         passwordError: nil,
+        generalError: .constant(nil),
         isLoading: false,
         signInTapped: {},
         signUpTapped: {}

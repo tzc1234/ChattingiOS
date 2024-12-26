@@ -10,7 +10,7 @@ import Foundation
 final class SignInViewModel: ObservableObject {
     @Published var email = ""
     @Published var password = ""
-    @Published var generalError: String = ""
+    @Published var generalError: String?
     @Published private(set) var emailError: String?
     @Published private(set) var passwordError: String?
     @Published private(set) var isLoading = false
