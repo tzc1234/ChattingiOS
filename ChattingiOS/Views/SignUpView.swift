@@ -25,6 +25,7 @@ struct SignUpView: View {
             emailError: viewModel.emailError,
             passwordError: viewModel.passwordError,
             confirmPasswordError: viewModel.confirmPasswordError,
+            isLoading: viewModel.isLoading,
             signUpTapped: viewModel.signUp
         )
         .interactiveDismissDisabled(viewModel.isLoading)
@@ -54,7 +55,7 @@ struct SignUpContentView: View {
     let emailError: String?
     let passwordError: String?
     let confirmPasswordError: String?
-    let isLoading = false
+    let isLoading: Bool
     let signUpTapped: () -> Void
     
     @State private var avatarItem: PhotosPickerItem?
@@ -199,6 +200,7 @@ struct SignUpContentView: View {
         emailError: nil,
         passwordError: nil,
         confirmPasswordError: nil,
+        isLoading: false,
         signUpTapped: {}
     )
 }

@@ -50,10 +50,9 @@ final class Flow {
     
     private func signInView() -> SignInView {
         let viewModel = SignInViewModel { [userSignIn = dependencies.userSignIn] params throws(UseCaseError) in
-            let user = try await userSignIn.signIn(with: params)
-            print("user: \(user)")
+            let result = try await userSignIn.signIn(with: params)
+            print("result: \(result)")
         }
-        
         return SignInView(viewModel: viewModel, signUpTapped: showSignUpView)
     }
     
@@ -66,8 +65,8 @@ final class Flow {
     
     private func signUpView() -> SignUpView {
         let viewModel = SignUpViewModel { [userSignUp = dependencies.userSignUp] params throws(UseCaseError) in
-            let user = try await userSignUp.signUp(by: params)
-            print("user: \(user)")
+            let result = try await userSignUp.signUp(by: params)
+            print("result: \(result)")
         }
         return SignUpView(viewModel: viewModel)
     }
