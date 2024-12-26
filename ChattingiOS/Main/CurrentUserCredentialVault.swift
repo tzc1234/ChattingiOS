@@ -48,6 +48,10 @@ extension CurrentUserCredentialVault {
         let codableUser = try? JSONDecoder().decode(CodableUser.self, from: data)
         return codableUser?.user
     }
+    
+    func deleteUser() {
+        defaults.removeObject(forKey: Self.currentUserKey)
+    }
 }
 
 // MARK: - Token Vault
@@ -66,9 +70,9 @@ extension CurrentUserCredentialVault {
         }
     }
     
-    enum Error: Swift.Error {
-        case saveTokenFailed
-        case deleteTokenFailed
+    enum TokenError: Swift.Error {
+        case saveFailed
+        case deleteFailed
     }
     
     private static var tokenKey: String { "token" }
@@ -89,7 +93,7 @@ extension CurrentUserCredentialVault {
         }
         
         guard status == errSecSuccess else {
-            throw CurrentUserCredentialVault.Error.saveTokenFailed
+            throw CurrentUserCredentialVault.TokenError.saveFailed
         }
     }
     
@@ -105,7 +109,7 @@ extension CurrentUserCredentialVault {
         
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         guard status == errSecSuccess else {
-            throw CurrentUserCredentialVault.Error.saveTokenFailed
+            throw CurrentUserCredentialVault.TokenError.saveFailed
         }
     }
     
@@ -136,7 +140,7 @@ extension CurrentUserCredentialVault {
         
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess else {
-            throw CurrentUserCredentialVault.Error.deleteTokenFailed
+            throw CurrentUserCredentialVault.TokenError.deleteFailed
         }
     }
 }
