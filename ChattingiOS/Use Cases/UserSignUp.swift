@@ -7,14 +7,10 @@
 
 import Foundation
 
-protocol UserSignUp: Sendable {
-    func signUp(by params: UserSignUpParams) async throws(UseCaseError) -> (user: User, token: Token)
-}
+typealias UserSignUp = GeneralUseCase<UserSignUpParams, UserTokenResponseMapper>
 
-typealias DefaultUserSignUp = GeneralUseCase<UserSignUpParams, UserTokenResponseMapper>
-
-extension DefaultUserSignUp: UserSignUp {
-    func signUp(by params: UserSignUpParams) async throws(UseCaseError) -> (user: User, token: Token) {
+extension UserSignUp where Params == UserSignUpParams, Mapper.Model == (user: User, token: Token) {
+    func signUp(by params: Params) async throws(UseCaseError) -> Mapper.Model {
         try await perform(with: params)
     }
 }
