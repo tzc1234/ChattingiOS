@@ -15,12 +15,8 @@ final class Flow {
         didSet { navigationControlViewModel.showSheet() }
     }
     
-    private var userVault: CurrentUserCredentialVault {
-        dependencies.userVault
-    }
-    private var user: User? {
-        contentViewModel.user
-    }
+    private var userVault: CurrentUserCredentialVault { dependencies.userVault }
+    private var user: User? { contentViewModel.user }
     
     private let dependencies: DependenciesContainer
     
@@ -33,11 +29,11 @@ final class Flow {
         contentViewModel.isLoading = true
         
         Task {
-            try? await Task.sleep(for: .seconds(0.3))
+            try? await Task.sleep(for: .seconds(0.3)) // Show loading view a bit smoother.
             
             await contentViewModel.set(user: userVault.retrieveUser())
-            await userVault.observe { [contentViewModel] user in
-                await contentViewModel.set(user: user)
+            await userVault.observe { [weak contentViewModel] user in
+                await contentViewModel?.set(user: user)
             }
             
             withAnimation {
