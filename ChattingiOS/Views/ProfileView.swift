@@ -40,6 +40,11 @@ struct ProfileView: View {
                 }
             }
             .padding()
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(.foreground, lineWidth: 1)
+            )
+            .clipShape(.rect(cornerRadius: 12))
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(.background)

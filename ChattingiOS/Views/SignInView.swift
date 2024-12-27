@@ -103,8 +103,9 @@ struct SignInContentView: View {
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color(uiColor: .systemGray), lineWidth: 1)
+                    .stroke(.foreground, lineWidth: 1)
             )
+            .clipShape(.rect(cornerRadius: 12))
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(.background)
