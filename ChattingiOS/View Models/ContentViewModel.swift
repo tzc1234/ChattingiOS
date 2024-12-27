@@ -9,7 +9,7 @@ import SwiftUI
 
 @MainActor
 final class ContentViewModel: ObservableObject {
-    @Published private var user: User?
+    @Published private(set) var user: User?
     @Published var isLoading = false
     
     var isSignedIn: Bool { user != nil }

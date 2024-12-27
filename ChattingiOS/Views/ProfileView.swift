@@ -8,29 +8,38 @@
 import SwiftUI
 
 struct ProfileView: View {
+    let user: User
+    let signOutTapped: () -> Void
+    
     var body: some View {
         ZStack {
             Color.ctOrange
             
             VStack(spacing: 12) {
                 VStack(spacing: 2) {
-                    Image(systemName: "person.circle")
-                        .font(.system(size: 80))
-                        .foregroundStyle(.foreground.opacity(0.8))
+                    AsyncImage(url: URL(string: user.avatarURL ?? "")) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        Image(systemName: "person.circle")
+                            .font(.system(size: 80))
+                            .foregroundStyle(.foreground.opacity(0.8))
+                    }
+                    .frame(width: 100, height: 100)
+                    .clipShape(.circle)
                     
                     VStack(spacing: 2) {
-                        Text("Abc")
+                        Text(user.name)
                             .font(.headline)
                         
-                        Text("abc@email.com")
+                        Text(user.email)
                             .foregroundStyle(.ctOrange)
                             .font(.subheadline)
                     }
                 }
                 
-                Button {
-                    print("Sign Out Tapped.")
-                } label: {
+                Button(action: signOutTapped) {
                     Text("Sign Out")
                         .font(.headline)
                         .foregroundStyle(.background)
@@ -57,9 +66,15 @@ struct ProfileView: View {
 
 #Preview {
     TabView {
-        ProfileView()
-            .tabItem {
-                Label("Profile", systemImage: "person")
-            }
+        ProfileView(user: User(
+            id: 0,
+            name: "User",
+            email: "email@email.com",
+            avatarURL: "http://url.com"),
+            signOutTapped: {}
+        )
+        .tabItem {
+            Label("Profile", systemImage: "person")
+        }
     }
 }

@@ -18,6 +18,9 @@ final class Flow {
     private var userVault: CurrentUserCredentialVault {
         dependencies.userVault
     }
+    private var user: User? {
+        contentViewModel.user
+    }
     
     private let dependencies: DependenciesContainer
     
@@ -56,7 +59,7 @@ final class Flow {
                             Label("Contacts", systemImage: "person.3")
                         }
                         
-                        ProfileView()
+                        self.profileView()
                             .tabItem {
                                 Label("Profile", systemImage: "person")
                             }
@@ -100,6 +103,19 @@ final class Flow {
     private func save(userCredential: (user: User, token: Token)) async {
         try? await userVault.saveUser(userCredential.user)
         try? await userVault.saveToken(userCredential.token)
+    }
+    
+    private func profileView() -> ProfileView? {
+        guard let user else { return nil }
+        
+        return ProfileView(user: user, signOutTapped: deleteUserCredential)
+    }
+    
+    private func deleteUserCredential() {
+        Task {
+            await userVault.deleteUser()
+            try? await userVault.deleteToken()
+        }
     }
 }
 
