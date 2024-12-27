@@ -7,35 +7,16 @@
 
 import SwiftUI
 
-final class ContentViewModel: ObservableObject {
-    @Published var isSignedIn = false
-}
-
-struct ContentView: View {
-    @StateObject var viewModel = ContentViewModel()
+struct ContentView<SignedInContent: View, SignInContent: View>: View {
+    @ObservedObject var viewModel: ContentViewModel
+    let signedInContent: () -> SignedInContent
+    let signInContent: () -> SignInContent
     
     var body: some View {
         if viewModel.isSignedIn {
-            TabView {
-                NavigationStack {
-                    ContactListView()
-                }
-                .tabItem {
-                    Label("Contacts", systemImage: "person.3")
-                }
-                
-                ProfileView()
-                    .tabItem {
-                        Label("Profile", systemImage: "person")
-                    }
-            }
-            .tint(.ctOrange)
+            signedInContent()
         } else {
-            
+            signInContent()
         }
     }
-}
-
-#Preview {
-    ContentView()
 }

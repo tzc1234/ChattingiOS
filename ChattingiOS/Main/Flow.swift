@@ -10,10 +10,9 @@ import SwiftUI
 @MainActor
 final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
+    private let contentViewModel = ContentViewModel()
     private var showSheet: (() -> AnyView?)? {
-        didSet {
-            navigationControlViewModel.showSheet()
-        }
+        didSet {  navigationControlViewModel.showSheet() }
     }
     
     private let dependencies: DependenciesContainer
@@ -25,8 +24,12 @@ final class Flow {
     func startView() -> some View {
         NavigationControlView(
             viewModel: navigationControlViewModel,
-            content: { [weak self] in
-                self?.signInView()
+            content: {
+                ContentView(viewModel: self.contentViewModel) {
+                    Text("Signed In")
+                } signInContent: { [weak self] in
+                    self?.signInView()
+                }
             },
             sheet: { [weak self] in
                 self?.showSheet?()
