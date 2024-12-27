@@ -9,7 +9,14 @@ import Foundation
 import Security
 
 actor CurrentUserCredentialVault {
+    typealias UserStoredObserver = @Sendable (User?) async -> Void
+    
     private let defaults = UserDefaults.standard
+    private var isUserStored: UserStoredObserver?
+    
+    func observe(isUserStored: @escaping UserStoredObserver) {
+        self.isUserStored = isUserStored
+    }
 }
 
 // MARK: - User Vault
@@ -34,23 +41,28 @@ extension CurrentUserCredentialVault {
     
     private static var currentUserKey: String { "current_user" }
     
-    func saveUser(_ user: User) throws {
+    func saveUser(_ user: User) async throws {
         let codableUser = CodableUser(user)
         let data = try JSONEncoder().encode(codableUser)
         defaults.set(data, forKey: Self.currentUserKey)
+        await isUserStored?(user)
     }
     
-    func retrieveUser() -> User? {
+    func retrieveUser() async -> User? {
         guard let data = defaults.data(forKey: Self.currentUserKey) else {
             return nil
         }
         
         let codableUser = try? JSONDecoder().decode(CodableUser.self, from: data)
-        return codableUser?.user
+        let user = codableUser?.user
+        await isUserStored?(user)
+        
+        return user
     }
     
-    func deleteUser() {
+    func deleteUser() async {
         defaults.removeObject(forKey: Self.currentUserKey)
+        await isUserStored?(nil)
     }
 }
 

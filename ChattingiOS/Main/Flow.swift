@@ -12,7 +12,11 @@ final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
     private let contentViewModel = ContentViewModel()
     private var showSheet: (() -> AnyView?)? {
-        didSet {  navigationControlViewModel.showSheet() }
+        didSet { navigationControlViewModel.showSheet() }
+    }
+    
+    private var userVault: CurrentUserCredentialVault {
+        dependencies.userVault
     }
     
     private let dependencies: DependenciesContainer
@@ -21,12 +25,35 @@ final class Flow {
         self.dependencies = dependencies
     }
     
+    func observeUserSignIn() {
+        Task {
+            await contentViewModel.set(user: userVault.retrieveUser())
+            await userVault.observe { [contentViewModel] user in
+                await contentViewModel.set(user: user)
+            }
+        }
+    }
+    
     func startView() -> some View {
         NavigationControlView(
             viewModel: navigationControlViewModel,
             content: {
                 ContentView(viewModel: self.contentViewModel) {
-                    Text("Signed In")
+                    TabView {
+                        NavigationStack {
+                            ContactListView()
+                        }
+                        .tabItem {
+                            Label("Contacts", systemImage: "person.3")
+                        }
+                        
+                        ProfileView()
+                            .tabItem {
+                                Label("Profile", systemImage: "person")
+                            }
+                    }
+                    .tint(.ctOrange)
+                    
                 } signInContent: { [weak self] in
                     self?.signInView()
                 }
@@ -62,8 +89,8 @@ final class Flow {
     }
     
     private func save(userCredential: (user: User, token: Token)) async {
-        try? await dependencies.userVault.saveUser(userCredential.user)
-        try? await dependencies.userVault.saveToken(userCredential.token)
+        try? await userVault.saveUser(userCredential.user)
+        try? await userVault.saveToken(userCredential.token)
     }
 }
 

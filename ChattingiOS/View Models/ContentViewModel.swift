@@ -7,6 +7,12 @@
 
 import Foundation
 
+@MainActor
 final class ContentViewModel: ObservableObject {
-    @Published var isSignedIn = false
+    @Published private var user: User?
+    var isSignedIn: Bool { user != nil }
+    
+    func set(user: User?) {
+        self.user = user
+    }
 }
