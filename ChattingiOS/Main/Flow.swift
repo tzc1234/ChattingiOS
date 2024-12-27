@@ -23,13 +23,22 @@ final class Flow {
     
     init(dependencies: DependenciesContainer) {
         self.dependencies = dependencies
+        observeUserSignIn()
     }
     
-    func observeUserSignIn() {
+    private func observeUserSignIn() {
+        contentViewModel.isLoading = true
+        
         Task {
+            try? await Task.sleep(for: .seconds(0.3))
+            
             await contentViewModel.set(user: userVault.retrieveUser())
             await userVault.observe { [contentViewModel] user in
                 await contentViewModel.set(user: user)
+            }
+            
+            withAnimation {
+                contentViewModel.isLoading = false
             }
         }
     }
@@ -65,7 +74,7 @@ final class Flow {
     }
     
     private func signInView() -> SignInView {
-        let viewModel = SignInViewModel { [weak self] params throws(UseCaseError) in
+        let viewModel = SignInViewModel { [weak self] params in
             guard let self else { return }
             
             try await save(userCredential: dependencies.userSignIn.signIn(with: params))
@@ -80,7 +89,7 @@ final class Flow {
     }
     
     private func signUpView() -> SignUpView {
-        let viewModel = SignUpViewModel { [weak self] params throws(UseCaseError) in
+        let viewModel = SignUpViewModel { [weak self] params in
             guard let self else { return }
             
             try await save(userCredential: dependencies.userSignUp.signUp(by: params))

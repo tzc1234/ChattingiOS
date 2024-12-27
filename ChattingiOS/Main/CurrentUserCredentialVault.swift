@@ -50,6 +50,7 @@ extension CurrentUserCredentialVault {
     
     func retrieveUser() async -> User? {
         guard let data = defaults.data(forKey: Self.currentUserKey) else {
+            await isUserStored?(nil)
             return nil
         }
         

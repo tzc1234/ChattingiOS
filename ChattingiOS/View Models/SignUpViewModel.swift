@@ -25,9 +25,9 @@ final class SignUpViewModel: ObservableObject {
         isValidName() && isValidEmail() && isValidPassword() && isCorrectConfirmPassword()
     }
     
-    private let userSignUp: (UserSignUpParams) async throws(UseCaseError) -> Void
+    private let userSignUp: (UserSignUpParams) async throws -> Void
     
-    init(userSignUp: @escaping (UserSignUpParams) async throws(UseCaseError) -> Void) {
+    init(userSignUp: @escaping (UserSignUpParams) async throws -> Void) {
         self.userSignUp = userSignUp
     }
     

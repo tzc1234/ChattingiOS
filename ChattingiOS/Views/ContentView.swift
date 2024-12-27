@@ -13,6 +13,15 @@ struct ContentView<SignedInContent: View, SignInContent: View>: View {
     let signInContent: () -> SignInContent
     
     var body: some View {
+        if viewModel.isLoading {
+            LoadingView()
+        } else {
+            content
+        }
+    }
+    
+    @ViewBuilder
+    private var content: some View {
         if viewModel.isSignedIn {
             signedInContent()
         } else {

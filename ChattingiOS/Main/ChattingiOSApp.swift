@@ -14,7 +14,6 @@ struct ChattingiOSApp: App {
     
     init() {
         flow = Flow(dependencies: dependencies)
-        flow.observeUserSignIn()
     }
     
     var body: some Scene {

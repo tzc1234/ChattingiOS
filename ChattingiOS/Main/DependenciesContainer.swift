@@ -11,10 +11,10 @@ final class DependenciesContainer {
     let userVault = CurrentUserCredentialVault()
     private let httpClient = URLSessionHTTPClient(session: .shared)
     
-    private(set) lazy var userSignIn: UserSignIn = DefaultUserSign(client: httpClient) {
+    private(set) lazy var userSignIn = DefaultUserSign(client: httpClient) {
         try UserSignInEndpoint(params: $0).request
     }
-    private(set) lazy var userSignUp: UserSignUp = DefaultUserSignUp(client: httpClient) {
+    private(set) lazy var userSignUp = DefaultUserSignUp(client: httpClient) {
         UserSignUpEndpoint(params: $0).request
     }
 }

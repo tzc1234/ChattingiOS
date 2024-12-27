@@ -20,9 +20,10 @@ final class SignInViewModel: ObservableObject {
         isValidEmail() && isValidPassword()
     }
     
-    private let userSignIn: (UserSignInParams) async throws(UseCaseError) -> Void
+    // iOS 17 not support explicit throws error type in closure!
+    private let userSignIn: (UserSignInParams) async throws -> Void
     
-    init(userSignIn: @escaping (UserSignInParams) async throws(UseCaseError) -> Void) {
+    init(userSignIn: @escaping (UserSignInParams) async throws -> Void) {
         self.userSignIn = userSignIn
     }
     

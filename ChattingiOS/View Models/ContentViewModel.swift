@@ -5,14 +5,18 @@
 //  Created by Tsz-Lung on 27/12/2024.
 //
 
-import Foundation
+import SwiftUI
 
 @MainActor
 final class ContentViewModel: ObservableObject {
     @Published private var user: User?
+    @Published var isLoading = false
+    
     var isSignedIn: Bool { user != nil }
     
     func set(user: User?) {
-        self.user = user
+        withAnimation {
+            self.user = user
+        }
     }
 }
