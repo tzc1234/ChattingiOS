@@ -16,7 +16,6 @@ final class Flow {
     
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
     private var userVault: CurrentUserCredentialVault { dependencies.userVault }
-    private var user: User? { contentViewModel.user }
     
     private let dependencies: DependenciesContainer
     
@@ -97,7 +96,7 @@ final class Flow {
     }
     
     private func profileView() -> ProfileView? {
-        guard let user else { return nil }
+        guard let user = contentViewModel.user else { return nil }
         
         return ProfileView(user: user, signOutTapped: {
             Task {

@@ -9,6 +9,9 @@ import Foundation
 
 struct GetContactsEndpoint: Endpoint {
     var path: String { apiPath + "contacts" }
+    var headers: [String: String]? {
+        defaultHeaders.merging(["Authorization": "Bearer \(accessToken)"]) { $1 }
+    }
     var queryItems: [String: String]? {
         [
             "before": params.before.map { "\($0.timeIntervalSince1970)" },
@@ -17,10 +20,12 @@ struct GetContactsEndpoint: Endpoint {
     }
     
     let apiConstants: APIConstants
+    private let accessToken: String
     private let params: GetContactsParams
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), params: GetContactsParams) {
+    init(apiConstants: APIConstants = DefaultAPIConstants(), accessToken: String, params: GetContactsParams) {
         self.apiConstants = apiConstants
+        self.accessToken = accessToken
         self.params = params
     }
 }

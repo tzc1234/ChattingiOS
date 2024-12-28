@@ -21,19 +21,21 @@ final class DependenciesContainer {
     }
     
     private(set) lazy var getContacts = DefaultGetContacts(client: httpClient) { [weak self] in
-        let accessToken = try await self?.accessToken() ?? ""
-        let endpoint = GetContactsEndpoint(params: $0)
-        return AuthorizedEndpoint(accessToken: accessToken, endpoint: endpoint).request
+        guard let accessToken = await self?.accessToken() else {
+            throw UseCaseError.requestConversion
+        }
+        
+        return GetContactsEndpoint(accessToken: accessToken, params: $0).request
     }
     
-    private func accessToken() async throws -> String {
+    private func accessToken() async -> String? {
         guard let accessToken = await userVault.retrieveToken()?.accessToken else {
             try? await userVault.deleteUserCredential()
             
             try? await Task.sleep(for: .seconds(0.35))
             contentViewModel.generalError = "Please sign in again."
             
-            throw UseCaseError.requestConversion
+            return nil
         }
         
         return accessToken
