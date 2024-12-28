@@ -76,7 +76,7 @@ final class Flow {
         let viewModel = SignInViewModel { [weak self] params in
             guard let self else { return }
             
-            try await save(userCredential: dependencies.userSignIn.signIn(with: params))
+            try await userVault.save(userCredential: dependencies.userSignIn.signIn(with: params))
         }
         return SignInView(viewModel: viewModel, signUpTapped: showSignUp)
     }
@@ -91,27 +91,19 @@ final class Flow {
         let viewModel = SignUpViewModel { [weak self] params in
             guard let self else { return }
             
-            try await save(userCredential: dependencies.userSignUp.signUp(by: params))
+            try await userVault.save(userCredential: dependencies.userSignUp.signUp(by: params))
         }
         return SignUpView(viewModel: viewModel)
-    }
-    
-    private func save(userCredential: (user: User, token: Token)) async {
-        try? await userVault.saveUser(userCredential.user)
-        try? await userVault.saveToken(userCredential.token)
     }
     
     private func profileView() -> ProfileView? {
         guard let user else { return nil }
         
-        return ProfileView(user: user, signOutTapped: deleteUserCredential)
-    }
-    
-    private func deleteUserCredential() {
-        Task {
-            await userVault.deleteUser()
-            try? await userVault.deleteToken()
-        }
+        return ProfileView(user: user, signOutTapped: {
+            Task {
+                try? await self.userVault.deleteUserCredential()
+            }
+        })
     }
 }
 

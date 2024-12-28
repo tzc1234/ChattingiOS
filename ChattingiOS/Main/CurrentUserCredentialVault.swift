@@ -157,3 +157,15 @@ extension CurrentUserCredentialVault {
         }
     }
 }
+
+extension CurrentUserCredentialVault {
+    func save(userCredential: (user: User, token: Token)) async throws {
+        try await saveUser(userCredential.user)
+        try saveToken(userCredential.token)
+    }
+    
+    func deleteUserCredential() async throws {
+        await deleteUser()
+        try deleteToken()
+    }
+}
