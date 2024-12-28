@@ -7,11 +7,11 @@
 
 import Foundation
 
-actor GeneralUseCase<Params, Mapper: ResponseMapper> {
+actor GeneralUseCase<Params: Sendable, Mapper: ResponseMapper> {
     private let client: HTTPClient
-    private let getRequest: (Params) throws -> URLRequest
+    private let getRequest: (Params) async throws -> URLRequest
     
-    init(client: HTTPClient, getRequest: @escaping (Params) throws -> URLRequest) {
+    init(client: HTTPClient, getRequest: @escaping (Params) async throws -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
@@ -19,7 +19,7 @@ actor GeneralUseCase<Params, Mapper: ResponseMapper> {
     func perform(with params: Params) async throws(UseCaseError) -> Mapper.Model {
         let request: URLRequest
         do {
-            request = try getRequest(params)
+            request = try await getRequest(params)
         } catch {
             throw .requestConversion
         }
