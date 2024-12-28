@@ -10,11 +10,11 @@ import SwiftUI
 @MainActor
 final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
-    private let contentViewModel = ContentViewModel()
     private var showSheet: (() -> AnyView?)? {
         didSet { navigationControlViewModel.showSheet() }
     }
     
+    private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
     private var userVault: CurrentUserCredentialVault { dependencies.userVault }
     private var user: User? { contentViewModel.user }
     
@@ -29,11 +29,11 @@ final class Flow {
         contentViewModel.isLoading = true
         
         Task {
-            try? await Task.sleep(for: .seconds(0.3)) // Show loading view a bit smoother.
+            try? await Task.sleep(for: .seconds(0.2)) // Show loading view a bit smoother.
             
             await contentViewModel.set(user: userVault.retrieveUser())
-            await userVault.observe { [weak contentViewModel] user in
-                await contentViewModel?.set(user: user)
+            await userVault.observe { [contentViewModel] user in
+                await contentViewModel.set(user: user)
             }
             
             withAnimation {

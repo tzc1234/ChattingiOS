@@ -13,10 +13,17 @@ struct ContentView<SignedInContent: View, SignInContent: View>: View {
     let signInContent: () -> SignInContent
     
     var body: some View {
-        if viewModel.isLoading {
-            LoadingView()
-        } else {
-            content
+        Group {
+            if viewModel.isLoading {
+                LoadingView()
+            } else {
+                content
+            }
+        }
+        .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(viewModel.generalError ?? "")
         }
     }
     

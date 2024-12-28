@@ -11,6 +11,7 @@ import SwiftUI
 final class ContentViewModel: ObservableObject {
     @Published private(set) var user: User?
     @Published var isLoading = false
+    @Published var generalError: String?
     
     var isSignedIn: Bool { user != nil }
     
