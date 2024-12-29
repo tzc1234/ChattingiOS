@@ -30,10 +30,10 @@ final class Flow {
         Task {
             try? await Task.sleep(for: .seconds(0.2)) // Show loading view a bit smoother.
             
-            await contentViewModel.set(user: userVault.retrieveUser())
             await userVault.observe { [contentViewModel] user in
                 await contentViewModel.set(user: user)
             }
+            _ = await userVault.retrieveUser()
             
             withAnimation {
                 contentViewModel.isLoading = false
@@ -45,7 +45,7 @@ final class Flow {
         NavigationControlView(
             viewModel: navigationControlViewModel,
             content: {
-                ContentView(viewModel: self.contentViewModel) {
+                ContentView(viewModel: self.contentViewModel) { user in
                     TabView {
                         NavigationStack {
                             ContactListView()
@@ -54,7 +54,7 @@ final class Flow {
                             Label("Contacts", systemImage: "person.3")
                         }
                         
-                        self.profileView()
+                        self.profileView(user: user)
                             .tabItem {
                                 Label("Profile", systemImage: "person")
                             }
@@ -95,13 +95,9 @@ final class Flow {
         return SignUpView(viewModel: viewModel)
     }
     
-    private func profileView() -> ProfileView? {
-        guard let user = contentViewModel.user else { return nil }
-        
-        return ProfileView(user: user, signOutTapped: {
-            Task {
-                try? await self.userVault.deleteUserCredential()
-            }
+    private func profileView(user: User) -> ProfileView {
+        ProfileView(user: user, signOutTapped: { [weak self] in
+            Task { try? await self?.userVault.deleteUserCredential() }
         })
     }
 }

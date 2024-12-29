@@ -14,8 +14,8 @@ actor CurrentUserCredentialVault {
     private let defaults = UserDefaults.standard
     private var onUserStore: UserStoredObserver?
     
-    func observe(isUserStored: @escaping UserStoredObserver) {
-        self.onUserStore = isUserStored
+    func observe(onUserStore: @escaping UserStoredObserver) {
+        self.onUserStore = onUserStore
     }
 }
 

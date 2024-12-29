@@ -13,8 +13,6 @@ final class ContentViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var generalError: String?
     
-    var isSignedIn: Bool { user != nil }
-    
     func set(user: User?) {
         withAnimation {
             self.user = user

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView<SignedInContent: View, SignInContent: View>: View {
     @ObservedObject var viewModel: ContentViewModel
-    let signedInContent: () -> SignedInContent
+    let signedInContent: (User) -> SignedInContent
     let signInContent: () -> SignInContent
     
     var body: some View {
@@ -29,8 +29,8 @@ struct ContentView<SignedInContent: View, SignInContent: View>: View {
     
     @ViewBuilder
     private var content: some View {
-        if viewModel.isSignedIn {
-            signedInContent()
+        if let user = viewModel.user {
+            signedInContent(user)
         } else {
             signInContent()
         }
