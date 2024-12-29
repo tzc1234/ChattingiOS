@@ -16,8 +16,8 @@ extension UseCaseError {
             "Invalid data received."
         case .connectivity:
             "Connection error occurred, please try it later."
-        case .requestConversion:
-            "Request conversion error."
+        case .requestCreation:
+            "Request creation error."
         }
     }
 }

@@ -21,7 +21,7 @@ actor GeneralUseCase<Params: Sendable, Mapper: ResponseMapper> {
         do {
             request = try await getRequest(params)
         } catch {
-            throw .requestConversion
+            throw .requestCreation
         }
         
         do {
