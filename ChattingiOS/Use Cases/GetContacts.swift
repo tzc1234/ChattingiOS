@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol GetContacts {
+protocol GetContacts: Sendable {
     func get(with params: GetContactsParams) async throws(UseCaseError) -> [Contact]
 }
 

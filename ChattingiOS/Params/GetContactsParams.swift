@@ -10,4 +10,9 @@ import Foundation
 struct GetContactsParams {
     let before: Date?
     let limit: UInt?
+    
+    init(before: Date?, limit: UInt? = nil) {
+        self.before = before
+        self.limit = limit
+    }
 }
