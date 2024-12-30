@@ -41,17 +41,14 @@ final class Flow {
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { user in
             TabView { [self] in
-                NavigationControlView(
-                    viewModel: navigationControlViewModel,
-                    content: {
-                        ContactListView { [weak self] username in
-                            self?.showMessageListView(username: username)
-                        } alertContent: {
-                            NewContactView(submitTapped: {})
-                        }
-                        .navigationDestinationFor(MessageListView.self)
+                NavigationControlView(viewModel: navigationControlViewModel) {
+                    ContactListView { [weak self] username in
+                        self?.showMessageListView(username: username)
+                    } addTapped: { [weak self] in
+                        self?.contentViewModel.isPresentingAlert = true
                     }
-                )
+                    .navigationDestinationFor(MessageListView.self)
+                }
                 .tabItem {
                     Label("Contacts", systemImage: "person.3")
                 }
@@ -66,6 +63,8 @@ final class Flow {
             self?.signInView()
         } sheet: { [weak self] in
             self?.signUpView()
+        } customAlert: {
+            NewContactView(submitTapped: {})
         }
     }
     

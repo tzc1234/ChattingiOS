@@ -7,11 +7,9 @@
 
 import SwiftUI
 
-struct ContactListView<AlertContent: View>: View {
+struct ContactListView: View {
     let rowTapped: (String) -> Void
-    let alertContent: () -> AlertContent
-    
-    @State private var isPresentingAlert = false
+    let addTapped: () -> Void
     
     var body: some View {
         List(0..<20, id: \.self) { index in
@@ -24,18 +22,15 @@ struct ContactListView<AlertContent: View>: View {
         .listStyle(.plain)
         .navigationTitle("Contacts")
         .toolbar {
-            Button {
-                isPresentingAlert = true
-            } label: {
+            Button(action: addTapped) {
                 Image(systemName: "plus")
             }
         }
-        .customAlert(isPresenting: $isPresentingAlert, content: alertContent)
     }
 }
 
 #Preview {
     NavigationStack {
-        ContactListView(rowTapped: { _ in }, alertContent: EmptyView.init)
+        ContactListView(rowTapped: { _ in }, addTapped: {})
     }
 }
