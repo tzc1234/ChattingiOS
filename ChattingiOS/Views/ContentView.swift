@@ -28,7 +28,7 @@ struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View, Cust
         } message: {
             Text(viewModel.generalError ?? "")
         }
-        .customAlert(isPresenting: $viewModel.isPresentingAlert, content: customAlert)
+        .customAlert(isPresenting: $viewModel.isPresentingCustomAlert, content: customAlert)
     }
     
     @ViewBuilder

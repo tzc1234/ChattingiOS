@@ -11,7 +11,7 @@ struct NavigationDestination<Content: View>: Hashable {
     private let id = UUID()
     let view: Content
     
-    init(view: Content) {
+    init(_ view: Content) {
         self.view = view
     }
     

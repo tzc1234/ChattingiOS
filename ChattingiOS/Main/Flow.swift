@@ -45,7 +45,7 @@ final class Flow {
                     ContactListView { [weak self] username in
                         self?.showMessageListView(username: username)
                     } addTapped: { [weak self] in
-                        self?.contentViewModel.isPresentingAlert = true
+                        self?.contentViewModel.isPresentingCustomAlert = true
                     }
                     .navigationDestinationFor(MessageListView.self)
                 }
@@ -97,7 +97,6 @@ final class Flow {
     }
     
     private func showMessageListView(username: String) {
-        let destination = NavigationDestination(view: MessageListView(username: username))
-        navigationControlViewModel.show(next: destination)
+        navigationControlViewModel.show(next: NavigationDestination(MessageListView(username: username)))
     }
 }
