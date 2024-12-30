@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContactListView: View {
-    let addTapped: () -> Void
+    @State private var isPresenting = false
     
     var body: some View {
         List(0..<20, id: \.self) { index in
@@ -26,16 +26,19 @@ struct ContactListView: View {
         .navigationTitle("Contacts")
         .toolbar {
             Button {
-                addTapped()
+                isPresenting = true
             } label: {
                 Image(systemName: "plus")
             }
+        }
+        .customAlert(isPresenting: $isPresenting) {
+            NewContactView(submitTapped: {})
         }
     }
 }
 
 #Preview {
     NavigationStack {
-        ContactListView(addTapped: {})
+        ContactListView()
     }
 }

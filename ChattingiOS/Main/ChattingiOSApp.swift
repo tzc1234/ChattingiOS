@@ -9,6 +9,8 @@ import SwiftUI
 
 @main
 struct ChattingiOSApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    
     private let dependencies = DependenciesContainer()
     private let flow: Flow
     
@@ -19,6 +21,7 @@ struct ChattingiOSApp: App {
     var body: some Scene {
         WindowGroup {
             flow.startView()
+                .environmentObject(delegate)
         }
     }
 }

@@ -48,7 +48,7 @@ final class Flow {
                 ContentView(viewModel: self.contentViewModel) { user in
                     TabView {
                         NavigationStack {
-                            ContactListView(addTapped: {})
+                            ContactListView()
                         }
                         .tabItem {
                             Label("Contacts", systemImage: "person.3")
