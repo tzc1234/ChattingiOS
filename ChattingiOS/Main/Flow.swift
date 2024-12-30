@@ -33,7 +33,7 @@ final class Flow {
             await userVault.observe { [contentViewModel] user in
                 await contentViewModel.set(user: user)
             }
-            _ = await userVault.retrieveUser()
+            _ = await userVault.retrieveUser() // Trigger user observer.
             
             withAnimation {
                 contentViewModel.isLoading = false
@@ -49,6 +49,8 @@ final class Flow {
                     content: {
                         ContactListView { [weak self] username in
                             self?.showMessageListView(username: username)
+                        } alertContent: {
+                            NewContactView(submitTapped: {})
                         }
                         .navigationDestinationFor(MessageListView.self)
                     }
