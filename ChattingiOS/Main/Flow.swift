@@ -12,10 +12,10 @@ final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
     
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
+    private var userVault: CurrentUserCredentialVault { dependencies.userVault }
     private var showSheet: (() -> AnyView?)? {
         didSet { contentViewModel.showSheet = true }
     }
-    private var userVault: CurrentUserCredentialVault { dependencies.userVault }
     
     private let dependencies: DependenciesContainer
     
@@ -47,7 +47,10 @@ final class Flow {
                 NavigationControlView(
                     viewModel: self.navigationControlViewModel,
                     content: {
-                        ContactListView()
+                        ContactListView { [weak self] username in
+                            self?.showMessageListView(username: username)
+                        }
+                        .navigationDestinationFor(MessageListView.self)
                     }
                 )
                 .tabItem {
@@ -96,6 +99,11 @@ final class Flow {
         ProfileView(user: user, signOutTapped: { [weak self] in
             Task { try? await self?.userVault.deleteUserCredential() }
         })
+    }
+    
+    private func showMessageListView(username: String) {
+        let destination = NavigationDestination(view: MessageListView(username: username))
+        navigationControlViewModel.show(next: destination)
     }
 }
 

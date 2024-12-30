@@ -8,19 +8,17 @@
 import SwiftUI
 
 struct ContactListView: View {
+    let rowTapped: (String) -> Void
+    
     @State private var isPresenting = false
     
     var body: some View {
         List(0..<20, id: \.self) { index in
-            ContactView(name: "User \(index)", email: "user\(index)@email.com", unreadCount: Int.random(in: 0...200))
-                .background(
-                    NavigationLink {
-                        MessageListView(username: "User \(index)")
-                    } label: {
-                        EmptyView()
-                    }
-                )
-                .listRowBackground(Color.clear)
+            ContactView(name: "User \(index)", email: "user\(index)@email.com", unreadCount: Int.random(in: 0...10))
+                .background(.white.opacity(0.01))
+                .onTapGesture {
+                    rowTapped("User \(index)")
+                }
         }
         .listStyle(.plain)
         .navigationTitle("Contacts")
@@ -39,6 +37,6 @@ struct ContactListView: View {
 
 #Preview {
     NavigationStack {
-        ContactListView()
+        ContactListView(rowTapped: { _ in })
     }
 }
