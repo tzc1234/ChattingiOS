@@ -21,7 +21,7 @@ final class Flow {
     
     init(dependencies: DependenciesContainer) {
         self.dependencies = dependencies
-        observeUserSignIn()
+        self.observeUserSignIn()
     }
     
     private func observeUserSignIn() {
@@ -42,7 +42,7 @@ final class Flow {
     }
     
     func startView() -> some View {
-        ContentView(viewModel: self.contentViewModel) { user in
+        ContentView(viewModel: contentViewModel) { user in
             TabView {
                 NavigationControlView(
                     viewModel: self.navigationControlViewModel,
@@ -65,7 +65,6 @@ final class Flow {
                     }
             }
             .tint(.ctOrange)
-            
         } signInContent: { [weak self] in
             self?.signInView()
         } sheet: { [weak self] in

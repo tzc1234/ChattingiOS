@@ -13,17 +13,6 @@ final class NavigationControlViewModel: ObservableObject {
     func show(next: some Hashable) {
         path.append(next)
     }
-    
-    func popTo(index: Int) {
-        guard index <= path.count else { return }
-        
-        let destinationCount = path.count - index
-        path.removeLast(destinationCount)
-    }
-    
-    func popAll() {
-        path.removeLast(path.count)
-    }
 }
 
 struct NavigationControlView<Content: View>: View {
