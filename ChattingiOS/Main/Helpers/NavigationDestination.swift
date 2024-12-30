@@ -30,7 +30,7 @@ extension View {
     }
 }
 
-struct NavigationDestinationViewModifier<V: View>: ViewModifier {
+private struct NavigationDestinationViewModifier<V: View>: ViewModifier {
     func body(content: Content) -> some View {
         content
             .navigationDestination(for: NavigationDestination<V>.self) { $0.view }

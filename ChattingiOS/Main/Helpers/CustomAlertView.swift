@@ -53,7 +53,7 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
     }
 }
 
-struct AlertContentView<Content: View>: View {
+private struct AlertContentView<Content: View>: View {
     @State private var showContent = false
     
     @Binding var isPresenting: Bool
@@ -86,13 +86,12 @@ struct AlertContentView<Content: View>: View {
 }
 
 extension View {
-    @ViewBuilder
     func customAlert<Content: View>(isPresenting: Binding<Bool>, content: @escaping () -> Content) -> some View {
         modifier(AlertModifier(isPresenting: isPresenting, alertContent: content))
     }
 }
 
-struct AlertModifier<AlertContent: View>: ViewModifier {
+private struct AlertModifier<AlertContent: View>: ViewModifier {
     @EnvironmentObject private var sceneDelegate: SceneDelegate
     
     @Binding var isPresenting: Bool

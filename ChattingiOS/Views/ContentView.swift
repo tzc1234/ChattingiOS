@@ -14,7 +14,7 @@ struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: Vie
     let sheet: () -> Sheet
     
     var body: some View {
-        Group {
+        ZStack {
             if viewModel.isLoading {
                 LoadingView()
             } else {
