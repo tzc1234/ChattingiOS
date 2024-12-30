@@ -10,11 +10,11 @@ import SwiftUI
 @MainActor
 final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
-    private var showSheet: (() -> AnyView?)? {
-        didSet { navigationControlViewModel.showSheet() }
-    }
     
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
+    private var showSheet: (() -> AnyView?)? {
+        didSet { contentViewModel.showSheet = true }
+    }
     private var userVault: CurrentUserCredentialVault { dependencies.userVault }
     
     private let dependencies: DependenciesContainer
@@ -42,33 +42,30 @@ final class Flow {
     }
     
     func startView() -> some View {
-        NavigationControlView(
-            viewModel: navigationControlViewModel,
-            content: {
-                ContentView(viewModel: self.contentViewModel) { user in
-                    TabView {
-                        NavigationStack {
-                            ContactListView()
-                        }
-                        .tabItem {
-                            Label("Contacts", systemImage: "person.3")
-                        }
-                        
-                        self.profileView(user: user)
-                            .tabItem {
-                                Label("Profile", systemImage: "person")
-                            }
+        ContentView(viewModel: self.contentViewModel) { user in
+            TabView {
+                NavigationControlView(
+                    viewModel: self.navigationControlViewModel,
+                    content: {
+                        ContactListView()
                     }
-                    .tint(.ctOrange)
-                    
-                } signInContent: { [weak self] in
-                    self?.signInView()
+                )
+                .tabItem {
+                    Label("Contacts", systemImage: "person.3")
                 }
-            },
-            sheet: { [weak self] in
-                self?.showSheet?()
+                
+                self.profileView(user: user)
+                    .tabItem {
+                        Label("Profile", systemImage: "person")
+                    }
             }
-        )
+            .tint(.ctOrange)
+            
+        } signInContent: { [weak self] in
+            self?.signInView()
+        } sheet: { [weak self] in
+            self?.showSheet?()
+        }
     }
     
     private func signInView() -> SignInView {

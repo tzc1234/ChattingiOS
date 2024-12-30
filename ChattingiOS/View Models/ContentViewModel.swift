@@ -12,6 +12,7 @@ final class ContentViewModel: ObservableObject {
     @Published private(set) var user: User?
     @Published var isLoading = false
     @Published var generalError: String?
+    @Published var showSheet = false
     
     func set(user: User?) {
         withAnimation {

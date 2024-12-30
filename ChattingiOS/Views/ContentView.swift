@@ -7,10 +7,11 @@
 
 import SwiftUI
 
-struct ContentView<SignedInContent: View, SignInContent: View>: View {
+struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: View {
     @ObservedObject var viewModel: ContentViewModel
     let signedInContent: (User) -> SignedInContent
     let signInContent: () -> SignInContent
+    let sheet: () -> Sheet
     
     var body: some View {
         Group {
@@ -20,6 +21,7 @@ struct ContentView<SignedInContent: View, SignInContent: View>: View {
                 content
             }
         }
+        .sheet(isPresented: $viewModel.showSheet, content: sheet)
         .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
             Button("Cancel", role: .cancel) {}
         } message: {
