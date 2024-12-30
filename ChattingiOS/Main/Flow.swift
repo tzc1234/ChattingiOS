@@ -13,9 +13,6 @@ final class Flow {
     
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
     private var userVault: CurrentUserCredentialVault { dependencies.userVault }
-    private var showSheet: (() -> AnyView?)? {
-        didSet { contentViewModel.showSheet = true }
-    }
     
     private let dependencies: DependenciesContainer
     
@@ -33,7 +30,7 @@ final class Flow {
             await userVault.observe { [contentViewModel] user in
                 await contentViewModel.set(user: user)
             }
-            _ = await userVault.retrieveUser() // Trigger user observer.
+            await userVault.retrieveUser() // Trigger user observer.
             
             withAnimation {
                 contentViewModel.isLoading = false
@@ -68,7 +65,7 @@ final class Flow {
         } signInContent: { [weak self] in
             self?.signInView()
         } sheet: { [weak self] in
-            self?.showSheet?()
+            self?.signUpView()
         }
     }
     
@@ -78,13 +75,9 @@ final class Flow {
             
             try await userVault.save(userCredential: dependencies.userSignIn.signIn(with: params))
         }
-        return SignInView(viewModel: viewModel, signUpTapped: showSignUp)
-    }
-    
-    private func showSignUp() {
-        showSheet = { [weak self] in
-            self?.signUpView().toAnyView
-        }
+        return SignInView(viewModel: viewModel, signUpTapped: { [weak self] in
+            self?.contentViewModel.showSheet = true
+        })
     }
     
     private func signUpView() -> SignUpView {
@@ -98,7 +91,9 @@ final class Flow {
     
     private func profileView(user: User) -> ProfileView {
         ProfileView(user: user, signOutTapped: { [weak self] in
-            Task { try? await self?.userVault.deleteUserCredential() }
+            Task {
+                try? await self?.userVault.deleteUserCredential()
+            }
         })
     }
     

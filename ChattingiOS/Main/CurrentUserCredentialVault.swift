@@ -48,6 +48,7 @@ extension CurrentUserCredentialVault {
         await onUserStore?(user)
     }
     
+    @discardableResult
     func retrieveUser() async -> User? {
         guard let data = defaults.data(forKey: Self.currentUserKey) else {
             await onUserStore?(nil)
