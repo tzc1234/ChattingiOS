@@ -22,14 +22,8 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
         guard let scene = (scene as? UIWindowScene) else { return }
         
         window = UIWindow(windowScene: scene)
-        setupOverlayWindow()
-    }
-    
-    private func setupOverlayWindow() {
-        guard let window else { return }
-        
-        window.isHidden = true
-        window.isUserInteractionEnabled = false
+        window?.isHidden = true
+        window?.isUserInteractionEnabled = false
     }
     
     func showAlert<Content: View>(isPresenting: Binding<Bool>, content: @escaping () -> Content) {
