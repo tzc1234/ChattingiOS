@@ -18,15 +18,20 @@ struct ContactListView: View {
             contacts: viewModel.contacts,
             loadContacts: viewModel.loadContacts,
             generalError: $viewModel.generalError,
-            rowTapped: rowTapped,
-            addTapped: { alertState.isPresenting = true }
+            rowTapped: rowTapped
         )
-        .customAlert(alertState: $alertState) {
+        .toolbar {
+            Button {
+                alertState.present()
+            } label: {
+                Image(systemName: "plus")
+            }
+        }
+        .alert(alertState: $alertState) {
             NewContactView(submitTapped: {
                 withAnimation {
-                    alertState.showContent = false
+                    alertState.dismiss()
                 }
-                alertState.isPresenting = false
             })
         }
     }
@@ -37,7 +42,6 @@ struct ContactListContentView: View {
     let loadContacts: () async -> Void
     @Binding var generalError: String?
     let rowTapped: (Contact) -> Void
-    let addTapped: () -> Void
     
     var body: some View {
         List(contacts) { contact in
@@ -56,11 +60,6 @@ struct ContactListContentView: View {
         }
         .listStyle(.plain)
         .navigationTitle("Contacts")
-        .toolbar {
-            Button(action: addTapped) {
-                Image(systemName: "plus")
-            }
-        }
         .alert("⚠️Oops!", isPresented: $generalError.toBool) {
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -100,8 +99,7 @@ struct ContactListContentView: View {
             ],
             loadContacts: {},
             generalError: .constant(nil),
-            rowTapped: { _ in },
-            addTapped: {}
+            rowTapped: { _ in }
         )
     }
 }

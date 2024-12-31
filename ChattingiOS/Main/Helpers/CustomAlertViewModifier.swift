@@ -52,8 +52,21 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
 }
 
 struct AlertState {
-    var showContent = false
-    var isPresenting = false
+    fileprivate var isShowingContent = false
+    fileprivate var isPresenting = false
+    
+    fileprivate mutating func showContent() {
+        isShowingContent = true
+    }
+    
+    mutating func present() {
+        isPresenting = true
+    }
+    
+    mutating func dismiss() {
+        isShowingContent = false
+        isPresenting = false
+    }
 }
 
 private struct AlertContentView<Content: View>: View {
@@ -65,26 +78,25 @@ private struct AlertContentView<Content: View>: View {
             Color.black.opacity(0.5)
                 .onTapGesture {
                     withAnimation {
-                        alertState.showContent = false
+                        alertState.dismiss()
                     }
-                    alertState.isPresenting = false
                 }
             
             content()
-                .scaleEffect(alertState.showContent ? 1 : 0)
+                .scaleEffect(alertState.isShowingContent ? 1 : 0)
         }
         .ignoresSafeArea()
-        .opacity(alertState.showContent ? 1 : 0)
+        .opacity(alertState.isShowingContent ? 1 : 0)
         .onAppear {
             withAnimation {
-                alertState.showContent = true
+                alertState.showContent()
             }
         }
     }
 }
 
 extension View {
-    func customAlert<Content: View>(alertState: Binding<AlertState>, content: @escaping () -> Content) -> some View {
+    func alert<Content: View>(alertState: Binding<AlertState>, content: @escaping () -> Content) -> some View {
         modifier(AlertModifier(alertState: alertState, alertContent: content))
     }
 }
