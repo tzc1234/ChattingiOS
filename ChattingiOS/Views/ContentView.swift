@@ -7,12 +7,11 @@
 
 import SwiftUI
 
-struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View, CustomAlert: View>: View {
+struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: View {
     @ObservedObject var viewModel: ContentViewModel
     let signedInContent: (User) -> SignedInContent
     let signInContent: () -> SignInContent
     let sheet: () -> Sheet
-    let customAlert: () -> CustomAlert
     
     var body: some View {
         ZStack {
@@ -28,7 +27,6 @@ struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View, Cust
         } message: {
             Text(viewModel.generalError ?? "")
         }
-        .customAlert(isPresenting: $viewModel.isPresentingCustomAlert, content: customAlert)
     }
     
     @ViewBuilder

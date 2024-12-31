@@ -8,9 +8,10 @@
 import SwiftUI
 
 struct ContactListView: View {
+    @State private var alertState = AlertState()
+    
     @ObservedObject var viewModel: ContactListViewModel
     let rowTapped: (Contact) -> Void
-    let addTapped: () -> Void
     
     var body: some View {
         ContactListContentView(
@@ -18,8 +19,16 @@ struct ContactListView: View {
             loadContacts: viewModel.loadContacts,
             generalError: $viewModel.generalError,
             rowTapped: rowTapped,
-            addTapped: addTapped
+            addTapped: { alertState.isPresenting = true }
         )
+        .customAlert(alertState: $alertState) {
+            NewContactView(submitTapped: {
+                withAnimation {
+                    alertState.showContent = false
+                }
+                alertState.isPresenting = false
+            })
+        }
     }
 }
 

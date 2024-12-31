@@ -26,12 +26,12 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
         window?.isUserInteractionEnabled = false
     }
     
-    func showAlert<Content: View>(isPresenting: Binding<Bool>, content: @escaping () -> Content) {
+    func showAlert<Content: View>(alertState: Binding<AlertState>, content: @escaping () -> Content) {
         guard let window, window.rootViewController == nil else { return }
         
         let viewController = UIHostingController(
             rootView: AlertContentView(
-                isPresenting: isPresenting,
+                alertState: alertState,
                 content: content
             )
         )
@@ -51,10 +51,13 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
     }
 }
 
+struct AlertState {
+    var showContent = false
+    var isPresenting = false
+}
+
 private struct AlertContentView<Content: View>: View {
-    @State private var showContent = false
-    
-    @Binding var isPresenting: Bool
+    @Binding var alertState: AlertState
     let content: () -> Content
     
     var body: some View {
@@ -62,46 +65,45 @@ private struct AlertContentView<Content: View>: View {
             Color.black.opacity(0.5)
                 .onTapGesture {
                     withAnimation {
-                        showContent = false
+                        alertState.showContent = false
                     }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                        isPresenting = false
-                    }
+                    alertState.isPresenting = false
                 }
             
             content()
-                .scaleEffect(showContent ? 1 : 0)
+                .scaleEffect(alertState.showContent ? 1 : 0)
         }
         .ignoresSafeArea()
-        .opacity(showContent ? 1 : 0)
+        .opacity(alertState.showContent ? 1 : 0)
         .onAppear {
             withAnimation {
-                showContent = true
+                alertState.showContent = true
             }
         }
     }
 }
 
 extension View {
-    func customAlert<Content: View>(isPresenting: Binding<Bool>, content: @escaping () -> Content) -> some View {
-        modifier(AlertModifier(isPresenting: isPresenting, alertContent: content))
+    func customAlert<Content: View>(alertState: Binding<AlertState>, content: @escaping () -> Content) -> some View {
+        modifier(AlertModifier(alertState: alertState, alertContent: content))
     }
 }
 
 private struct AlertModifier<AlertContent: View>: ViewModifier {
     @EnvironmentObject private var sceneDelegate: SceneDelegate
     
-    @Binding var isPresenting: Bool
+    @Binding var alertState: AlertState
     let alertContent: () -> AlertContent
     
     func body(content: Content) -> some View {
         content
-            .onChange(of: isPresenting) { newValue in
+            .onChange(of: alertState.isPresenting) { newValue in
                 if newValue {
-                    sceneDelegate.showAlert(isPresenting: $isPresenting, content: alertContent)
+                    sceneDelegate.showAlert(alertState: $alertState, content: alertContent)
                 } else {
-                    sceneDelegate.hideAlert()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        sceneDelegate.hideAlert()
+                    }
                 }
             }
     }

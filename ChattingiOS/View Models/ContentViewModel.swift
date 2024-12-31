@@ -13,7 +13,6 @@ final class ContentViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var generalError: String?
     @Published var showSheet = false
-    @Published var isPresentingCustomAlert = false
     var isUserInitiateSignOut = false
     
     func set(user: User?) {

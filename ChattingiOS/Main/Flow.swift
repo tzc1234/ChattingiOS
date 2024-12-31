@@ -58,8 +58,6 @@ final class Flow {
             self?.signInView()
         } sheet: { [weak self] in
             self?.signUpView()
-        } customAlert: {
-            NewContactView(submitTapped: {})
         }
     }
     
@@ -96,8 +94,6 @@ final class Flow {
         let viewModel = ContactListViewModel(getContacts: dependencies.getContacts)
         return ContactListView(viewModel: viewModel) { [weak self] contact in
             self?.showMessageListView(username: contact.responder.name)
-        } addTapped: { [weak self] in
-            self?.contentViewModel.isPresentingCustomAlert = true
         }
         .navigationDestinationFor(MessageListView.self)
     }
