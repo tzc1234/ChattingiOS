@@ -27,7 +27,7 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
     }
     
     func showAlert<Content: View>(isPresenting: Binding<Bool>, content: @escaping () -> Content) {
-        guard let window else { return }
+        guard let window, window.rootViewController == nil else { return }
         
         let viewController = UIHostingController(
             rootView: AlertContentView(
@@ -37,11 +37,9 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
         )
         viewController.view.backgroundColor = .clear
         
-        if window.rootViewController == nil {
-            window.rootViewController = viewController
-            window.isHidden = false
-            window.isUserInteractionEnabled = true
-        }
+        window.rootViewController = viewController
+        window.isHidden = false
+        window.isUserInteractionEnabled = true
     }
     
     func hideAlert() {
