@@ -25,4 +25,8 @@ final class ContentViewModel: ObservableObject {
             self.user = user
         }
     }
+    
+    func set(generalError: String?) {
+        self.generalError = generalError
+    }
 }
