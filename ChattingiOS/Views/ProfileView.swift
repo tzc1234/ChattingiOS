@@ -15,50 +15,41 @@ struct ProfileView: View {
         ZStack {
             Color.ctOrange
             
-            VStack(spacing: 12) {
-                VStack(spacing: 2) {
-                    AsyncImage(url: URL(string: user.avatarURL ?? "")) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    } placeholder: {
-                        Image(systemName: "person.circle")
-                            .font(.system(size: 80))
-                            .foregroundStyle(.foreground.opacity(0.8))
-                    }
-                    .frame(width: 100, height: 100)
-                    .clipShape(.circle)
-                    
+            CTCardView {
+                VStack(spacing: 12) {
                     VStack(spacing: 2) {
-                        Text(user.name)
-                            .font(.headline)
+                        AsyncImage(url: URL(string: user.avatarURL ?? "")) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } placeholder: {
+                            Image(systemName: "person.circle")
+                                .font(.system(size: 80))
+                                .foregroundStyle(.foreground.opacity(0.8))
+                        }
+                        .frame(width: 100, height: 100)
+                        .clipShape(.circle)
                         
-                        Text(user.email)
-                            .foregroundStyle(.ctOrange)
-                            .font(.subheadline)
+                        VStack(spacing: 2) {
+                            Text(user.name)
+                                .font(.headline)
+                            
+                            Text(user.email)
+                                .foregroundStyle(.ctOrange)
+                                .font(.subheadline)
+                        }
                     }
-                }
-                
-                Button(action: signOutTapped) {
-                    Text("Sign Out")
-                        .font(.headline)
-                        .foregroundStyle(.background)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(.ctRed, in: .rect(cornerRadius: 8))
+                    
+                    Button(action: signOutTapped) {
+                        Text("Sign Out")
+                            .font(.headline)
+                            .foregroundStyle(.background)
+                            .frame(maxWidth: .infinity)
+                            .padding(12)
+                            .background(.ctRed, in: .rect(cornerRadius: 8))
+                    }
                 }
             }
-            .padding()
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(.foreground, lineWidth: 1)
-            )
-            .clipShape(.rect(cornerRadius: 12))
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.background)
-            )
-            .padding(24)
         }
         .ignoresSafeArea(.all, edges: .top)
     }

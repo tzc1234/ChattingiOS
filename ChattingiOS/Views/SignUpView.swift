@@ -66,29 +66,28 @@ struct SignUpContentView: View {
         ZStack {
             Color.ctBlue
             
-            VStack(spacing: 0) {
-                ZStack {
-                    avatarImage
-                        .frame(width: 100, height: 100, alignment: .center)
-                        .clipShape(.circle)
-                    
-                    PhotosPicker(selection: $avatarItem, matching: .images, preferredItemEncoding: .automatic) {
-                        Image(systemName: "photo.circle")
-                            .font(.system(size: 30).weight(.regular))
-                            .foregroundStyle(.ctOrange)
-                            .frame(width: 105, height: 105, alignment: .bottomTrailing)
-                    }
-                    .onChange(of: avatarItem) { newValue in
-                        Task {
-                            if let data = try? await newValue?.loadTransferable(type: Data.self) {
-                                avatarData = UIImage(data: data)?.jpegData(compressionQuality: 0.8)
+            CTCardView {
+                VStack(spacing: 12) {
+                    ZStack {
+                        avatarImage
+                            .frame(width: 100, height: 100, alignment: .center)
+                            .clipShape(.circle)
+                        
+                        PhotosPicker(selection: $avatarItem, matching: .images, preferredItemEncoding: .automatic) {
+                            Image(systemName: "photo.circle")
+                                .font(.system(size: 30).weight(.regular))
+                                .foregroundStyle(.ctOrange)
+                                .frame(width: 105, height: 105, alignment: .bottomTrailing)
+                        }
+                        .onChange(of: avatarItem) { newValue in
+                            Task {
+                                if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                    avatarData = UIImage(data: data)?.jpegData(compressionQuality: 0.8)
+                                }
                             }
                         }
                     }
-                }
-                .padding()
-
-                VStack(spacing: 12) {
+                    
                     CTTextField(placeholder: "Name", text: $name, textContentType: .name, error: nameError)
                         .focused($focused, equals: .name)
                         .submitLabel(.next)
@@ -138,23 +137,9 @@ struct SignUpContentView: View {
                             .background(.ctBlue, in: .rect(cornerRadius: 8))
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom)
             }
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(.foreground, lineWidth: 1)
-            )
-            .clipShape(.rect(cornerRadius: 12))
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.background)
-            )
-            .padding(24)
             .disabled(isLoading)
         }
-        .keyboardHeight($keyboardHeight)
-        .offset(y: -keyboardHeight / 2)
         .ignoresSafeArea()
         .alert("⚠️Oops!", isPresented: $generalError.toBool) {
             Button("Cancel", role: .cancel) {}

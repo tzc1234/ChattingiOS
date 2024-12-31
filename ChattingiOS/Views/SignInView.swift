@@ -46,7 +46,7 @@ struct SignInContentView: View {
         ZStack {
             Color.ctOrange
             
-            VStack(spacing: 0) {
+            CTCardView {
                 VStack(spacing: 6) {
                     Image(systemName: "ellipsis.message")
                         .font(.system(size: 85).weight(.bold))
@@ -99,23 +99,10 @@ struct SignInContentView: View {
                             .background(.ctBlue, in: .rect(cornerRadius: 8))
                     }
                 }
-                .padding()
             }
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(.foreground, lineWidth: 1)
-            )
-            .clipShape(.rect(cornerRadius: 12))
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.background)
-            )
-            .padding(24)
             .disabled(isLoading)
             .brightness(isLoading ? -0.15 : 0)
         }
-        .keyboardHeight($keyboardHeight)
-        .offset(y: -keyboardHeight / 2)
         .ignoresSafeArea()
         .alert("⚠️Oops!", isPresented: $generalError.toBool) {
             Button("Cancel", role: .cancel) {}
