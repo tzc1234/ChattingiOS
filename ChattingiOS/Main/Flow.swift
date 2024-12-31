@@ -39,7 +39,7 @@ final class Flow {
     }
     
     func startView() -> some View {
-        ContentView(viewModel: contentViewModel) { user in
+        ContentView(viewModel: contentViewModel) { currentUser in
             TabView { [self] in
                 NavigationControlView(viewModel: navigationControlViewModel) { [weak self] in
                     self?.contactListView()
@@ -48,7 +48,7 @@ final class Flow {
                     Label("Contacts", systemImage: "person.3")
                 }
                 
-                profileView(user: user)
+                profileView(user: currentUser)
                     .tabItem {
                         Label("Profile", systemImage: "person")
                     }
