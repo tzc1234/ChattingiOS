@@ -8,16 +8,42 @@
 import SwiftUI
 
 struct ContactListView: View {
-    let rowTapped: (String) -> Void
+    @ObservedObject var viewModel: ContactListViewModel
+    let rowTapped: (Contact) -> Void
     let addTapped: () -> Void
     
     var body: some View {
-        List(0..<20, id: \.self) { index in
-            ContactView(name: "User \(index)", email: "user\(index)@email.com", unreadCount: Int.random(in: 0...10))
+        ContactListContentView(
+            contacts: viewModel.contacts,
+            loadContacts: viewModel.loadContacts,
+            generalError: $viewModel.generalError,
+            rowTapped: rowTapped,
+            addTapped: addTapped
+        )
+    }
+}
+
+struct ContactListContentView: View {
+    let contacts: [Contact]
+    let loadContacts: () async -> Void
+    @Binding var generalError: String?
+    let rowTapped: (Contact) -> Void
+    let addTapped: () -> Void
+    
+    var body: some View {
+        List(contacts) { contact in
+            let responder = contact.responder
+            ContactView(responder: responder, unreadCount: contact.unreadMessageCount)
                 .background(.white.opacity(0.01))
                 .onTapGesture {
-                    rowTapped("User \(index)")
+                    rowTapped(contact)
                 }
+        }
+        .task {
+            await loadContacts()
+        }
+        .refreshable {
+            await loadContacts()
         }
         .listStyle(.plain)
         .navigationTitle("Contacts")
@@ -26,11 +52,47 @@ struct ContactListView: View {
                 Image(systemName: "plus")
             }
         }
+        .alert("⚠️Oops!", isPresented: $generalError.toBool) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(generalError ?? "")
+        }
     }
 }
 
 #Preview {
     NavigationStack {
-        ContactListView(rowTapped: { _ in }, addTapped: {})
+        ContactListContentView(
+            contacts: [
+                Contact(
+                    id: 0,
+                    responder: User(
+                        id: 0,
+                        name: "Harry",
+                        email: "harry@email.com",
+                        avatarURL: nil
+                    ),
+                    blockedByUserID: nil,
+                    unreadMessageCount: 0,
+                    lastUpdate: Date()
+                ),
+                Contact(
+                    id: 1,
+                    responder: User(
+                        id: 1,
+                        name: "Jo",
+                        email: "jo@email.com",
+                        avatarURL: nil
+                    ),
+                    blockedByUserID: nil,
+                    unreadMessageCount: 100,
+                    lastUpdate: Date()
+                )
+            ],
+            loadContacts: {},
+            generalError: .constant(nil),
+            rowTapped: { _ in },
+            addTapped: {}
+        )
     }
 }

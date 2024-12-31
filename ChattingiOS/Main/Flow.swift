@@ -41,13 +41,8 @@ final class Flow {
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { user in
             TabView { [self] in
-                NavigationControlView(viewModel: navigationControlViewModel) {
-                    ContactListView { [weak self] username in
-                        self?.showMessageListView(username: username)
-                    } addTapped: { [weak self] in
-                        self?.contentViewModel.isPresentingCustomAlert = true
-                    }
-                    .navigationDestinationFor(MessageListView.self)
+                NavigationControlView(viewModel: navigationControlViewModel) { [weak self] in
+                    self?.contactListView()
                 }
                 .tabItem {
                     Label("Contacts", systemImage: "person.3")
@@ -94,6 +89,16 @@ final class Flow {
                 try? await self?.userVault.deleteUserCredential()
             }
         })
+    }
+    
+    private func contactListView() -> some View {
+        let viewModel = ContactListViewModel(getContacts: dependencies.getContacts)
+        return ContactListView(viewModel: viewModel) { [weak self] contact in
+            self?.showMessageListView(username: contact.responder.name)
+        } addTapped: { [weak self] in
+            self?.contentViewModel.isPresentingCustomAlert = true
+        }
+        .navigationDestinationFor(MessageListView.self)
     }
     
     private func showMessageListView(username: String) {

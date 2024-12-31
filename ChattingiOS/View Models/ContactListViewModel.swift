@@ -17,6 +17,7 @@ final class ContactListViewModel: ObservableObject {
         self.getContacts = getContacts
     }
     
+    @MainActor
     func loadContacts() async {
         do {
             let params = GetContactsParams(before: nil)
