@@ -8,7 +8,7 @@
 import Foundation
 
 extension UseCaseError {
-    func toGeneralErrorMessage() -> String {
+    func toGeneralErrorMessage() -> String? {
         switch self {
         case .server(let reason):
             reason
@@ -18,6 +18,8 @@ extension UseCaseError {
             "Connection error occurred, please try it later."
         case .requestCreation:
             "Request creation error."
+        case .userInitiateSignOut:
+            nil
         }
     }
 }

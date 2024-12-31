@@ -20,6 +20,8 @@ actor GeneralUseCase<Params: Sendable, Mapper: ResponseMapper> {
         let request: URLRequest
         do {
             request = try await getRequest(params)
+        } catch let error as UseCaseError {
+            throw error
         } catch {
             throw .requestCreation
         }

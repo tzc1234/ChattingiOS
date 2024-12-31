@@ -14,8 +14,13 @@ final class ContentViewModel: ObservableObject {
     @Published var generalError: String?
     @Published var showSheet = false
     @Published var isPresentingCustomAlert = false
+    var isUserInitiateSignOut = false
     
     func set(user: User?) {
+        if user != nil {
+            isUserInitiateSignOut = false
+        }
+        
         withAnimation {
             self.user = user
         }

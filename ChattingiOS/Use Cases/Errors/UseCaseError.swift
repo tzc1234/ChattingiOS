@@ -12,6 +12,7 @@ enum UseCaseError: Error {
     case invalidData
     case connectivity
     case requestCreation
+    case userInitiateSignOut
 }
 
 extension UseCaseError {
