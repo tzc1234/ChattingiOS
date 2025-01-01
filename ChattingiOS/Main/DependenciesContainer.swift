@@ -24,6 +24,10 @@ final class DependenciesContainer {
         GetContactsEndpoint(accessToken: try await accessToken(), params: $0).request
     }
     
+    private(set) lazy var newContact = DefaultNewContact(client: httpClient) { [accessToken = accessToken()] in
+        NewContactEndpoint(accessToken: try await accessToken(), responderEmail: $0).request
+    }
+    
     private func accessToken() -> @Sendable () async throws -> String {
         { [userVault, contentViewModel] in
             guard let accessToken = await userVault.retrieveToken()?.accessToken else {

@@ -91,7 +91,7 @@ final class Flow {
     }
     
     private func contactListView() -> some View {
-        let viewModel = ContactListViewModel(getContacts: dependencies.getContacts)
+        let viewModel = ContactListViewModel(getContacts: dependencies.getContacts, newContact: dependencies.newContact)
         return ContactListView(viewModel: viewModel) { [weak self] contact in
             self?.showMessageListView(username: contact.responder.name)
         }

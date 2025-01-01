@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol NewContact {
+protocol NewContact: Sendable {
     func add(by responderEmail: String) async throws(UseCaseError) -> Contact
 }
 
