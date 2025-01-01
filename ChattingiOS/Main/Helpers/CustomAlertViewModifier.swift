@@ -26,7 +26,7 @@ final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
         window?.isUserInteractionEnabled = false
     }
     
-    func showAlert<Content: View>(alertState: Binding<AlertState>, content: @escaping () -> Content) {
+    func showAlert<Content: View>(alertState: Binding<AlertState>, @ViewBuilder content: @escaping () -> Content) {
         guard let window, window.rootViewController == nil else { return }
         
         let viewController = UIHostingController(
@@ -71,7 +71,7 @@ struct AlertState {
 
 private struct AlertContentView<Content: View>: View {
     @Binding var alertState: AlertState
-    let content: () -> Content
+    @ViewBuilder let content: () -> Content
     
     var body: some View {
         ZStack {
@@ -96,7 +96,8 @@ private struct AlertContentView<Content: View>: View {
 }
 
 extension View {
-    func alert<Content: View>(alertState: Binding<AlertState>, content: @escaping () -> Content) -> some View {
+    func alert<Content: View>(alertState: Binding<AlertState>,
+                              @ViewBuilder content: @escaping () -> Content) -> some View {
         modifier(AlertModifier(alertState: alertState, alertContent: content))
     }
 }
@@ -105,7 +106,7 @@ private struct AlertModifier<AlertContent: View>: ViewModifier {
     @EnvironmentObject private var sceneDelegate: SceneDelegate
     
     @Binding var alertState: AlertState
-    let alertContent: () -> AlertContent
+    @ViewBuilder let alertContent: () -> AlertContent
     
     func body(content: Content) -> some View {
         content
