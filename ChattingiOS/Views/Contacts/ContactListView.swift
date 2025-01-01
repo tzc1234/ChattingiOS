@@ -7,10 +7,11 @@
 
 import SwiftUI
 
-struct ContactListView: View {
+struct ContactListView<AlertContent: View>: View {
     @State private var alertState = AlertState()
     
     @ObservedObject var viewModel: ContactListViewModel
+    @ViewBuilder let alertContent: (Binding<AlertState>) -> AlertContent
     let rowTapped: (Contact) -> Void
     
     var body: some View {
@@ -28,11 +29,7 @@ struct ContactListView: View {
             }
         }
         .alert(alertState: $alertState) {
-            NewContactView(submitTapped: {
-                withAnimation {
-                    alertState.dismiss()
-                }
-            })
+            alertContent($alertState)
         }
     }
 }

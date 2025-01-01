@@ -9,15 +9,12 @@ import Foundation
 
 final class ContactListViewModel: ObservableObject {
     @Published private(set) var contacts = [Contact]()
-    @Published private(set) var isAddNewContactLoading = false
     @Published var generalError: String?
     
     private let getContacts: GetContacts
-    private let newContact: NewContact
     
-    init(getContacts: GetContacts, newContact: NewContact) {
+    init(getContacts: GetContacts) {
         self.getContacts = getContacts
-        self.newContact = newContact
     }
     
     @MainActor
@@ -30,20 +27,7 @@ final class ContactListViewModel: ObservableObject {
         }
     }
     
-    @MainActor
-    func addNewContact(email: String) {
-        isAddNewContactLoading = true
-        
-        Task {
-            do {
-                let contact = try await newContact.add(by: email)
-                contacts.insert(contact, at: 0)
-            } catch let error as UseCaseError {
-                generalError = error.toGeneralErrorMessage()
-            }
-            
-            isAddNewContactLoading = false
-        }
+    func add(contact: Contact) {
+        contacts.insert(contact, at: 0)
     }
-    
 }

@@ -5,6 +5,7 @@
 //  Created by Tsz-Lung on 24/12/2024.
 //
 
+import Combine
 import SwiftUI
 
 @MainActor
@@ -13,6 +14,9 @@ final class Flow {
     
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
     private var userVault: CurrentUserCredentialVault { dependencies.userVault }
+    
+    private weak var contactListViewModel: ContactListViewModel?
+    private var cancellable: Cancellable?
     
     private let dependencies: DependenciesContainer
     
@@ -91,11 +95,29 @@ final class Flow {
     }
     
     private func contactListView() -> some View {
-        let viewModel = ContactListViewModel(getContacts: dependencies.getContacts, newContact: dependencies.newContact)
-        return ContactListView(viewModel: viewModel) { [weak self] contact in
-            self?.showMessageListView(username: contact.responder.name)
-        }
-        .navigationDestinationFor(MessageListView.self)
+        let viewModel = ContactListViewModel(getContacts: dependencies.getContacts)
+        contactListViewModel = viewModel
+        
+        return ContactListView(
+            viewModel: viewModel,
+            alertContent: { [weak self] alertState in
+                self?.newContactView(alertState: alertState)
+            }, rowTapped: { [weak self] contact in
+                self?.showMessageListView(username: contact.responder.name)
+            })
+            .navigationDestinationFor(MessageListView.self)
+    }
+    
+    private func newContactView(alertState: Binding<AlertState>) -> NewContactView {
+        let viewModel = NewContactViewModel(newContact: dependencies.newContact)
+        cancellable = viewModel.$contact
+            .sink { [contactListViewModel] contact in
+                guard let contact else { return }
+                
+                contactListViewModel?.add(contact: contact)
+            }
+        
+        return NewContactView(viewModel: viewModel, alertState: alertState)
     }
     
     private func showMessageListView(username: String) {

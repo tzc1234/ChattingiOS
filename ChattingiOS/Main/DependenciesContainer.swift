@@ -19,11 +19,9 @@ final class DependenciesContainer {
     private(set) lazy var userSignUp = UserSignUp(client: httpClient) {
         UserSignUpEndpoint(params: $0).request
     }
-    
     private(set) lazy var getContacts = DefaultGetContacts(client: httpClient) { [accessToken = accessToken()] in
         GetContactsEndpoint(accessToken: try await accessToken(), params: $0).request
     }
-    
     private(set) lazy var newContact = DefaultNewContact(client: httpClient) { [accessToken = accessToken()] in
         NewContactEndpoint(accessToken: try await accessToken(), responderEmail: $0).request
     }
