@@ -111,7 +111,7 @@ final class Flow {
     private func newContactView(alertState: Binding<AlertState>) -> NewContactView {
         let viewModel = NewContactViewModel(newContact: dependencies.newContact)
         cancellable = viewModel.$contact
-            .sink { [contactListViewModel] contact in
+            .sink { [weak contactListViewModel] contact in
                 guard let contact else { return }
                 
                 contactListViewModel?.add(contact: contact)

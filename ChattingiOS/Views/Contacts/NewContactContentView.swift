@@ -18,8 +18,8 @@ struct NewContactView: View {
             isLoading: viewModel.isLoading,
             submitTapped: viewModel.addNewContact
         )
-        .onChange(of: viewModel.isAddNewContactSuccess) { newValue in
-            if newValue {
+        .onChange(of: viewModel.contact) { contact in
+            if contact != nil {
                 // Fix animation when closing the custom alert.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     withAnimation {
