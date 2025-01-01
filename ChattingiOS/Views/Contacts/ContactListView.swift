@@ -18,6 +18,7 @@ struct ContactListView<AlertContent: View>: View {
         ContactListContentView(
             contacts: viewModel.contacts,
             loadContacts: viewModel.loadContacts,
+            loadMoreContacts: viewModel.loadMoreContacts,
             generalError: $viewModel.generalError,
             rowTapped: rowTapped
         )
@@ -37,8 +38,11 @@ struct ContactListView<AlertContent: View>: View {
 struct ContactListContentView: View {
     let contacts: [Contact]
     let loadContacts: () async -> Void
+    let loadMoreContacts: () -> Void
     @Binding var generalError: String?
     let rowTapped: (Contact) -> Void
+    
+    @State private var lastContact: Contact?
     
     var body: some View {
         List(contacts) { contact in
@@ -48,6 +52,16 @@ struct ContactListContentView: View {
                 .onTapGesture {
                     rowTapped(contact)
                 }
+                .onAppear {
+                    if contacts.last == contact {
+                        lastContact = contact
+                    }
+                }
+        }
+        .onChange(of: contacts) { contacts in
+            if contacts.last != lastContact {
+                loadMoreContacts()
+            }
         }
         .task {
             await loadContacts()
@@ -95,6 +109,7 @@ struct ContactListContentView: View {
                 )
             ],
             loadContacts: {},
+            loadMoreContacts: {},
             generalError: .constant(nil),
             rowTapped: { _ in }
         )

@@ -10,6 +10,7 @@ import Foundation
 final class ContactListViewModel: ObservableObject {
     @Published private(set) var contacts = [Contact]()
     @Published var generalError: String?
+    private var canLoadMore = true
     
     private let getContacts: GetContacts
     
@@ -22,8 +23,26 @@ final class ContactListViewModel: ObservableObject {
         do {
             let params = GetContactsParams(before: nil)
             contacts = try await getContacts.get(with: params)
+            canLoadMore = !contacts.isEmpty
         } catch {
             generalError = error.toGeneralErrorMessage()
+        }
+    }
+    
+    @MainActor
+    func loadMoreContacts() {
+        guard canLoadMore else { return }
+        
+        Task {
+            do {
+                let lastUpdate = contacts.last?.lastUpdate
+                let params = GetContactsParams(before: lastUpdate)
+                let moreContacts = try await getContacts.get(with: params)
+                canLoadMore = !moreContacts.isEmpty
+                contacts += moreContacts
+            } catch let error as UseCaseError {
+                generalError = error.toGeneralErrorMessage()
+            }
         }
     }
     
