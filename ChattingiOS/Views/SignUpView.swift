@@ -26,6 +26,7 @@ struct SignUpView: View {
             passwordError: viewModel.passwordError,
             confirmPasswordError: viewModel.confirmPasswordError,
             isLoading: viewModel.isLoading,
+            canSignUp: viewModel.canSignUp,
             signUpTapped: viewModel.signUp
         )
         .interactiveDismissDisabled(viewModel.isLoading)
@@ -56,6 +57,7 @@ struct SignUpContentView: View {
     let passwordError: String?
     let confirmPasswordError: String?
     let isLoading: Bool
+    let canSignUp: Bool
     let signUpTapped: () -> Void
     
     @State private var avatarItem: PhotosPickerItem?
@@ -136,9 +138,12 @@ struct SignUpContentView: View {
                             .padding(12)
                             .background(.ctBlue, in: .rect(cornerRadius: 8))
                     }
+                    .disabled(!canSignUp)
+                    .brightness(canSignUp ? 0 : -0.1)
                 }
             }
             .disabled(isLoading)
+            .brightness(isLoading ? -0.1 : 0)
         }
         .ignoresSafeArea()
         .alert("⚠️Oops!", isPresented: $generalError.toBool) {
@@ -185,6 +190,7 @@ struct SignUpContentView: View {
         passwordError: nil,
         confirmPasswordError: nil,
         isLoading: false,
+        canSignUp: false,
         signUpTapped: {}
     )
 }

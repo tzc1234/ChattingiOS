@@ -14,15 +14,39 @@ final class SignUpViewModel: ObservableObject {
     @Published var confirmPassword = ""
     @Published var generalError: String?
     @Published var avatarData: Data?
-    @Published private(set) var nameError: String?
-    @Published private(set) var emailError: String?
-    @Published private(set) var passwordError: String?
-    @Published private(set) var confirmPasswordError: String?
     @Published private(set) var isLoading = false
     @Published private(set) var isSignUpSuccess = false
     
-    private var canSignUp: Bool {
-        isValidName() && isValidEmail() && isValidPassword() && isCorrectConfirmPassword()
+    var canSignUp: Bool {
+        name.isValidName && email.isValidEmail && password.isValidPassword && isValidConfirmPassword
+    }
+    
+    private var isValidConfirmPassword: Bool {
+        password == confirmPassword
+    }
+    
+    var nameError: String? {
+        guard !name.isEmpty else { return nil }
+        
+        return name.isValidName ? nil : .nameErrorMessage
+    }
+    
+    var emailError: String? {
+        guard !email.isEmpty else { return nil }
+        
+        return email.isValidEmail ? nil : .emailErrorMessage
+    }
+    
+    var passwordError: String? {
+        guard !password.isEmpty else { return nil }
+        
+        return password.isValidPassword ? nil : .passwordErrorMessage
+    }
+    
+    var confirmPasswordError: String? {
+        guard !confirmPassword.isEmpty else { return nil }
+        
+        return isValidConfirmPassword ? nil : .confirmPasswordErrorMessage
     }
     
     private let userSignUp: (UserSignUpParams) async throws -> Void
@@ -48,45 +72,5 @@ final class SignUpViewModel: ObservableObject {
             
             isLoading = false
         }
-    }
-    
-    private func isValidName() -> Bool {
-        guard name.isValidName else {
-            nameError = .nameErrorMessage
-            return false
-        }
-        
-        nameError = nil
-        return true
-    }
-    
-    private func isValidEmail() -> Bool {
-        guard email.isValidEmail else {
-            emailError = .emailErrorMessage
-            return false
-        }
-        
-        emailError = nil
-        return true
-    }
-    
-    private func isValidPassword() -> Bool {
-        guard password.isValidPassword else {
-            passwordError = .passwordErrorMessage
-            return false
-        }
-        
-        passwordError = nil
-        return true
-    }
-    
-    private func isCorrectConfirmPassword() -> Bool {
-        guard password == confirmPassword else {
-            confirmPasswordError = .confirmPasswordErrorMessage
-            return false
-        }
-        
-        confirmPasswordError = nil
-        return true
     }
 }
