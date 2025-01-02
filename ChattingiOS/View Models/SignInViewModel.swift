@@ -19,15 +19,15 @@ final class SignInViewModel: ObservableObject {
     }
     
     var emailError: String? {
-        guard !email.isEmpty else { return nil }
+        guard email.isEmpty || email.isValidEmail else { return .emailErrorMessage }
         
-        return email.isValidEmail ? nil : .emailErrorMessage
+        return nil
     }
     
     var passwordError: String? {
-        guard !password.isEmpty else { return nil }
+        guard password.isEmpty || password.isValidPassword else { return .passwordErrorMessage }
         
-        return password.isValidPassword ? nil : .passwordErrorMessage
+        return nil
     }
     
     // iOS 17 not support explicit throws error type in closure!

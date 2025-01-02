@@ -26,27 +26,27 @@ final class SignUpViewModel: ObservableObject {
     }
     
     var nameError: String? {
-        guard !name.isEmpty else { return nil }
+        guard name.isEmpty || name.isValidName else { return .nameErrorMessage }
         
-        return name.isValidName ? nil : .nameErrorMessage
+        return nil
     }
     
     var emailError: String? {
-        guard !email.isEmpty else { return nil }
+        guard email.isEmpty || email.isValidEmail else { return .emailErrorMessage }
         
-        return email.isValidEmail ? nil : .emailErrorMessage
+        return nil
     }
     
     var passwordError: String? {
-        guard !password.isEmpty else { return nil }
+        guard password.isEmpty || password.isValidPassword else { return .passwordErrorMessage }
         
-        return password.isValidPassword ? nil : .passwordErrorMessage
+        return nil
     }
     
     var confirmPasswordError: String? {
-        guard !confirmPassword.isEmpty else { return nil }
+        guard confirmPassword.isEmpty || isValidConfirmPassword else { return .confirmPasswordErrorMessage }
         
-        return isValidConfirmPassword ? nil : .confirmPasswordErrorMessage
+        return nil
     }
     
     private let userSignUp: (UserSignUpParams) async throws -> Void
