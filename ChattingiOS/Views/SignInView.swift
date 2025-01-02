@@ -19,6 +19,7 @@ struct SignInView: View {
             passwordError: viewModel.passwordError,
             generalError: $viewModel.generalError,
             isLoading: viewModel.isLoading,
+            canSignIn: viewModel.canSignIn,
             signInTapped: viewModel.signIn,
             signUpTapped: signUpTapped
         )
@@ -36,6 +37,7 @@ struct SignInContentView: View {
     let passwordError: String?
     @Binding var generalError: String?
     let isLoading: Bool
+    let canSignIn: Bool
     let signInTapped: () -> Void
     let signUpTapped: () -> Void
     
@@ -89,6 +91,8 @@ struct SignInContentView: View {
                             .padding(12)
                             .background(.ctOrange, in: .rect(cornerRadius: 8))
                     }
+                    .disabled(!canSignIn)
+                    .brightness(canSignIn ? 0 : -0.1)
                     
                     Button(action: signUpTapped) {
                         Text("Sign Up")
@@ -101,7 +105,7 @@ struct SignInContentView: View {
                 }
             }
             .disabled(isLoading)
-            .brightness(isLoading ? -0.15 : 0)
+            .brightness(isLoading ? -0.1 : 0)
         }
         .ignoresSafeArea()
         .alert("⚠️Oops!", isPresented: $generalError.toBool) {
@@ -130,6 +134,7 @@ struct SignInContentView: View {
         passwordError: nil,
         generalError: .constant(nil),
         isLoading: false,
+        canSignIn: true,
         signInTapped: {},
         signUpTapped: {}
     )

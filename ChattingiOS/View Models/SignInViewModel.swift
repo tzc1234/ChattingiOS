@@ -11,13 +11,23 @@ final class SignInViewModel: ObservableObject {
     @Published var email = ""
     @Published var password = ""
     @Published var generalError: String?
-    @Published private(set) var emailError: String?
-    @Published private(set) var passwordError: String?
     @Published private(set) var isLoading = false
     @Published private(set) var isSignInSuccess = false
     
-    private var canSignIn: Bool {
-        isValidEmail() && isValidPassword()
+    var canSignIn: Bool {
+        email.isValidEmail && password.isValidPassword
+    }
+    
+    var emailError: String? {
+        guard !email.isEmpty else { return nil }
+        
+        return email.isValidEmail ? nil : .emailErrorMessage
+    }
+    
+    var passwordError: String? {
+        guard !password.isEmpty else { return nil }
+        
+        return password.isValidPassword ? nil : .passwordErrorMessage
     }
     
     // iOS 17 not support explicit throws error type in closure!
@@ -44,26 +54,4 @@ final class SignInViewModel: ObservableObject {
             isLoading = false
         }
     }
-    
-    private func isValidEmail() -> Bool {
-        guard email.isValidEmail else {
-            emailError = .emailErrorMessage
-            return false
-        }
-        
-        emailError = nil
-        return true
-    }
-    
-    private func isValidPassword() -> Bool {
-        guard password.isValidPassword else {
-            passwordError = .passwordErrorMessage
-            return false
-        }
-        
-        passwordError = nil
-        return true
-    }
 }
-
-
