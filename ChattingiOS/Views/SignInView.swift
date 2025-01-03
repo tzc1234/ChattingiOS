@@ -53,8 +53,8 @@ struct SignInContentView: View {
                     Image(systemName: "ellipsis.message")
                         .font(.system(size: 85).weight(.bold))
                         
-                    Text("Chat with me👋!")
-                        .font(.title2.weight(.medium))
+                    Text("1 on 1 Chat Room.")
+                        .font(.title3.weight(.semibold))
                 }
                 .foregroundStyle(.foreground.opacity(0.8))
                 .padding(.top, 12)
@@ -92,7 +92,7 @@ struct SignInContentView: View {
                             .background(.ctOrange, in: .rect(cornerRadius: 8))
                     }
                     .disabled(!canSignIn)
-                    .brightness(canSignIn ? 0 : -0.1)
+                    .brightness(canSignIn ? 0 : -0.15)
                     
                     Button(action: signUpTapped) {
                         Text("Sign Up")
@@ -134,7 +134,7 @@ struct SignInContentView: View {
         passwordError: nil,
         generalError: .constant(nil),
         isLoading: false,
-        canSignIn: true,
+        canSignIn: false,
         signInTapped: {},
         signUpTapped: {}
     )

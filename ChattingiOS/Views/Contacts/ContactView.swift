@@ -12,9 +12,7 @@ struct ContactView: View {
     let unreadCount: Int
     
     private var avatarURL: URL? {
-        guard let urlString = responder.avatarURL else { return nil }
-        
-        return URL(string: urlString)
+        responder.avatarURL.map { URL(string: $0) } ?? nil
     }
     
     var body: some View {
@@ -26,12 +24,15 @@ struct ContactView: View {
             } placeholder: {
                 Image(systemName: "person.circle")
                     .foregroundStyle(.primary.opacity(0.6))
-                    .font(.system(size: 40))
+                    .font(.system(size: 45))
             }
-            .frame(width: 40, height: 40)
+            .frame(width: 45, height: 45)
+            .clipShape(.circle)
             
             VStack(alignment: .leading) {
                 Text(responder.name)
+                    .font(.headline)
+                
                 Text(responder.email)
                     .font(.footnote)
             }

@@ -139,7 +139,7 @@ struct SignUpContentView: View {
                             .background(.ctBlue, in: .rect(cornerRadius: 8))
                     }
                     .disabled(!canSignUp)
-                    .brightness(canSignUp ? 0 : -0.1)
+                    .brightness(canSignUp ? 0 : -0.15)
                 }
             }
             .disabled(isLoading)
