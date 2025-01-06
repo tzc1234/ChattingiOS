@@ -12,7 +12,7 @@ struct DisplayedMessage: Identifiable {
     let text: String
     let isMine: Bool
     let isRead: Bool
-    let createdAt: Date?
+    let date: Date?
 }
 
 @MainActor
@@ -61,6 +61,7 @@ final class MessageListViewModel: ObservableObject {
                 await self?.appendMessage(message)
             }
             connection.errorObserver = { error in
+                // Should log the webSocket error?
                 print("error received: \(error)")
             }
             await connection.start()
@@ -78,8 +79,8 @@ final class MessageListViewModel: ObservableObject {
             id: message.id,
             text: message.text,
             isMine: message.senderID == currentUserID,
-            isRead: message.isRead,
-            createdAt: message.createdAt
+            isRead: message.senderID == currentUserID || message.isRead,
+            date: message.createdAt
         )
     }
     

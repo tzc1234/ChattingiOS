@@ -32,6 +32,10 @@ struct MessageListContentView: View {
     @Binding var generalError: String?
     let sendMessage: (String) -> Void
     
+    private var firstUnreadMessageID: Int? {
+        messages.first { !$0.isRead }?.id
+    }
+    
     @State private var inputMessage = ""
     @FocusState private var textEditorFocused: Bool
     
@@ -39,11 +43,19 @@ struct MessageListContentView: View {
         VStack {
             GeometryReader { proxy in
                 let width = proxy.size.width * 0.7
-                List(messages) { message in
-                    MessageView(width: width, message: message)
-                        .listRowSeparator(.hidden)
+                ScrollViewReader { scrollViewProxy in
+                    List(messages) { message in
+                        MessageView(width: width, message: message)
+                            .id(message.id)
+                            .listRowSeparator(.hidden)
+                    }
+                    .onChange(of: firstUnreadMessageID) { newValue in
+                        if let newValue {
+                            scrollViewProxy.scrollTo(newValue)
+                        }
+                    }
+                    .listStyle(.plain)
                 }
-                .listStyle(.plain)
             }
             
             HStack(alignment: .top) {
@@ -104,8 +116,8 @@ struct MessageListContentView: View {
             responderName: "Jack",
             avatarURL: nil,
             messages: [
-                DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, createdAt: .now),
-                DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, createdAt: .now)
+                DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, date: .now),
+                DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: .now)
             ],
             generalError: .constant(nil),
             sendMessage: { _ in }

@@ -22,7 +22,6 @@ struct MessageView: View {
                 .foregroundStyle(.white)
                 .padding(8)
                 .background(isMine ? .ctOrange : .gray, in: .rect(cornerRadii: cornerRadii))
-                .frame(maxWidth: width, alignment: isMine ? .trailing : .leading)
         }
         .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)
     }
@@ -45,7 +44,7 @@ struct MessageView: View {
             text: "Hello, mate👋.\nHow are you?",
             isMine: true,
             isRead: true,
-            createdAt: .now)
+            date: .now)
     )
 }
 
@@ -57,6 +56,6 @@ struct MessageView: View {
             text: "Hello, mate👋.",
             isMine: false,
             isRead: false,
-            createdAt: .now)
+            date: .now)
     )
 }
