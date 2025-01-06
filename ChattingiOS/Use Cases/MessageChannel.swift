@@ -25,8 +25,8 @@ protocol MessageChannel: Sendable {
 }
 
 protocol MessageChannelConnection: Sendable {
-    typealias MessageObserver = @Sendable (Message) -> Void
-    typealias ErrorObserver = @Sendable (MessageChannelError) -> Void
+    typealias MessageObserver = @Sendable (Message) async -> Void
+    typealias ErrorObserver = @Sendable (MessageChannelError) async -> Void
     
     var messageObserver: MessageObserver? { get set }
     var errorObserver: ErrorObserver? { get set }
@@ -59,12 +59,12 @@ actor DefaultMessageChannel: MessageChannel {
             await webSocket.setObservers { data in
                 do {
                     let message = try MessageChannelReceivedMessageMapper.map(data)
-                    messageObserver?(message)
+                    await messageObserver?(message)
                 } catch {
-                    errorObserver?(.unsupportedData)
+                    await errorObserver?(.unsupportedData)
                 }
             } errorObserver: { error in
-                errorObserver?(error.toMessageChannelError)
+                await errorObserver?(error.toMessageChannelError)
             }
         }
         

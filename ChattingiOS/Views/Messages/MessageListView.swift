@@ -15,8 +15,13 @@ struct MessageListView: View {
             responderName: viewModel.username,
             avatarURL: viewModel.avatarURL,
             messages: viewModel.messages,
-            generalError: $viewModel.generalError
+            generalError: $viewModel.generalError,
+            sendMessage: viewModel.send(message:)
         )
+        .task {
+            await viewModel.loadMessages()
+            await viewModel.establishChannel()
+        }
     }
 }
 
@@ -25,6 +30,7 @@ struct MessageListContentView: View {
     let avatarURL: URL?
     let messages: [DisplayedMessage]
     @Binding var generalError: String?
+    let sendMessage: (String) -> Void
     
     @State private var inputMessage = ""
     @FocusState private var textEditorFocused: Bool
@@ -51,6 +57,7 @@ struct MessageListContentView: View {
                     .focused($textEditorFocused)
                 
                 Button {
+                    sendMessage(inputMessage)
                     textEditorFocused = false
                 } label: {
                     Image(systemName: "arrow.right.circle.fill")
@@ -100,7 +107,8 @@ struct MessageListContentView: View {
                 DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, createdAt: .now),
                 DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, createdAt: .now)
             ],
-            generalError: .constant(nil)
+            generalError: .constant(nil),
+            sendMessage: { _ in }
         )
     }
 }

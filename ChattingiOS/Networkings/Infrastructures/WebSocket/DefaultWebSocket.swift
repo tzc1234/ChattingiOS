@@ -68,20 +68,20 @@ actor DefaultWebSocket: WebSocket {
                 }
             }
         } catch {
-            errorObserver?(.other(error))
+            await errorObserver?(.other(error))
         }
     }
     
     private func handleFrame(_ frame: WebSocketFrame) async throws {
         switch frame.opcode {
         case .binary:
-            dataObserver?(frame.toData)
+            await dataObserver?(frame.toData)
         case .connectionClose:
-            errorObserver?(.disconnected)
+            await errorObserver?(.disconnected)
         case .ping, .pong:
             break
         case .continuation, .text:
-            errorObserver?(.unsupportedData)
+            await errorObserver?(.unsupportedData)
         default:
             try await sendClose(code: .unacceptableData)
         }

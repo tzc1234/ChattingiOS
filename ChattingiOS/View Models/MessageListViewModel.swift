@@ -15,6 +15,7 @@ struct DisplayedMessage: Identifiable {
     let createdAt: Date?
 }
 
+@MainActor
 final class MessageListViewModel: ObservableObject {
     @Published private(set) var messages = [DisplayedMessage]()
     @Published var generalError: String?
@@ -45,15 +46,7 @@ final class MessageListViewModel: ObservableObject {
         do {
             let param = GetMessagesParams(contactID: contact.id)
             let messages = try await getMessages.get(with: param)
-            self.messages = messages.map {
-                DisplayedMessage(
-                    id: $0.id,
-                    text: $0.text,
-                    isMine: $0.senderID == currentUserID,
-                    isRead: $0.isRead,
-                    createdAt: $0.createdAt
-                )
-            }
+            self.messages = messages.map(map(message:))
         } catch  {
             generalError = error.toGeneralErrorMessage()
         }
@@ -61,20 +54,36 @@ final class MessageListViewModel: ObservableObject {
     
     func establishChannel() async {
         do {
-            connection = try await messageChannel.establish(for: contact.id)
-            await connection?.start()
+            var connection = try await messageChannel.establish(for: contact.id)
+            self.connection = connection
+            
+            connection.messageObserver = { [weak self] message in
+                await self?.appendMessage(message)
+            }
+            connection.errorObserver = { error in
+                print("error received: \(error)")
+            }
+            await connection.start()
         } catch {
-            generalError = map(error)
+            generalError = map(error: error)
         }
     }
     
-    func send(message: String) {
-        Task { [connection] in
-            try? await connection?.send(text: message)
-        }
+    private func appendMessage(_ message: Message) {
+        messages.append(map(message: message))
     }
     
-    private func map(_ error: MessageChannelError) -> String? {
+    private func map(message: Message) -> DisplayedMessage {
+        DisplayedMessage(
+            id: message.id,
+            text: message.text,
+            isMine: message.senderID == currentUserID,
+            isRead: message.isRead,
+            createdAt: message.createdAt
+        )
+    }
+    
+    private func map(error: MessageChannelError) -> String? {
         switch error {
         case .invalidURL:
             "Invalid URL."
@@ -92,6 +101,12 @@ final class MessageListViewModel: ObservableObject {
             "Request creation error."
         case .unknown, .unsupportedData,  .other:
             "Connection error."
+        }
+    }
+    
+    func send(message: String) {
+        Task { [connection] in
+            try? await connection?.send(text: message)
         }
     }
     
