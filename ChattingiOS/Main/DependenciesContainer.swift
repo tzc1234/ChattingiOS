@@ -39,11 +39,30 @@ final class DependenciesContainer {
                 }
                 
                 try? await Task.sleep(for: .seconds(0.35))
-                await contentViewModel.set(generalError: "Please sign in again.")
+                await contentViewModel.set(generalError: Self.pleaseSignInMessage)
                 throw UseCaseError.requestCreation
             }
             
             return accessToken
         }
     }
+    
+    private let webSocketClient = NIOWebSocketClient()
+    private(set) lazy var messageChannel = DefaultMessageChannel(client: webSocketClient) { [userVault, contentViewModel] in
+        guard let accessToken = userVault.retrieveToken()?.accessToken else {
+            try? await userVault.deleteUserCredential()
+            
+            if contentViewModel.isUserInitiateSignOut {
+                throw MessageChannelError.userInitiateSignOut
+            }
+            
+            try? await Task.sleep(for: .seconds(0.35))
+            contentViewModel.set(generalError: Self.pleaseSignInMessage)
+            throw MessageChannelError.requestCreation
+        }
+        
+        return MessageChannelEndpoint(accessToken: accessToken, contactID: $0).request
+    }
+    
+    private static var pleaseSignInMessage: String { "Please sign in again." }
 }
