@@ -8,28 +8,40 @@
 import SwiftUI
 
 struct MessageListView: View {
-    @State private var message = ""
-    @FocusState private var textEditorFocused: Bool
+    @ObservedObject var viewModel: MessageListViewModel
     
-    let username: String
+    var body: some View {
+        MessageListContentView(
+            responderName: viewModel.username,
+            avatarURL: viewModel.avatarURL,
+            messages: viewModel.messages,
+            generalError: $viewModel.generalError
+        )
+    }
+}
+
+struct MessageListContentView: View {
+    let responderName: String
+    let avatarURL: URL?
+    let messages: [DisplayedMessage]
+    @Binding var generalError: String?
+    
+    @State private var inputMessage = ""
+    @FocusState private var textEditorFocused: Bool
     
     var body: some View {
         VStack {
             GeometryReader { proxy in
                 let width = proxy.size.width * 0.7
-                List(0..<20, id: \.self) { index in
-                    MessageView(
-                        width: width,
-                        text: "\(Int.random(in: 0...999999999999999)) \(Int.random(in: 0...999999999999999)) 3142342134324",
-                        isMine: index % 2 == 0
-                    )
-                    .listRowSeparator(.hidden)
+                List(messages) { message in
+                    MessageView(width: width, message: message)
+                        .listRowSeparator(.hidden)
                 }
                 .listStyle(.plain)
             }
             
             HStack(alignment: .top) {
-                TextEditor(text: $message)
+                TextEditor(text: $inputMessage)
                     .font(.callout)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
@@ -55,17 +67,40 @@ struct MessageListView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 HStack {
-                    Image(systemName: "person.circle")
-                    Text(username)
+                    AsyncImage(url: avatarURL) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        Image(systemName: "person.circle")
+                            .font(.system(size: 25))
+                    }
+                    .frame(width: 30, height: 30)
+                    .clipShape(.circle)
+                    
+                    Text(responderName)
                         .font(.headline)
                 }
             }
+        }
+        .alert("⚠️Oops!", isPresented: $generalError.toBool) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(generalError ?? "")
         }
     }
 }
 
 #Preview {
     NavigationStack {
-        MessageListView(username: "User 1")
+        MessageListContentView(
+            responderName: "Jack",
+            avatarURL: nil,
+            messages: [
+                DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, createdAt: .now),
+                DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, createdAt: .now)
+            ],
+            generalError: .constant(nil)
+        )
     }
 }

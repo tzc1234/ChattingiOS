@@ -9,12 +9,15 @@ import SwiftUI
 
 struct MessageView: View {
     let width: CGFloat
-    let text: String
-    let isMine: Bool
+    let message: DisplayedMessage
+    
+    private var isMine: Bool {
+        message.isMine
+    }
     
     var body: some View {
         ZStack {
-            Text(text)
+            Text(message.text)
                 .font(.callout)
                 .foregroundStyle(.white)
                 .padding(8)
@@ -35,9 +38,25 @@ struct MessageView: View {
 }
 
 #Preview("My message") {
-    MessageView(width: 393, text: "Hello, mate👋.\nHow are you?", isMine: true)
+    MessageView(
+        width: 393,
+        message: DisplayedMessage(
+            id: 0,
+            text: "Hello, mate👋.\nHow are you?",
+            isMine: true,
+            isRead: true,
+            createdAt: .now)
+    )
 }
 
 #Preview("Other message") {
-    MessageView(width: 393, text: "Hello, mate👋.", isMine: false)
+    MessageView(
+        width: 393,
+        message: DisplayedMessage(
+            id: 0,
+            text: "Hello, mate👋.",
+            isMine: false,
+            isRead: false,
+            createdAt: .now)
+    )
 }

@@ -46,7 +46,7 @@ final class Flow {
         ContentView(viewModel: contentViewModel) { currentUser in
             TabView { [self] in
                 NavigationControlView(viewModel: navigationControlViewModel) { [weak self] in
-                    self?.contactListView()
+                    self?.contactListView(currentUserID: currentUser.id)
                 }
                 .tabItem {
                     Label("Contacts", systemImage: "person.3")
@@ -94,7 +94,7 @@ final class Flow {
         })
     }
     
-    private func contactListView() -> some View {
+    private func contactListView(currentUserID: Int) -> some View {
         let viewModel = ContactListViewModel(getContacts: dependencies.getContacts)
         contactListViewModel = viewModel
         
@@ -103,7 +103,7 @@ final class Flow {
             alertContent: { [weak self] alertState in
                 self?.newContactView(alertState: alertState)
             }, rowTapped: { [weak self] contact in
-                self?.showMessageListView(username: contact.responder.name)
+                self?.showMessageListView(currentUserID: currentUserID, contact: contact)
             })
             .navigationDestinationFor(MessageListView.self)
     }
@@ -120,7 +120,12 @@ final class Flow {
         return NewContactView(viewModel: viewModel, alertState: alertState)
     }
     
-    private func showMessageListView(username: String) {
-        navigationControlViewModel.show(next: NavigationDestination(MessageListView(username: username)))
+    private func showMessageListView(currentUserID: Int, contact: Contact) {
+        let viewModel = MessageListViewModel(
+            currentUserID: currentUserID,
+            contact: contact,
+            getMessages: dependencies.getMessages
+        )
+        navigationControlViewModel.show(next: NavigationDestination(MessageListView(viewModel: viewModel)))
     }
 }
