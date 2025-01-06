@@ -124,7 +124,8 @@ final class Flow {
         let viewModel = MessageListViewModel(
             currentUserID: currentUserID,
             contact: contact,
-            getMessages: dependencies.getMessages
+            getMessages: dependencies.getMessages,
+            messageChannel: dependencies.messageChannel
         )
         navigationControlViewModel.show(next: NavigationDestination(MessageListView(viewModel: viewModel)))
     }
