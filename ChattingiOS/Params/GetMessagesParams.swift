@@ -14,4 +14,10 @@ struct GetMessagesParams {
     let contactID: Int
     let messageID: MessageID?
     let limit: Int?
+    
+    init(contactID: Int, messageID: MessageID? = nil, limit: Int? = nil) {
+        self.contactID = contactID
+        self.messageID = messageID
+        self.limit = limit
+    }
 }
