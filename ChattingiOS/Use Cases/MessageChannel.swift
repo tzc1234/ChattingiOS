@@ -69,7 +69,7 @@ actor DefaultMessageChannel: MessageChannel {
         }
         
         func send(text: String) async throws {
-            let data = MessageChannelSentTextMapper.map(text)
+            let data = try MessageChannelSentTextMapper.map(text)
             try await webSocket.send(data: data)
         }
         
