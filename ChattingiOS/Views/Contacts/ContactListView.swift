@@ -10,9 +10,17 @@ import SwiftUI
 struct ContactListView<AlertContent: View>: View {
     @State private var alertState = AlertState()
     
-    @ObservedObject var viewModel: ContactListViewModel
-    @ViewBuilder let alertContent: (Binding<AlertState>) -> AlertContent
-    let rowTapped: (Contact) -> Void
+    @StateObject private var viewModel: ContactListViewModel
+    @ViewBuilder private let alertContent: (Binding<AlertState>) -> AlertContent
+    private let rowTapped: (Contact) -> Void
+    
+    init(viewModel: ContactListViewModel,
+         alertContent: @escaping (Binding<AlertState>) -> AlertContent,
+         rowTapped: @escaping (Contact) -> Void) {
+        self._viewModel = StateObject(wrappedValue: viewModel)
+        self.alertContent = alertContent
+        self.rowTapped = rowTapped
+    }
     
     var body: some View {
         ContactListContentView(
