@@ -55,7 +55,7 @@ final class MessageListViewModel: ObservableObject {
     
     func establishChannel() async {
         do {
-            var connection = try await messageChannel.establish(for: contact.id)
+            let connection = try await messageChannel.establish(for: contact.id)
             self.connection = connection
             await connection.startObserving { [weak self] message in
                 await self?.appendMessage(message)

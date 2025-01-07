@@ -46,8 +46,7 @@ struct ContactListContentView: View {
     
     var body: some View {
         List(contacts) { contact in
-            let responder = contact.responder
-            ContactView(responder: responder, unreadCount: contact.unreadMessageCount)
+            ContactView(responder: contact.responder, unreadCount: contact.unreadMessageCount)
                 .background(.white.opacity(0.01))
                 .onTapGesture {
                     rowTapped(contact)
@@ -59,7 +58,7 @@ struct ContactListContentView: View {
                 }
         }
         .onChange(of: contacts) { contacts in
-            if contacts.last != lastContact {
+            if let lastContact, contacts.last != lastContact {
                 loadMoreContacts()
             }
         }
