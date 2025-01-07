@@ -28,10 +28,7 @@ protocol MessageChannelConnection: Sendable {
     typealias MessageObserver = @Sendable (Message) async -> Void
     typealias ErrorObserver = @Sendable (MessageChannelError) async -> Void
     
-    var messageObserver: MessageObserver? { get set }
-    var errorObserver: ErrorObserver? { get set }
-    
-    func start() async
+    func startObserving(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async
     func send(text: String) async throws
     func close() async throws
 }
@@ -46,16 +43,13 @@ actor DefaultMessageChannel: MessageChannel {
     }
     
     private struct Connection: MessageChannelConnection {
-        var messageObserver: MessageObserver?
-        var errorObserver: ErrorObserver?
-        
         private let webSocket: WebSocket
         
         init(webSocket: WebSocket) {
             self.webSocket = webSocket
         }
         
-        func start() async {
+        func startObserving(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async {
             await webSocket.setObservers { data in
                 do {
                     let message = try MessageChannelReceivedMessageMapper.map(data)
