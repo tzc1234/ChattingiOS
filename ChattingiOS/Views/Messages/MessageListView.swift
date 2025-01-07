@@ -16,7 +16,8 @@ struct MessageListView: View {
             avatarURL: viewModel.avatarURL,
             messages: viewModel.messages,
             generalError: $viewModel.generalError,
-            sendMessage: viewModel.send(message:)
+            inputMessage: $viewModel.inputMessage,
+            sendMessage: viewModel.sendMessage
         )
         .task {
             await viewModel.loadMessages()
@@ -30,13 +31,13 @@ struct MessageListContentView: View {
     let avatarURL: URL?
     let messages: [DisplayedMessage]
     @Binding var generalError: String?
-    let sendMessage: (String) -> Void
+    @Binding var inputMessage: String
+    let sendMessage: () -> Void
     
     private var firstUnreadMessageID: Int? {
         messages.first { !$0.isRead }?.id
     }
     
-    @State private var inputMessage = ""
     @FocusState private var textEditorFocused: Bool
     
     var body: some View {
@@ -69,7 +70,7 @@ struct MessageListContentView: View {
                     .focused($textEditorFocused)
                 
                 Button {
-                    sendMessage(inputMessage)
+                    sendMessage()
                     textEditorFocused = false
                 } label: {
                     Image(systemName: "arrow.right.circle.fill")
@@ -120,7 +121,8 @@ struct MessageListContentView: View {
                 DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: .now)
             ],
             generalError: .constant(nil),
-            sendMessage: { _ in }
+            inputMessage: .constant(""),
+            sendMessage: {}
         )
     }
 }

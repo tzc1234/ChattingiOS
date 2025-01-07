@@ -19,6 +19,7 @@ struct DisplayedMessage: Identifiable {
 final class MessageListViewModel: ObservableObject {
     @Published private(set) var messages = [DisplayedMessage]()
     @Published var generalError: String?
+    @Published var inputMessage = ""
     
     var username: String {
         contact.responder.name
@@ -105,9 +106,12 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
-    func send(message: String) {
-        Task { [connection] in
-            try? await connection?.send(text: message)
+    func sendMessage() {
+        guard !inputMessage.isEmpty else { return }
+        
+        Task {
+            try? await connection?.send(text: inputMessage)
+            inputMessage = ""
         }
     }
     
