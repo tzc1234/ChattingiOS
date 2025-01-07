@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContactListView<AlertContent: View>: View {
     @State private var alertState = AlertState()
+    @State private var lastContact: Contact?
     
     @StateObject private var viewModel: ContactListViewModel
     @ViewBuilder private let alertContent: (Binding<AlertState>) -> AlertContent
@@ -25,11 +26,21 @@ struct ContactListView<AlertContent: View>: View {
     var body: some View {
         ContactListContentView(
             contacts: viewModel.contacts,
-            loadContacts: viewModel.loadContacts,
-            loadMoreContacts: viewModel.loadMoreContacts,
+            lastContact: $lastContact,
             generalError: $viewModel.generalError,
             rowTapped: rowTapped
         )
+        .task {
+            await viewModel.loadContacts()
+        }
+        .refreshable {
+            await viewModel.loadContacts()
+        }
+        .onChange(of: viewModel.contacts) { contacts in
+            if let lastContact, contacts.last != lastContact {
+                viewModel.loadMoreContacts()
+            }
+        }
         .toolbar {
             Button {
                 alertState.present()
@@ -45,12 +56,9 @@ struct ContactListView<AlertContent: View>: View {
 
 struct ContactListContentView: View {
     let contacts: [Contact]
-    let loadContacts: () async -> Void
-    let loadMoreContacts: () -> Void
+    @Binding var lastContact: Contact?
     @Binding var generalError: String?
     let rowTapped: (Contact) -> Void
-    
-    @State private var lastContact: Contact?
     
     var body: some View {
         List(contacts) { contact in
@@ -64,17 +72,6 @@ struct ContactListContentView: View {
                         lastContact = contact
                     }
                 }
-        }
-        .onChange(of: contacts) { contacts in
-            if let lastContact, contacts.last != lastContact {
-                loadMoreContacts()
-            }
-        }
-        .task {
-            await loadContacts()
-        }
-        .refreshable {
-            await loadContacts()
         }
         .listStyle(.plain)
         .navigationTitle("Contacts")
@@ -115,8 +112,7 @@ struct ContactListContentView: View {
                     lastUpdate: Date()
                 )
             ],
-            loadContacts: {},
-            loadMoreContacts: {},
+            lastContact: .constant(nil),
             generalError: .constant(nil),
             rowTapped: { _ in }
         )
