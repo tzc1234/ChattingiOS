@@ -17,7 +17,7 @@ struct ProfileView: View {
             
             CTCardView {
                 VStack(spacing: 12) {
-                    VStack(spacing: 2) {
+                    VStack(spacing: 4) {
                         AsyncImage(url: URL(string: user.avatarURL ?? "")) { image in
                             image
                                 .resizable()

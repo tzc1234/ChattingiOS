@@ -92,7 +92,7 @@ struct SignInContentView: View {
                             .background(.ctOrange, in: .rect(cornerRadius: 8))
                     }
                     .disabled(!canSignIn)
-                    .brightness(canSignIn ? 0 : -0.15)
+                    .brightness(canSignIn ? 0 : -0.25)
                     
                     Button(action: signUpTapped) {
                         Text("Sign Up")
