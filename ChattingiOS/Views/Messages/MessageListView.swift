@@ -93,14 +93,13 @@ struct MessageListContentView: View {
                         .background(Color.ctOrange)
                         .clipShape(.circle)
                 }
+                .disabled(isLoading)
                 .disabled(inputMessage.isEmpty)
-                .brightness(inputMessage.isEmpty ? -0.1 : 0)
+                .brightness(isLoading || inputMessage.isEmpty ? -0.1 : 0)
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 18)
             .fixedSize(horizontal: false, vertical: true)
-            .disabled(isLoading)
-            .brightness(isLoading ? -0.1 : 0)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)

@@ -64,12 +64,11 @@ final class MessageListViewModel: ObservableObject {
         
         isLoading = true
         Task {
-            let messageID = messages.last.map { GetMessagesParams.MessageID.after($0.id) }
-            let param = GetMessagesParams(contactID: contact.id, messageID: messageID)
-            let moreMessages = try await getMessages.get(with: param)
-            canLoadMore = !moreMessages.isEmpty
-            self.messages += moreMessages.map(map(message:))
-            
+            do {
+                try await _loadMoreMessage()
+            } catch let error as UseCaseError {
+                generalError = error.toGeneralErrorMessage()
+            }
             isLoading = false
         }
     }
@@ -130,11 +129,32 @@ final class MessageListViewModel: ObservableObject {
         isLoading = true
         messageSent = false
         Task {
-            try? await connection?.send(text: inputMessage)
-            inputMessage = ""
-            messageSent = true
+            do {
+                try await loadMoreMessageUntilTheEnd()
+                
+                try? await connection?.send(text: inputMessage)
+                inputMessage = ""
+                messageSent = true
+            } catch let error as UseCaseError {
+                generalError = error.toGeneralErrorMessage()
+            }
+            
             isLoading = false
         }
+    }
+    
+    private func loadMoreMessageUntilTheEnd() async throws {
+        while canLoadMore {
+            try await _loadMoreMessage()
+        }
+    }
+    
+    private func _loadMoreMessage() async throws {
+        let messageID = messages.last.map { GetMessagesParams.MessageID.after($0.id) }
+        let param = GetMessagesParams(contactID: contact.id, messageID: messageID)
+        let moreMessages = try await getMessages.get(with: param)
+        canLoadMore = !moreMessages.isEmpty
+        self.messages += moreMessages.map(map(message:))
     }
     
     deinit {
