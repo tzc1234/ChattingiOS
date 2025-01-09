@@ -26,6 +26,7 @@ struct MessageListView: View {
             await viewModel.loadMessages()
             await viewModel.establishChannel()
         }
+        .toolbar(.hidden, for: .tabBar)
     }
 }
 
@@ -44,6 +45,7 @@ struct MessageListContentView: View {
         messages.first { !$0.isRead }?.id
     }
     
+    @State private var isScrolledToFirstUnreadMessage = false
     @FocusState private var textEditorFocused: Bool
     
     var body: some View {
@@ -62,8 +64,9 @@ struct MessageListContentView: View {
                     }
                     .listStyle(.plain)
                     .onChange(of: firstUnreadMessageID) { newValue in
-                        if let newValue {
+                        if !isScrolledToFirstUnreadMessage, let newValue {
                             scrollViewProxy.scrollTo(newValue)
+                            isScrolledToFirstUnreadMessage = true
                         }
                     }
                     .onChange(of: messages) { messages in
@@ -102,7 +105,6 @@ struct MessageListContentView: View {
             .fixedSize(horizontal: false, vertical: true)
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 HStack {
