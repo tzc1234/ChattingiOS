@@ -32,6 +32,7 @@ final class MessageListViewModel: ObservableObject {
     }
     
     private var connection: MessageChannelConnection?
+    private var canLoadMore = false
     
     private let currentUserID: Int
     private let contact: Contact
@@ -50,11 +51,27 @@ final class MessageListViewModel: ObservableObject {
         do {
             let param = GetMessagesParams(contactID: contact.id)
             let messages = try await getMessages.get(with: param)
+            canLoadMore = !messages.isEmpty
             self.messages = messages.map(map(message:))
         } catch  {
             generalError = error.toGeneralErrorMessage()
         }
         isLoading = false
+    }
+    
+    func loadMoreMessages() {
+        guard canLoadMore else { return }
+        
+        isLoading = true
+        Task {
+            let messageID = messages.last.map { GetMessagesParams.MessageID.after($0.id) }
+            let param = GetMessagesParams(contactID: contact.id, messageID: messageID)
+            let moreMessages = try await getMessages.get(with: param)
+            canLoadMore = !moreMessages.isEmpty
+            self.messages += moreMessages.map(map(message:))
+            
+            isLoading = false
+        }
     }
     
     func establishChannel() async {

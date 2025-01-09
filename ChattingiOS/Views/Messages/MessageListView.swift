@@ -19,7 +19,8 @@ struct MessageListView: View {
             generalError: $viewModel.generalError,
             inputMessage: $viewModel.inputMessage,
             messageSent: viewModel.messageSent,
-            sendMessage: viewModel.sendMessage
+            sendMessage: viewModel.sendMessage,
+            loadMoreMessages: viewModel.loadMoreMessages
         )
         .task {
             await viewModel.loadMessages()
@@ -37,6 +38,7 @@ struct MessageListContentView: View {
     @Binding var inputMessage: String
     let messageSent: Bool
     let sendMessage: () -> Void
+    let loadMoreMessages: () -> Void
     
     private var firstUnreadMessageID: Int? {
         messages.first { !$0.isRead }?.id
@@ -52,6 +54,11 @@ struct MessageListContentView: View {
                         MessageView(width: proxy.size.width * 0.7, message: message)
                             .id(message.id)
                             .listRowSeparator(.hidden)
+                            .onAppear {
+                                if message == messages.last {
+                                    loadMoreMessages()
+                                }
+                            }
                     }
                     .listStyle(.plain)
                     .onChange(of: firstUnreadMessageID) { newValue in
@@ -149,7 +156,8 @@ struct MessageListContentView: View {
             generalError: .constant(nil),
             inputMessage: .constant(""),
             messageSent: false,
-            sendMessage: {}
+            sendMessage: {},
+            loadMoreMessages: {}
         )
     }
 }
