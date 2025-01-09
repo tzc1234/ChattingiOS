@@ -21,6 +21,7 @@ final class MessageListViewModel: ObservableObject {
     @Published var generalError: String?
     @Published var inputMessage = ""
     @Published private(set) var isLoading = false
+    @Published private(set) var messageSent = false
     
     var username: String {
         contact.responder.name
@@ -110,9 +111,11 @@ final class MessageListViewModel: ObservableObject {
         guard !inputMessage.isEmpty else { return }
         
         isLoading = true
+        messageSent = false
         Task {
             try? await connection?.send(text: inputMessage)
             inputMessage = ""
+            messageSent = true
             isLoading = false
         }
     }

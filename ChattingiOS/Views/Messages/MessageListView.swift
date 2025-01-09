@@ -18,6 +18,7 @@ struct MessageListView: View {
             isLoading: viewModel.isLoading,
             generalError: $viewModel.generalError,
             inputMessage: $viewModel.inputMessage,
+            messageSent: viewModel.messageSent,
             sendMessage: viewModel.sendMessage
         )
         .task {
@@ -34,6 +35,7 @@ struct MessageListContentView: View {
     let isLoading: Bool
     @Binding var generalError: String?
     @Binding var inputMessage: String
+    let messageSent: Bool
     let sendMessage: () -> Void
     
     private var firstUnreadMessageID: Int? {
@@ -41,15 +43,13 @@ struct MessageListContentView: View {
     }
     
     @FocusState private var textEditorFocused: Bool
-    @State private var messageSent = false
     
     var body: some View {
         VStack {
             GeometryReader { proxy in
-                let width = proxy.size.width * 0.7
                 ScrollViewReader { scrollViewProxy in
                     List(messages) { message in
-                        MessageView(width: width, message: message)
+                        MessageView(width: proxy.size.width * 0.7, message: message)
                             .id(message.id)
                             .listRowSeparator(.hidden)
                     }
@@ -61,7 +61,6 @@ struct MessageListContentView: View {
                     }
                     .onChange(of: messages) { messages in
                         if messageSent {
-                            messageSent = false
                             messages.last.map { scrollViewProxy.scrollTo($0.id) }
                         }
                     }
@@ -81,7 +80,6 @@ struct MessageListContentView: View {
                 Button {
                     sendMessage()
                     textEditorFocused = false
-                    messageSent = true
                 } label: {
                     loadingButtonLabel
                         .frame(width: 35, height: 35)
@@ -150,6 +148,7 @@ struct MessageListContentView: View {
             isLoading: false,
             generalError: .constant(nil),
             inputMessage: .constant(""),
+            messageSent: false,
             sendMessage: {}
         )
     }
