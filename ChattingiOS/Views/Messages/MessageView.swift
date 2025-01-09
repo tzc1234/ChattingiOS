@@ -17,11 +17,21 @@ struct MessageView: View {
     
     var body: some View {
         ZStack {
-            Text(message.text)
-                .font(.callout)
-                .foregroundStyle(.white)
-                .padding(8)
-                .background(isMine ? .ctOrange : .gray, in: .rect(cornerRadii: cornerRadii))
+            VStack(alignment: isMine ? .trailing : .leading, spacing: 6) {
+                Text(message.text)
+                    .font(.callout)
+                    .fixedSize(horizontal: true, vertical: false)
+                
+                if let date = message.date {
+                    Text(date)
+                        .font(.system(size: 10))
+                }
+            }
+            .foregroundStyle(.white)
+            .padding(8)
+            .background(isMine ? .ctOrange : .gray, in: .rect(cornerRadii: cornerRadii))
+            .multilineTextAlignment(isMine ? .trailing : .leading)
+            .frame(width: width, alignment: isMine ? .trailing : .leading)
         }
         .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)
     }
@@ -41,10 +51,11 @@ struct MessageView: View {
         width: 393,
         message: DisplayedMessage(
             id: 0,
-            text: "Hello, mate👋.\nHow are you?",
+            text: "Hello, mate👋.\nHow are you, long time no see?",
             isMine: true,
             isRead: true,
-            date: .now)
+            date: "01/01/2025, 10:00"
+        )
     )
 }
 
@@ -56,6 +67,7 @@ struct MessageView: View {
             text: "Hello, mate👋.",
             isMine: false,
             isRead: false,
-            date: .now)
+            date: "01/01/2025, 10:00"
+        )
     )
 }

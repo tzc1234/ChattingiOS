@@ -12,7 +12,7 @@ struct DisplayedMessage: Identifiable, Equatable {
     let text: String
     let isMine: Bool
     let isRead: Bool
-    let date: Date?
+    let date: String?
 }
 
 @MainActor
@@ -98,7 +98,7 @@ final class MessageListViewModel: ObservableObject {
             text: message.text,
             isMine: message.senderID == currentUserID,
             isRead: message.senderID == currentUserID || message.isRead,
-            date: message.createdAt
+            date: message.createdAt?.formatted()
         )
     }
     
