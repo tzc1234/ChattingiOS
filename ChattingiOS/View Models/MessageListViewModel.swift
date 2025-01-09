@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct DisplayedMessage: Identifiable {
+struct DisplayedMessage: Identifiable, Equatable {
     let id: Int
     let text: String
     let isMine: Bool
@@ -20,6 +20,7 @@ final class MessageListViewModel: ObservableObject {
     @Published private(set) var messages = [DisplayedMessage]()
     @Published var generalError: String?
     @Published var inputMessage = ""
+    @Published private(set) var isLoading = false
     
     var username: String {
         contact.responder.name
@@ -44,6 +45,7 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func loadMessages() async {
+        isLoading = true
         do {
             let param = GetMessagesParams(contactID: contact.id)
             let messages = try await getMessages.get(with: param)
@@ -51,6 +53,7 @@ final class MessageListViewModel: ObservableObject {
         } catch  {
             generalError = error.toGeneralErrorMessage()
         }
+        isLoading = false
     }
     
     func establishChannel() async {
@@ -106,9 +109,11 @@ final class MessageListViewModel: ObservableObject {
     func sendMessage() {
         guard !inputMessage.isEmpty else { return }
         
+        isLoading = true
         Task {
             try? await connection?.send(text: inputMessage)
             inputMessage = ""
+            isLoading = false
         }
     }
     

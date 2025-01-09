@@ -15,6 +15,7 @@ struct MessageListView: View {
             responderName: viewModel.username,
             avatarURL: viewModel.avatarURL,
             messages: viewModel.messages,
+            isLoading: viewModel.isLoading,
             generalError: $viewModel.generalError,
             inputMessage: $viewModel.inputMessage,
             sendMessage: viewModel.sendMessage
@@ -30,6 +31,7 @@ struct MessageListContentView: View {
     let responderName: String
     let avatarURL: URL?
     let messages: [DisplayedMessage]
+    let isLoading: Bool
     @Binding var generalError: String?
     @Binding var inputMessage: String
     let sendMessage: () -> Void
@@ -39,6 +41,7 @@ struct MessageListContentView: View {
     }
     
     @FocusState private var textEditorFocused: Bool
+    @State private var messageSent = false
     
     var body: some View {
         VStack {
@@ -50,12 +53,18 @@ struct MessageListContentView: View {
                             .id(message.id)
                             .listRowSeparator(.hidden)
                     }
+                    .listStyle(.plain)
                     .onChange(of: firstUnreadMessageID) { newValue in
                         if let newValue {
                             scrollViewProxy.scrollTo(newValue)
                         }
                     }
-                    .listStyle(.plain)
+                    .onChange(of: messages) { messages in
+                        if messageSent {
+                            messageSent = false
+                            messages.last.map { scrollViewProxy.scrollTo($0.id) }
+                        }
+                    }
                 }
             }
             
@@ -72,15 +81,21 @@ struct MessageListContentView: View {
                 Button {
                     sendMessage()
                     textEditorFocused = false
+                    messageSent = true
                 } label: {
-                    Image(systemName: "arrow.right.circle.fill")
-                        .foregroundColor(.ctOrange)
-                        .font(.system(size: 30))
+                    loadingButtonLabel
+                        .frame(width: 35, height: 35)
+                        .background(Color.ctOrange)
+                        .clipShape(.circle)
                 }
+                .disabled(inputMessage.isEmpty)
+                .brightness(inputMessage.isEmpty ? -0.1 : 0)
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 18)
             .fixedSize(horizontal: false, vertical: true)
+            .disabled(isLoading)
+            .brightness(isLoading ? -0.1 : 0)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
@@ -109,6 +124,18 @@ struct MessageListContentView: View {
             Text(generalError ?? "")
         }
     }
+    
+    @ViewBuilder
+    private var loadingButtonLabel: some View {
+        if isLoading {
+            ProgressView()
+                .tint(.white)
+        } else {
+            Image(systemName: "arrow.right")
+                .foregroundStyle(.white)
+                .font(.system(size: 18))
+        }
+    }
 }
 
 #Preview {
@@ -120,6 +147,7 @@ struct MessageListContentView: View {
                 DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, date: .now),
                 DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: .now)
             ],
+            isLoading: false,
             generalError: .constant(nil),
             inputMessage: .constant(""),
             sendMessage: {}
