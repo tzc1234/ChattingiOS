@@ -7,14 +7,14 @@
 
 import Foundation
 
-protocol ReadMessages {
-    func read(with params: ReadMessagesParams) async throws
+protocol ReadMessages: Sendable {
+    func read(with params: ReadMessagesParams) async throws(UseCaseError)
 }
 
 typealias DefaultReadMessages = GeneralUseCase<ReadMessagesParams, ReadMessagesResponseMapper>
 
 extension DefaultReadMessages: ReadMessages {
-    func read(with params: ReadMessagesParams) async throws {
+    func read(with params: ReadMessagesParams) async throws(UseCaseError) {
         try await perform(with: params)
     }
 }

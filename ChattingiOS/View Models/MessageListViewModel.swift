@@ -33,17 +33,24 @@ final class MessageListViewModel: ObservableObject {
     
     private var connection: MessageChannelConnection?
     private var canLoadMore = false
+    private var messagesToBeReadIDs = Set<Int>()
     
     private let currentUserID: Int
     private let contact: Contact
     private let getMessages: GetMessages
     private let messageChannel: MessageChannel
+    private let readMessages: ReadMessages
     
-    init(currentUserID: Int, contact: Contact, getMessages: GetMessages, messageChannel: MessageChannel) {
+    init(currentUserID: Int,
+         contact: Contact,
+         getMessages: GetMessages,
+         messageChannel: MessageChannel,
+         readMessages: ReadMessages) {
         self.currentUserID = currentUserID
         self.contact = contact
         self.getMessages = getMessages
         self.messageChannel = messageChannel
+        self.readMessages = readMessages
     }
     
     func loadMessages() async {
@@ -155,6 +162,25 @@ final class MessageListViewModel: ObservableObject {
         let moreMessages = try await getMessages.get(with: param)
         canLoadMore = !moreMessages.isEmpty
         self.messages += moreMessages.map(map(message:))
+    }
+    
+    func readMessages(until messageID: Int) {
+        messagesToBeReadIDs.insert(messageID)
+        
+        Task {
+            try? await Task.sleep(for: .seconds(0.3)) // Debounce
+            
+            guard let messageID = messagesToBeReadIDs.max() else { return }
+            messagesToBeReadIDs.removeAll()
+            
+            try? await _readMessages(until: messageID)
+        }
+    }
+    
+    private func _readMessages(until messageID: Int) async throws {
+        let param = ReadMessagesParams(contactID: contact.id, untilMessageID: messageID)
+        try await readMessages.read(with: param)
+        print("_readMessages called!")
     }
     
     deinit {

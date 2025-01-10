@@ -125,7 +125,8 @@ final class Flow {
             currentUserID: currentUserID,
             contact: contact,
             getMessages: dependencies.getMessages,
-            messageChannel: dependencies.messageChannel
+            messageChannel: dependencies.messageChannel,
+            readMessages: dependencies.readMessages
         )
         navigationControlViewModel.show(next: NavigationDestination(MessageListView(viewModel: viewModel)))
     }
