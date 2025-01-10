@@ -20,6 +20,7 @@ struct MessageListView: View {
             inputMessage: $viewModel.inputMessage,
             listPositionMessageID: $viewModel.listPositionMessageID,
             sendMessage: viewModel.sendMessage,
+            loadPreviousMessages: viewModel.loadPreviousMessages,
             loadMoreMessages: viewModel.loadMoreMessages,
             readMessages: viewModel.readMessages
         )
@@ -40,6 +41,7 @@ struct MessageListContentView: View {
     @Binding var inputMessage: String
     @Binding var listPositionMessageID: Int?
     let sendMessage: () -> Void
+    let loadPreviousMessages: () -> Void
     let loadMoreMessages: () -> Void
     let readMessages: (Int) -> Void
     
@@ -54,7 +56,9 @@ struct MessageListContentView: View {
                             .id(message.id)
                             .listRowSeparator(.hidden)
                             .onAppear {
-                                if message == messages.last {
+                                if message == messages.first {
+                                    loadPreviousMessages()
+                                } else if message == messages.last {
                                     loadMoreMessages()
                                 }
                                 
@@ -154,6 +158,7 @@ struct MessageListContentView: View {
             inputMessage: .constant(""),
             listPositionMessageID: .constant(nil),
             sendMessage: {},
+            loadPreviousMessages: {},
             loadMoreMessages: {},
             readMessages: { _ in }
         )
