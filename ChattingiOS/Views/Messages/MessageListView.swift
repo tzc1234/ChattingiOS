@@ -70,7 +70,7 @@ struct MessageListContentView: View {
                     .listStyle(.plain)
                     .onChange(of: listPositionMessageID) { messageID in
                         if let messageID {
-                            scrollViewProxy.scrollTo(messageID)
+                            scrollViewProxy.scrollTo(messageID, anchor: .top)
                             listPositionMessageID = nil
                         }
                     }
