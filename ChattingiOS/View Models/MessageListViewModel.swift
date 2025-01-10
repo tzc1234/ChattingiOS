@@ -21,15 +21,12 @@ final class MessageListViewModel: ObservableObject {
     @Published var generalError: String?
     @Published var inputMessage = ""
     @Published private(set) var isLoading = false
-    @Published private(set) var messageSent = false
+    @Published var listPositionMessageID: Int?
     
-    var username: String {
-        contact.responder.name
-    }
-    
-    var avatarURL: URL? {
-        contact.responder.avatarURL.map { URL(string: $0) } ?? nil
-    }
+    private var contactID: Int { contact.id }
+    var username: String { contact.responder.name }
+    var avatarURL: URL? { contact.responder.avatarURL.map { URL(string: $0) } ?? nil }
+    private var initialListPositionMessageID: Int? { messages.first { !$0.isRead }?.id ?? messages.last?.id }
     
     private var connection: MessageChannelConnection?
     private var canLoadMore = false
@@ -57,10 +54,12 @@ final class MessageListViewModel: ObservableObject {
     func loadMessages() async {
         isLoading = true
         do {
-            let param = GetMessagesParams(contactID: contact.id)
+            let param = GetMessagesParams(contactID: contactID)
             let messages = try await getMessages.get(with: param)
             canLoadMore = !messages.isEmpty
             self.messages = messages.map(map(message:))
+            
+            listPositionMessageID = initialListPositionMessageID
         } catch  {
             generalError = error.toGeneralErrorMessage()
         }
@@ -83,10 +82,10 @@ final class MessageListViewModel: ObservableObject {
     
     func establishChannel() async {
         do {
-            let connection = try await messageChannel.establish(for: contact.id)
+            let connection = try await messageChannel.establish(for: contactID)
             self.connection = connection
             await connection.startObserving { [weak self] message in
-                await self?.appendMessage(message)
+                await self?.appendNewMessage(message)
             } errorObserver: { error in
                 // Should log the webSocket error?
                 print("error received: \(error)")
@@ -96,26 +95,27 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
-    private func appendMessage(_ message: Message) {
+    private func appendNewMessage(_ message: Message) {
         messages.append(map(message: message))
+        
+        if listPositionMessageID == nil {
+            listPositionMessageID = message.id
+        }
     }
     
     func sendMessage() {
         guard !inputMessage.isEmpty else { return }
         
         isLoading = true
-        messageSent = false
         Task {
             do {
                 try await loadMoreMessageUntilTheEnd()
                 
                 try? await connection?.send(text: inputMessage)
                 inputMessage = ""
-                messageSent = true
             } catch let error as UseCaseError {
                 generalError = error.toGeneralErrorMessage()
             }
-            
             isLoading = false
         }
     }
@@ -131,7 +131,7 @@ final class MessageListViewModel: ObservableObject {
         
         isLoadingMoreMessage = true
         let messageID = messages.last.map { GetMessagesParams.MessageID.after($0.id) }
-        let param = GetMessagesParams(contactID: contact.id, messageID: messageID)
+        let param = GetMessagesParams(contactID: contactID, messageID: messageID)
         let moreMessages = try await getMessages.get(with: param)
         canLoadMore = !moreMessages.isEmpty
         self.messages += moreMessages.map(map(message:))
@@ -157,7 +157,7 @@ final class MessageListViewModel: ObservableObject {
             guard let maxMessageID = messagesToBeReadIDs.max() else { return }
             messagesToBeReadIDs.removeAll()
             
-            let param = ReadMessagesParams(contactID: contact.id, untilMessageID: maxMessageID)
+            let param = ReadMessagesParams(contactID: contactID, untilMessageID: maxMessageID)
             try? await readMessages.read(with: param)
         }
     }

@@ -18,7 +18,7 @@ struct MessageListView: View {
             isLoading: viewModel.isLoading,
             generalError: $viewModel.generalError,
             inputMessage: $viewModel.inputMessage,
-            messageSent: viewModel.messageSent,
+            listPositionMessageID: $viewModel.listPositionMessageID,
             sendMessage: viewModel.sendMessage,
             loadMoreMessages: viewModel.loadMoreMessages,
             readMessages: viewModel.readMessages
@@ -38,16 +38,11 @@ struct MessageListContentView: View {
     let isLoading: Bool
     @Binding var generalError: String?
     @Binding var inputMessage: String
-    let messageSent: Bool
+    @Binding var listPositionMessageID: Int?
     let sendMessage: () -> Void
     let loadMoreMessages: () -> Void
     let readMessages: (Int) -> Void
     
-    private var listInitialPositionMessageID: Int? {
-        messages.first { !$0.isRead }?.id ?? messages.last?.id
-    }
-    
-    @State private var isScrolledToInitialPosition = false
     @FocusState private var textEditorFocused: Bool
     
     var body: some View {
@@ -69,15 +64,10 @@ struct MessageListContentView: View {
                             }
                     }
                     .listStyle(.plain)
-                    .onChange(of: listInitialPositionMessageID) { newValue in
-                        if !isScrolledToInitialPosition, let newValue {
-                            scrollViewProxy.scrollTo(newValue)
-                            isScrolledToInitialPosition = true
-                        }
-                    }
-                    .onChange(of: messages) { messages in
-                        if messageSent {
-                            messages.last.map { scrollViewProxy.scrollTo($0.id) }
+                    .onChange(of: listPositionMessageID) { messageID in
+                        if let messageID {
+                            scrollViewProxy.scrollTo(messageID)
+                            listPositionMessageID = nil
                         }
                     }
                 }
@@ -162,7 +152,7 @@ struct MessageListContentView: View {
             isLoading: false,
             generalError: .constant(nil),
             inputMessage: .constant(""),
-            messageSent: false,
+            listPositionMessageID: .constant(nil),
             sendMessage: {},
             loadMoreMessages: {},
             readMessages: { _ in }
