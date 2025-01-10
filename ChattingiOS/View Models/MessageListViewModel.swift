@@ -92,43 +92,12 @@ final class MessageListViewModel: ObservableObject {
                 print("error received: \(error)")
             }
         } catch {
-            generalError = map(error: error)
+            generalError = error.toGeneralErrorMessage
         }
     }
     
     private func appendMessage(_ message: Message) {
         messages.append(map(message: message))
-    }
-    
-    private func map(message: Message) -> DisplayedMessage {
-        DisplayedMessage(
-            id: message.id,
-            text: message.text,
-            isMine: message.senderID == currentUserID,
-            isRead: message.senderID == currentUserID || message.isRead,
-            date: message.createdAt?.formatted()
-        )
-    }
-    
-    private func map(error: MessageChannelError) -> String? {
-        switch error {
-        case .invalidURL:
-            "Invalid URL."
-        case .unauthorized:
-            "Unauthorized user."
-        case .notFound:
-            "Contact not found."
-        case .forbidden:
-            "Contact is belong to current user."
-        case .disconnected:
-            "Disconnected."
-        case .userInitiateSignOut:
-            nil
-        case .requestCreation:
-            "Request creation error."
-        case .unknown, .unsupportedData,  .other:
-            "Connection error."
-        }
     }
     
     func sendMessage() {
@@ -169,16 +138,26 @@ final class MessageListViewModel: ObservableObject {
         isLoadingMoreMessage = false
     }
     
+    private func map(message: Message) -> DisplayedMessage {
+        DisplayedMessage(
+            id: message.id,
+            text: message.text,
+            isMine: message.senderID == currentUserID,
+            isRead: message.senderID == currentUserID || message.isRead,
+            date: message.createdAt?.formatted()
+        )
+    }
+    
     func readMessages(until messageID: Int) {
         messagesToBeReadIDs.insert(messageID)
         
         Task {
             try? await Task.sleep(for: .seconds(0.3)) // Debounce
             
-            guard let messageID = messagesToBeReadIDs.max() else { return }
+            guard let maxMessageID = messagesToBeReadIDs.max() else { return }
             messagesToBeReadIDs.removeAll()
             
-            let param = ReadMessagesParams(contactID: contact.id, untilMessageID: messageID)
+            let param = ReadMessagesParams(contactID: contact.id, untilMessageID: maxMessageID)
             try? await readMessages.read(with: param)
         }
     }
