@@ -33,6 +33,7 @@ final class MessageListViewModel: ObservableObject {
     
     private var connection: MessageChannelConnection?
     private var canLoadMore = false
+    private var isLoadingMoreMessage = false
     private var messagesToBeReadIDs = Set<Int>()
     
     private let currentUserID: Int
@@ -157,11 +158,15 @@ final class MessageListViewModel: ObservableObject {
     }
     
     private func _loadMoreMessage() async throws {
+        guard !isLoadingMoreMessage else { return }
+        
+        isLoadingMoreMessage = true
         let messageID = messages.last.map { GetMessagesParams.MessageID.after($0.id) }
         let param = GetMessagesParams(contactID: contact.id, messageID: messageID)
         let moreMessages = try await getMessages.get(with: param)
         canLoadMore = !moreMessages.isEmpty
         self.messages += moreMessages.map(map(message:))
+        isLoadingMoreMessage = false
     }
     
     func readMessages(until messageID: Int) {
@@ -173,14 +178,9 @@ final class MessageListViewModel: ObservableObject {
             guard let messageID = messagesToBeReadIDs.max() else { return }
             messagesToBeReadIDs.removeAll()
             
-            try? await _readMessages(until: messageID)
+            let param = ReadMessagesParams(contactID: contact.id, untilMessageID: messageID)
+            try? await readMessages.read(with: param)
         }
-    }
-    
-    private func _readMessages(until messageID: Int) async throws {
-        let param = ReadMessagesParams(contactID: contact.id, untilMessageID: messageID)
-        try await readMessages.read(with: param)
-        print("_readMessages called!")
     }
     
     deinit {
