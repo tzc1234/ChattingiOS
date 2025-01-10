@@ -20,7 +20,8 @@ struct MessageListView: View {
             inputMessage: $viewModel.inputMessage,
             messageSent: viewModel.messageSent,
             sendMessage: viewModel.sendMessage,
-            loadMoreMessages: viewModel.loadMoreMessages
+            loadMoreMessages: viewModel.loadMoreMessages,
+            readMessages: viewModel.readMessages
         )
         .task {
             await viewModel.loadMessages()
@@ -40,12 +41,13 @@ struct MessageListContentView: View {
     let messageSent: Bool
     let sendMessage: () -> Void
     let loadMoreMessages: () -> Void
+    let readMessages: (Int) -> Void
     
-    private var firstUnreadMessageID: Int? {
-        messages.first { !$0.isRead }?.id
+    private var listInitialPositionMessageID: Int? {
+        messages.first { !$0.isRead }?.id ?? messages.last?.id
     }
     
-    @State private var isScrolledToFirstUnreadMessage = false
+    @State private var isScrolledToInitialPosition = false
     @FocusState private var textEditorFocused: Bool
     
     var body: some View {
@@ -60,13 +62,17 @@ struct MessageListContentView: View {
                                 if message == messages.last {
                                     loadMoreMessages()
                                 }
+                                
+                                if !message.isRead {
+                                    readMessages(message.id)
+                                }
                             }
                     }
                     .listStyle(.plain)
-                    .onChange(of: firstUnreadMessageID) { newValue in
-                        if !isScrolledToFirstUnreadMessage, let newValue {
+                    .onChange(of: listInitialPositionMessageID) { newValue in
+                        if !isScrolledToInitialPosition, let newValue {
                             scrollViewProxy.scrollTo(newValue)
-                            isScrolledToFirstUnreadMessage = true
+                            isScrolledToInitialPosition = true
                         }
                     }
                     .onChange(of: messages) { messages in
@@ -158,7 +164,8 @@ struct MessageListContentView: View {
             inputMessage: .constant(""),
             messageSent: false,
             sendMessage: {},
-            loadMoreMessages: {}
+            loadMoreMessages: {},
+            readMessages: { _ in }
         )
     }
 }
