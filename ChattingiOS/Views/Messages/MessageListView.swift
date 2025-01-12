@@ -46,6 +46,7 @@ struct MessageListContentView: View {
     let readMessages: (Int) -> Void
     
     @FocusState private var textEditorFocused: Bool
+    @State private var scrollToMessageID: Int?
     
     var body: some View {
         VStack {
@@ -70,9 +71,14 @@ struct MessageListContentView: View {
                     .listStyle(.plain)
                     .onChange(of: listPositionMessageID) { messageID in
                         if let messageID {
-                            scrollViewProxy.scrollTo(messageID, anchor: .top)
+                            withAnimation {
+                                scrollToMessageID = messageID
+                            }
                             listPositionMessageID = nil
                         }
+                    }
+                    .onChange(of: scrollToMessageID) { messageID in
+                        scrollViewProxy.scrollTo(messageID, anchor: .top)
                     }
                 }
             }

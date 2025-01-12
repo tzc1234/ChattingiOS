@@ -5,7 +5,7 @@
 //  Created by Tsz-Lung on 06/01/2025.
 //
 
-import SwiftUI
+import Foundation
 
 struct DisplayedMessage: Identifiable, Equatable {
     let id: Int
@@ -91,14 +91,15 @@ final class MessageListViewModel: ObservableObject {
         isLoadingPreviousMessages = true
         
         let param = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
-        let previousMessages = try await getMessages.get(with: param)
+        let previousMessages = try await getMessages.get(with: param).map(map(message:))
         canLoadPrevious = !previousMessages.isEmpty
-        messages.insert(contentsOf: previousMessages.map(map(message:)), at: 0)
-        isLoadingPreviousMessages = false
         
-        withAnimation(.linear(duration: 0.1)) {
+        if !previousMessages.isEmpty {
+            messages.insert(contentsOf: previousMessages, at: 0)
             listPositionMessageID = firstMessageID
         }
+        
+        isLoadingPreviousMessages = false
     }
     
     func loadMoreMessages() {
