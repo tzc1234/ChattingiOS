@@ -19,16 +19,25 @@ final class DependenciesContainer {
     private(set) lazy var userSignUp = UserSignUp(client: httpClient) {
         UserSignUpEndpoint(params: $0).request
     }
-    private(set) lazy var getContacts = DefaultGetContacts(client: httpClient) { [accessToken = accessToken()] in
+    private(set) lazy var refreshToken = DefaultRefreshToken(client: httpClient) {
+        RefreshTokenEndpoint(refreshToken: $0).request
+    }
+    
+    private(set) lazy var refreshTokenHTTPClient = RefreshTokenHTTPClientDecorator(
+        decoratee: httpClient,
+        refreshToken: refreshToken,
+        userVault: userVault
+    )
+    private(set) lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
         GetContactsEndpoint(accessToken: try await accessToken(), params: $0).request
     }
-    private(set) lazy var newContact = DefaultNewContact(client: httpClient) { [accessToken = accessToken()] in
+    private(set) lazy var newContact = DefaultNewContact(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
         NewContactEndpoint(accessToken: try await accessToken(), responderEmail: $0).request
     }
-    private(set) lazy var getMessages = DefaultGetMessages(client: httpClient) { [accessToken = accessToken()] in
+    private(set) lazy var getMessages = DefaultGetMessages(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
         GetMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
-    private(set) lazy var readMessages = DefaultReadMessages(client: httpClient) { [accessToken = accessToken()] in
+    private(set) lazy var readMessages = DefaultReadMessages(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
         ReadMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
     

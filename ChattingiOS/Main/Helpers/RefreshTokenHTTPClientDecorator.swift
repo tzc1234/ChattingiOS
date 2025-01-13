@@ -36,7 +36,7 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
     }
     
     private func isAccessTokenInvalid(_ response: HTTPURLResponse) -> Bool {
-        response.statusCode == 401
+        response.statusCode == 401 // unauthorised
     }
     
     private func refreshToken() async throws -> String {
