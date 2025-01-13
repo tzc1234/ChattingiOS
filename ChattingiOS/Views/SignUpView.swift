@@ -5,9 +5,40 @@
 //  Created by Tsz-Lung on 11/12/2024.
 //
 
+import PhotosUI
 import SwiftUI
 
 struct SignUpView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    @ObservedObject var viewModel: SignUpViewModel
+    
+    var body: some View {
+        SignUpContentView(
+            name: $viewModel.name,
+            email: $viewModel.email,
+            password: $viewModel.password,
+            confirmPassword: $viewModel.confirmPassword,
+            avatarData: $viewModel.avatarData,
+            generalError: $viewModel.generalError,
+            nameError: viewModel.nameError,
+            emailError: viewModel.emailError,
+            passwordError: viewModel.passwordError,
+            confirmPasswordError: viewModel.confirmPasswordError,
+            isLoading: viewModel.isLoading,
+            canSignUp: viewModel.canSignUp,
+            signUpTapped: viewModel.signUp
+        )
+        .interactiveDismissDisabled(viewModel.isLoading)
+        .onChange(of: viewModel.isSignUpSuccess) { isSignUpSuccess in
+            if isSignUpSuccess {
+                dismiss()
+            }
+        }
+    }
+}
+
+struct SignUpContentView: View {
     private enum FocusedField: CaseIterable {
         case name
         case email
@@ -15,12 +46,21 @@ struct SignUpView: View {
         case confirmPassword
     }
     
-    @State var name = ""
-    @State var email = ""
-    @State var password = ""
-    @State var confirmPassword = ""
+    @Binding var name: String
+    @Binding var email: String
+    @Binding var password: String
+    @Binding var confirmPassword: String
+    @Binding var avatarData: Data?
+    @Binding var generalError: String?
+    let nameError: String?
+    let emailError: String?
+    let passwordError: String?
+    let confirmPasswordError: String?
+    let isLoading: Bool
+    let canSignUp: Bool
+    let signUpTapped: () -> Void
     
-    @Environment(\.dismiss) private var dismiss
+    @State private var avatarItem: PhotosPickerItem?
     @State private var keyboardHeight: CGFloat = 0
     @FocusState private var focused: FocusedField?
     
@@ -28,18 +68,29 @@ struct SignUpView: View {
         ZStack {
             Color.ctBlue
             
-            VStack(spacing: 0) {
-                Button {
-                    print("Add avatar taped.")
-                } label: {
-                    Image(systemName: "person.fill.badge.plus")
-                        .font(.system(size: 85).weight(.ultraLight))
-                        .foregroundStyle(.foreground.opacity(0.8))
-                        .padding(.top, 16)
-                }
-
+            CTCardView {
                 VStack(spacing: 12) {
-                    CTTextField(placeholder: "Name", text: $name, textContentType: .name)
+                    ZStack {
+                        avatarImage
+                            .frame(width: 100, height: 100, alignment: .center)
+                            .clipShape(.circle)
+                        
+                        PhotosPicker(selection: $avatarItem, matching: .images, preferredItemEncoding: .automatic) {
+                            Image(systemName: "photo.circle")
+                                .font(.system(size: 30).weight(.regular))
+                                .foregroundStyle(.ctOrange)
+                                .frame(width: 105, height: 105, alignment: .bottomTrailing)
+                        }
+                        .onChange(of: avatarItem) { newValue in
+                            Task {
+                                if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                    avatarData = UIImage(data: data)?.jpegData(compressionQuality: 0.8)
+                                }
+                            }
+                        }
+                    }
+                    
+                    CTTextField(placeholder: "Name", text: $name, textContentType: .name, error: nameError)
                         .focused($focused, equals: .name)
                         .submitLabel(.next)
                         .onSubmit {
@@ -50,7 +101,8 @@ struct SignUpView: View {
                         placeholder: "Email",
                         text: $email,
                         keyboardType: .emailAddress,
-                        textContentType: .emailAddress
+                        textContentType: .emailAddress,
+                        error: emailError
                     )
                     .focused($focused, equals: .email)
                     .submitLabel(.next)
@@ -58,46 +110,87 @@ struct SignUpView: View {
                         focused?.onNext()
                     }
                     
-                    CTSecureField(placeholder: "Password", text: $password, textContentType: .newPassword)
-                        .focused($focused, equals: .password)
-                        .submitLabel(.next)
-                        .onSubmit {
-                            focused?.onNext()
-                        }
+                    CTSecureField(
+                        placeholder: "Password",
+                        text: $password,
+                        textContentType: .newPassword,
+                        error: passwordError
+                    )
+                    .focused($focused, equals: .password)
+                    .submitLabel(.next)
+                    .onSubmit {
+                        focused?.onNext()
+                    }
                     
                     CTSecureField(
                         placeholder: "Confirm password",
                         text: $confirmPassword,
-                        textContentType: .newPassword
+                        textContentType: .newPassword,
+                        error: confirmPasswordError
                     )
                     .focused($focused, equals: .confirmPassword)
                     
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Sign Up")
+                    Button(action: signUpTapped) {
+                        loadingButtonLabel(title: "Sign Up")
                             .font(.headline)
                             .foregroundStyle(.background)
                             .frame(maxWidth: .infinity)
                             .padding(12)
                             .background(.ctBlue, in: .rect(cornerRadius: 8))
                     }
+                    .disabled(!canSignUp)
+                    .brightness(canSignUp ? 0 : -0.15)
                 }
-                .padding(.horizontal)
-                .padding(.bottom)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.background)
-            )
-            .padding(24)
+            .disabled(isLoading)
+            .brightness(isLoading ? -0.1 : 0)
         }
-        .keyboardHeight($keyboardHeight)
-        .offset(y: -keyboardHeight / 2)
         .ignoresSafeArea()
+        .alert("⚠️Oops!", isPresented: $generalError.toBool) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(generalError ?? "")
+        }
+    }
+    
+    @ViewBuilder
+    private var avatarImage: some View {
+        if let avatarData, let uiImage = UIImage(data: avatarData) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+        } else {
+            Image(systemName: "person.fill")
+                .font(.system(size: 75).weight(.ultraLight))
+                .foregroundStyle(Color(uiColor: .systemGray))
+        }
+    }
+    
+    @ViewBuilder
+    private func loadingButtonLabel(title: String) -> some View {
+        if isLoading {
+            ProgressView()
+                .tint(.white)
+        } else {
+            Text(title)
+        }
     }
 }
 
 #Preview {
-    SignUpView()
+    SignUpContentView(
+        name: .constant(""),
+        email: .constant(""),
+        password: .constant(""),
+        confirmPassword: .constant(""),
+        avatarData: .constant(nil),
+        generalError: .constant(nil),
+        nameError: nil,
+        emailError: nil,
+        passwordError: nil,
+        confirmPasswordError: nil,
+        isLoading: false,
+        canSignUp: false,
+        signUpTapped: {}
+    )
 }

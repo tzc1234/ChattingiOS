@@ -7,31 +7,34 @@
 
 import SwiftUI
 
-struct ContentView: View {
-    @State var isSignedIn = false
+struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: View {
+    @ObservedObject var viewModel: ContentViewModel
+    let signedInContent: (User) -> SignedInContent
+    let signInContent: () -> SignInContent
+    let sheet: () -> Sheet
     
     var body: some View {
-        if isSignedIn {
-            TabView {
-                NavigationStack {
-                    ContactListView()
-                }
-                .tabItem {
-                    Label("Contacts", systemImage: "person.3")
-                }
-                
-                ProfileView()
-                    .tabItem {
-                        Label("Profile", systemImage: "person")
-                    }
+        ZStack {
+            if viewModel.isLoading {
+                LoadingView()
+            } else {
+                content
             }
-            .tint(.ctOrange)
-        } else {
-            SignInView(isSignedIn: $isSignedIn)
+        }
+        .sheet(isPresented: $viewModel.showSheet, content: sheet)
+        .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(viewModel.generalError ?? "")
         }
     }
-}
-
-#Preview {
-    ContentView()
+    
+    @ViewBuilder
+    private var content: some View {
+        if let user = viewModel.user {
+            signedInContent(user)
+        } else {
+            signInContent()
+        }
+    }
 }

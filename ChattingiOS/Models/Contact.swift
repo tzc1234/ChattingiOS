@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Contact {
+struct Contact: Identifiable, Equatable {
     let id: Int
     let responder: User
     let blockedByUserID: Int?

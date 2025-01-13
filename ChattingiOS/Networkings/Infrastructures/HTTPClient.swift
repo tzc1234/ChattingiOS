@@ -7,11 +7,11 @@
 
 import Foundation
 
-protocol HTTPClient {
+protocol HTTPClient: Sendable {
     func send(_ request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse)
 }
 
-final class URLSessionHTTPClient: HTTPClient {
+actor URLSessionHTTPClient: HTTPClient {
     private let session: URLSession
     
     init(session: URLSession) {

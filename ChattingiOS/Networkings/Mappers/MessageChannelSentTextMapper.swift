@@ -8,7 +8,19 @@
 import Foundation
 
 enum MessageChannelSentTextMapper {
-    static func map(_ text: String) -> Data {
-        Data("{\"text\":\"\(text)\"}".utf8)
+    private struct TextSent: Encodable {
+        let text: String
+    }
+    
+    enum Error: Swift.Error {
+        case encoding
+    }
+    
+    static func map(_ text: String) throws -> Data {
+        do {
+            return try JSONEncoder().encode(TextSent(text: text))
+        } catch {
+            throw Error.encoding
+        }
     }
 }

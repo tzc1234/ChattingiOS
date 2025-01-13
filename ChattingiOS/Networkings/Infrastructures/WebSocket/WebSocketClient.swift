@@ -7,13 +7,13 @@
 
 import Foundation
 
-protocol WebSocketClient {
+protocol WebSocketClient: Sendable {
     func connect(_ request: URLRequest) async throws(WebSocketClientError) -> WebSocket
 }
 
 protocol WebSocket: Sendable {
-    typealias DataObserver = (Data) -> Void
-    typealias ErrorObserver = (WebSocketClientError) -> Void
+    typealias DataObserver = @Sendable (Data) async -> Void
+    typealias ErrorObserver = @Sendable (WebSocketClientError) async -> Void
     
     func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async
     func send(data: Data) async throws

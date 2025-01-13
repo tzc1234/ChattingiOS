@@ -15,59 +15,55 @@ enum MessageChannelError: Error {
     case unknown
     case disconnected
     case unsupportedData
+    case userInitiateSignOut
+    case requestCreation
     case other(Error)
 }
 
-protocol MessageChannel {
+protocol MessageChannel: Sendable {
     func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection
 }
 
-protocol MessageChannelConnection {
-    typealias MessageObserver = (Message) -> Void
-    typealias ErrorObserver = (MessageChannelError) -> Void
+protocol MessageChannelConnection: Sendable {
+    typealias MessageObserver = @Sendable (Message) async -> Void
+    typealias ErrorObserver = @Sendable (MessageChannelError) async -> Void
     
-    var messageObserver: MessageObserver? { get set }
-    var errorObserver: ErrorObserver? { get set }
-    
-    func startObserving() async
+    func startObserving(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async
     func send(text: String) async throws
     func close() async throws
 }
 
-final class DefaultMessageChannel: MessageChannel {
+actor DefaultMessageChannel: MessageChannel {
     private let client: WebSocketClient
-    private let getRequest: (Int) -> URLRequest
+    private let getRequest: @Sendable (Int) async throws -> URLRequest
     
-    init(client: WebSocketClient, getRequest: @escaping (Int) -> URLRequest) {
+    init(client: WebSocketClient, getRequest: @escaping @Sendable (Int) async throws -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
     
     private struct Connection: MessageChannelConnection {
-        var messageObserver: MessageObserver?
-        var errorObserver: ErrorObserver?
-        
         private let webSocket: WebSocket
         
         init(webSocket: WebSocket) {
             self.webSocket = webSocket
         }
         
-        func startObserving() async {
+        func startObserving(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async {
             await webSocket.setObservers { data in
                 do {
                     let message = try MessageChannelReceivedMessageMapper.map(data)
-                    messageObserver?(message)
+                    await messageObserver?(message)
                 } catch {
-                    errorObserver?(.unsupportedData)
+                    await errorObserver?(.unsupportedData)
                 }
             } errorObserver: { error in
-                errorObserver?(error.toMessageChannelError)
+                await errorObserver?(error.toMessageChannelError)
             }
         }
         
         func send(text: String) async throws {
-            let data = MessageChannelSentTextMapper.map(text)
+            let data = try MessageChannelSentTextMapper.map(text)
             try await webSocket.send(data: data)
         }
         
@@ -77,7 +73,15 @@ final class DefaultMessageChannel: MessageChannel {
     }
     
     func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
-        let request = getRequest(contactID)
+        let request: URLRequest
+        do {
+            request = try await getRequest(contactID)
+        } catch let error as MessageChannelError {
+            throw error
+        } catch {
+            throw .unknown
+        }
+        
         do {
             let webSocket = try await client.connect(request)
             return Connection(webSocket: webSocket)

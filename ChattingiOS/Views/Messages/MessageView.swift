@@ -9,17 +9,29 @@ import SwiftUI
 
 struct MessageView: View {
     let width: CGFloat
-    let text: String
-    let isMine: Bool
+    let message: DisplayedMessage
+    
+    private var isMine: Bool {
+        message.isMine
+    }
     
     var body: some View {
         ZStack {
-            Text(text)
-                .font(.callout)
-                .foregroundStyle(.white)
-                .padding(8)
-                .background(isMine ? .ctOrange : .gray, in: .rect(cornerRadii: cornerRadii))
-                .frame(maxWidth: width, alignment: isMine ? .trailing : .leading)
+            VStack(alignment: isMine ? .trailing : .leading, spacing: 6) {
+                Text(message.text)
+                    .font(.callout)
+                    .fixedSize(horizontal: true, vertical: false)
+                
+                if let date = message.date {
+                    Text(date)
+                        .font(.system(size: 10))
+                }
+            }
+            .foregroundStyle(.white)
+            .padding(8)
+            .background(isMine ? .ctOrange : .gray, in: .rect(cornerRadii: cornerRadii))
+            .multilineTextAlignment(isMine ? .trailing : .leading)
+            .frame(width: width, alignment: isMine ? .trailing : .leading)
         }
         .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)
     }
@@ -35,9 +47,27 @@ struct MessageView: View {
 }
 
 #Preview("My message") {
-    MessageView(width: 393, text: "Hello, mate👋.\nHow are you?", isMine: true)
+    MessageView(
+        width: 393,
+        message: DisplayedMessage(
+            id: 0,
+            text: "Hello, mate👋.\nHow are you, long time no see?",
+            isMine: true,
+            isRead: true,
+            date: "01/01/2025, 10:00"
+        )
+    )
 }
 
 #Preview("Other message") {
-    MessageView(width: 393, text: "Hello, mate👋.", isMine: false)
+    MessageView(
+        width: 393,
+        message: DisplayedMessage(
+            id: 0,
+            text: "Hello, mate👋.",
+            isMine: false,
+            isRead: false,
+            date: "01/01/2025, 10:00"
+        )
+    )
 }

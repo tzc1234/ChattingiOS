@@ -7,14 +7,10 @@
 
 import Foundation
 
-protocol UserSignIn {
-    func signIn(with params: UserSignInParams) async throws(UseCaseError) -> (user: User, token: Token)
-}
+typealias UserSignIn = GeneralUseCase<UserSignInParams, UserTokenResponseMapper>
 
-typealias DefaultUserSign = GeneralUseCase<UserSignInParams, UserTokenResponseMapper>
-
-extension DefaultUserSign: UserSignIn {
-    func signIn(with params: UserSignInParams) async throws(UseCaseError) -> (user: User, token: Token) {
+extension UserSignIn where Params == UserSignInParams, Mapper.Model == (user: User, token: Token) {
+    func signIn(with params: Params) async throws(UseCaseError) -> Mapper.Model {
         try await perform(with: params)
     }
 }

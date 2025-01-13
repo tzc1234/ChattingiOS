@@ -11,7 +11,8 @@ enum UseCaseError: Error {
     case server(reason: String)
     case invalidData
     case connectivity
-    case requestConversion
+    case requestCreation
+    case userInitiateSignOut
 }
 
 extension UseCaseError {
