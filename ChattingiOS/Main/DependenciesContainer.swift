@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor
 final class DependenciesContainer {
-    let userVault = CurrentUserCredentialVault()
+    let userTokenVault = CurrentUserCredentialVault()
     let contentViewModel = ContentViewModel()
     private let httpClient = URLSessionHTTPClient(session: .shared)
     
@@ -21,7 +21,7 @@ final class DependenciesContainer {
         self.refreshTokenWebSocketClient = RefreshTokenWebSocketClientDecorator(
             decoratee: NIOWebSocketClient(),
             refreshToken: refreshToken,
-            userVault: userVault
+            tokenVault: userTokenVault
         )
     }
     
@@ -35,7 +35,7 @@ final class DependenciesContainer {
     private(set) lazy var refreshTokenHTTPClient = RefreshTokenHTTPClientDecorator(
         decoratee: httpClient,
         refreshToken: refreshToken,
-        userVault: userVault
+        tokenVault: userTokenVault
     )
     
     private(set) lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
@@ -52,9 +52,9 @@ final class DependenciesContainer {
     }
     
     private func accessToken() -> @Sendable () async throws -> String {
-        { [userVault, contentViewModel] in
-            guard let accessToken = await userVault.retrieveToken()?.accessToken else {
-                try? await userVault.deleteUserCredential()
+        { [userTokenVault, contentViewModel] in
+            guard let accessToken = await userTokenVault.retrieveToken()?.accessToken else {
+                try? await userTokenVault.deleteUserCredential()
                 
                 if await contentViewModel.isUserInitiateSignOut {
                     throw UseCaseError.userInitiateSignOut
@@ -69,9 +69,9 @@ final class DependenciesContainer {
         }
     }
     
-    private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [userVault, contentViewModel] in
-        guard let accessToken = userVault.retrieveToken()?.accessToken else {
-            try? await userVault.deleteUserCredential()
+    private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [userTokenVault, contentViewModel] in
+        guard let accessToken = userTokenVault.retrieveToken()?.accessToken else {
+            try? await userTokenVault.deleteUserCredential()
             
             if contentViewModel.isUserInitiateSignOut {
                 throw MessageChannelError.userInitiateSignOut

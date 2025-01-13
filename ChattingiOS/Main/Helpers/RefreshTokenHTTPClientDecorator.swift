@@ -10,12 +10,12 @@ import Foundation
 final class RefreshTokenHTTPClientDecorator: HTTPClient {
     private let decoratee: HTTPClient
     private let refreshToken: RefreshToken
-    private let userVault: CurrentUserCredentialVault
+    private let tokenVault: TokenVault
     
-    init(decoratee: HTTPClient, refreshToken: RefreshToken, userVault: CurrentUserCredentialVault) {
+    init(decoratee: HTTPClient, refreshToken: RefreshToken, tokenVault: TokenVault) {
         self.decoratee = decoratee
         self.refreshToken = refreshToken
-        self.userVault = userVault
+        self.tokenVault = tokenVault
     }
     
     enum Error: Swift.Error {
@@ -40,13 +40,13 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
     }
     
     private func refreshToken() async throws -> String {
-        guard let refreshTokenString = await userVault.retrieveToken()?.refreshToken else {
+        guard let refreshTokenString = await tokenVault.retrieveToken()?.refreshToken else {
             throw Error.refreshTokenNotFound
         }
         
         do {
             let token = try await refreshToken.refresh(with: refreshTokenString)
-            try await userVault.saveToken(token)
+            try await tokenVault.saveToken(token)
             return "Bearer \(token.accessToken)"
         } catch {
             throw Error.refreshTokenFailed

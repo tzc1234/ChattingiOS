@@ -13,7 +13,7 @@ final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
     
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
-    private var userVault: CurrentUserCredentialVault { dependencies.userVault }
+    private var userTokenVault: UserTokenVault { dependencies.userTokenVault }
     
     private weak var contactListViewModel: ContactListViewModel?
     private var cancellable: Cancellable?
@@ -31,10 +31,10 @@ final class Flow {
         Task {
             try? await Task.sleep(for: .seconds(0.2)) // Show loading view a bit smoother.
             
-            await userVault.observe { [contentViewModel] user in
+            await userTokenVault.observe { [contentViewModel] user in
                 await contentViewModel.set(user: user)
             }
-            await userVault.retrieveUser() // Trigger user observer.
+            await userTokenVault.retrieveUser() // Trigger user observer.
             
             withAnimation {
                 contentViewModel.isLoading = false
@@ -69,7 +69,7 @@ final class Flow {
         let viewModel = SignInViewModel { [weak self] params in
             guard let self else { return }
             
-            try await userVault.save(userCredential: dependencies.userSignIn.signIn(with: params))
+            try await userTokenVault.save(userCredential: dependencies.userSignIn.signIn(with: params))
         }
         return SignInView(viewModel: viewModel, signUpTapped: { [weak self] in
             self?.contentViewModel.showSheet = true
@@ -80,7 +80,7 @@ final class Flow {
         let viewModel = SignUpViewModel { [weak self] params in
             guard let self else { return }
             
-            try await userVault.save(userCredential: dependencies.userSignUp.signUp(by: params))
+            try await userTokenVault.save(userCredential: dependencies.userSignUp.signUp(by: params))
         }
         return SignUpView(viewModel: viewModel)
     }
@@ -89,7 +89,7 @@ final class Flow {
         ProfileView(user: user, signOutTapped: { [weak self] in
             self?.contentViewModel.isUserInitiateSignOut = true
             Task {
-                try? await self?.userVault.deleteUserCredential()
+                try? await self?.userTokenVault.deleteUserCredential()
             }
         })
     }

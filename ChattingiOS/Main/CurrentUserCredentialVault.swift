@@ -8,9 +8,24 @@
 import Foundation
 import Security
 
-actor CurrentUserCredentialVault {
+protocol UserVault: Sendable {
     typealias UserStoredObserver = @Sendable (User?) async -> Void
     
+    func observe(onUserStore: @escaping UserStoredObserver) async
+    func saveUser(_ user: User) async throws
+    @discardableResult func retrieveUser() async -> User?
+    func deleteUser() async
+}
+
+protocol TokenVault: Sendable {
+    func saveToken(_ token: Token) async throws
+    func retrieveToken() async -> Token?
+    func deleteToken() async throws
+}
+
+protocol UserTokenVault: UserVault, TokenVault {}
+
+actor CurrentUserCredentialVault: UserTokenVault {
     private let defaults = UserDefaults.standard
     private var onUserStore: UserStoredObserver?
     
@@ -48,7 +63,6 @@ extension CurrentUserCredentialVault {
         await onUserStore?(user)
     }
     
-    @discardableResult
     func retrieveUser() async -> User? {
         guard let data = defaults.data(forKey: Self.currentUserKey) else {
             await onUserStore?(nil)
@@ -159,14 +173,14 @@ extension CurrentUserCredentialVault {
     }
 }
 
-extension CurrentUserCredentialVault {
+extension UserTokenVault {
     func save(userCredential: (user: User, token: Token)) async throws {
         try await saveUser(userCredential.user)
-        try saveToken(userCredential.token)
+        try await saveToken(userCredential.token)
     }
     
     func deleteUserCredential() async throws {
         await deleteUser()
-        try deleteToken()
+        try await deleteToken()
     }
 }
