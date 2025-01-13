@@ -73,7 +73,3 @@ actor NIOWebSocketClient: WebSocketClient {
         }
     }
 }
-
-extension String {
-    static var authorizationHTTPHeaderField: String { "Authorization" }
-}
