@@ -13,14 +13,23 @@ final class DependenciesContainer {
     let contentViewModel = ContentViewModel()
     private let httpClient = URLSessionHTTPClient(session: .shared)
     
+    private let refreshToken: DefaultRefreshToken
+    private let refreshTokenWebSocketClient: RefreshTokenWebSocketClientDecorator
+    
+    init() {
+        self.refreshToken = DefaultRefreshToken(client: httpClient) { RefreshTokenEndpoint(refreshToken: $0).request }
+        self.refreshTokenWebSocketClient = RefreshTokenWebSocketClientDecorator(
+            decoratee: NIOWebSocketClient(),
+            refreshToken: refreshToken,
+            userVault: userVault
+        )
+    }
+    
     private(set) lazy var userSignIn = UserSignIn(client: httpClient) {
         try UserSignInEndpoint(params: $0).request
     }
     private(set) lazy var userSignUp = UserSignUp(client: httpClient) {
         UserSignUpEndpoint(params: $0).request
-    }
-    private(set) lazy var refreshToken = DefaultRefreshToken(client: httpClient) {
-        RefreshTokenEndpoint(refreshToken: $0).request
     }
     
     private(set) lazy var refreshTokenHTTPClient = RefreshTokenHTTPClientDecorator(
@@ -28,6 +37,7 @@ final class DependenciesContainer {
         refreshToken: refreshToken,
         userVault: userVault
     )
+    
     private(set) lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
         GetContactsEndpoint(accessToken: try await accessToken(), params: $0).request
     }
@@ -59,8 +69,7 @@ final class DependenciesContainer {
         }
     }
     
-    private let webSocketClient = NIOWebSocketClient()
-    private(set) lazy var messageChannel = DefaultMessageChannel(client: webSocketClient) { [userVault, contentViewModel] in
+    private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [userVault, contentViewModel] in
         guard let accessToken = userVault.retrieveToken()?.accessToken else {
             try? await userVault.deleteUserCredential()
             
