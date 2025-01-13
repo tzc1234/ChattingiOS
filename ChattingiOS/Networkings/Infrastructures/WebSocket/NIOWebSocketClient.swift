@@ -18,7 +18,7 @@ actor NIOWebSocketClient: WebSocketClient {
         guard let url = request.url,
               let host = url.host(),
               let port = url.port,
-              let token = request.value(forHTTPHeaderField: .authorizationField) else {
+              let token = request.value(forHTTPHeaderField: .authorizationHTTPHeaderField) else {
             throw .invalidURL
         }
         
@@ -41,7 +41,7 @@ actor NIOWebSocketClient: WebSocketClient {
                         version: .http1_1,
                         method: .GET,
                         uri: url.path,
-                        headers: HTTPHeaders([(.authorizationField, token)])
+                        headers: HTTPHeaders([(.authorizationHTTPHeaderField, token)])
                     )
                     
                     let clientUpgradeConfiguration = NIOTypedHTTPClientUpgradeConfiguration<Void>(
@@ -74,6 +74,6 @@ actor NIOWebSocketClient: WebSocketClient {
     }
 }
 
-private extension String {
-    static var authorizationField: String { "Authorization" }
+extension String {
+    static var authorizationHTTPHeaderField: String { "Authorization" }
 }

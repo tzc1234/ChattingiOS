@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol RefreshToken {
+protocol RefreshToken: Sendable {
     func refresh(with token: String) async throws(UseCaseError) -> Token
 }
 
