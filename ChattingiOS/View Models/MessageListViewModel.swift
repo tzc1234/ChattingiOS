@@ -120,10 +120,10 @@ final class MessageListViewModel: ObservableObject {
         do {
             let connection = try await messageChannel.establish(for: contactID)
             self.connection = connection
-            await connection.startObserving { [weak self] message in
+            await connection.start { [weak self] message in
                 await self?.appendNewMessage(message)
             } errorObserver: { error in
-                // Should log the webSocket error?
+                // TODO: Should log the webSocket error
                 print("error received: \(error)")
             }
         } catch {

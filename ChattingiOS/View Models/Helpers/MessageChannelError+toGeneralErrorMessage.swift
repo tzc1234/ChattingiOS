@@ -17,14 +17,12 @@ extension MessageChannelError {
         case .notFound:
             "Contact not found."
         case .forbidden:
-            "Contact is belong to current user."
-        case .disconnected:
-            "Disconnected."
+            "Contact is not belong to current user."
         case .userInitiateSignOut:
             nil
         case .requestCreation:
-            "Request creation error."
-        case .unknown, .unsupportedData,  .other:
+            "Cannot make a request."
+        case .unknown,  .other:
             "Connection error."
         }
     }
