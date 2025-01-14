@@ -9,9 +9,9 @@ import Foundation
 
 actor DefaultMessageChannel: MessageChannel {
     private let client: WebSocketClient
-    private let getRequest: @Sendable (Int) async throws -> URLRequest
+    private let getRequest: (Int) async throws -> URLRequest
     
-    init(client: WebSocketClient, getRequest: @escaping @Sendable (Int) async throws -> URLRequest) {
+    init(client: WebSocketClient, getRequest: sending @escaping (Int) async throws -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }

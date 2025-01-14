@@ -51,7 +51,7 @@ final class DependenciesContainer {
         ReadMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
     
-    private func accessToken() -> @Sendable () async throws -> String {
+    private func accessToken() -> (@Sendable () async throws -> String) {
         { [userTokenVault, contentViewModel] in
             guard let accessToken = await userTokenVault.retrieveToken()?.accessToken else {
                 try? await userTokenVault.deleteUserCredential()
@@ -69,20 +69,26 @@ final class DependenciesContainer {
         }
     }
     
-    private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [userTokenVault, contentViewModel] in
-        guard let accessToken = userTokenVault.retrieveToken()?.accessToken else {
-            try? await userTokenVault.deleteUserCredential()
-            
-            if contentViewModel.isUserInitiateSignOut {
-                throw MessageChannelError.userInitiateSignOut
+    private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [accessToken = messageChannelAccessToken()] in
+        MessageChannelEndpoint(accessToken: try await accessToken(), contactID: $0).request
+    }
+    
+    private func messageChannelAccessToken() -> (@Sendable () async throws -> String) {
+        { [userTokenVault, contentViewModel] in
+            guard let accessToken = await userTokenVault.retrieveToken()?.accessToken else {
+                try? await userTokenVault.deleteUserCredential()
+                
+                if await contentViewModel.isUserInitiateSignOut {
+                    throw MessageChannelError.userInitiateSignOut
+                }
+                
+                try? await Task.sleep(for: .seconds(0.35))
+                await contentViewModel.set(generalError: Self.pleaseSignInMessage)
+                throw MessageChannelError.requestCreation
             }
             
-            try? await Task.sleep(for: .seconds(0.35))
-            contentViewModel.set(generalError: Self.pleaseSignInMessage)
-            throw MessageChannelError.requestCreation
+            return accessToken
         }
-        
-        return MessageChannelEndpoint(accessToken: accessToken, contactID: $0).request
     }
     
     private static var pleaseSignInMessage: String { "Please sign in again." }
