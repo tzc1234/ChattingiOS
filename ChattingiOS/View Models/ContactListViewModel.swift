@@ -7,18 +7,24 @@
 
 import Foundation
 
+@MainActor
 final class ContactListViewModel: ObservableObject {
     @Published private(set) var contacts = [Contact]()
     @Published var generalError: String?
+    @Published private(set) var isLoading = false
+    
     private var canLoadMore = true
     
     private let getContacts: GetContacts
+    private let blockContact: BlockContact
+    private let unblockContact: UnblockContact
     
-    init(getContacts: GetContacts) {
+    init(getContacts: GetContacts, blockContact: BlockContact, unblockContact: UnblockContact) {
         self.getContacts = getContacts
+        self.blockContact = blockContact
+        self.unblockContact = unblockContact
     }
     
-    @MainActor
     func loadContacts() async {
         do {
             let params = GetContactsParams(before: nil)
@@ -29,7 +35,6 @@ final class ContactListViewModel: ObservableObject {
         }
     }
     
-    @MainActor
     func loadMoreContacts() {
         guard canLoadMore else { return }
         
@@ -48,5 +53,43 @@ final class ContactListViewModel: ObservableObject {
     
     func add(contact: Contact) {
         contacts.insert(contact, at: 0)
+    }
+    
+    func blockContact(contactID: Int) {
+        guard let index = contacts.firstIndex(where: { $0.id == contactID }),
+              contacts[index].blockedByUserID == nil else {
+            return
+        }
+        
+        isLoading = true
+        Task {
+            do {
+                let newContact = try await blockContact.block(for: contactID)
+                contacts[index] = newContact
+            } catch let error as UseCaseError {
+                generalError = error.toGeneralErrorMessage()
+            }
+            
+            isLoading = false
+        }
+    }
+    
+    func unblockContact(contactID: Int) {
+        guard let index = contacts.firstIndex(where: { $0.id == contactID }),
+                contacts[index].blockedByUserID != nil else {
+            return
+        }
+        
+        isLoading = true
+        Task {
+            do {
+                let newContact = try await unblockContact.unblock(for: contactID)
+                contacts[index] = newContact
+            } catch let error as UseCaseError {
+                generalError = error.toGeneralErrorMessage()
+            }
+            
+            isLoading = false
+        }
     }
 }
