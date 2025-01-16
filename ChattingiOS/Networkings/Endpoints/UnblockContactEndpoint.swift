@@ -11,7 +11,7 @@ struct UnblockContactEndpoint: Endpoint {
     var path: String { apiPath + "contacts/\(contactID)/unblock" }
     var httpMethod: HTTPMethod { .patch }
     var headers: [String: String]? {
-        defaultHeaders.merging([.authorizationHTTPHeaderField: "Bearer \(accessToken)"]) { $1 }
+        defaultHeaders.merging([.authorizationHTTPHeaderField: accessToken.bearerToken]) { $1 }
     }
     
     let apiConstants: APIConstants

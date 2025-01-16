@@ -10,7 +10,7 @@ import Foundation
 struct MessageChannelEndpoint: Endpoint {
     var scheme: String { apiConstants.webSocketScheme }
     var path: String { apiPath + "contacts/\(contactID)/messages/channel" }
-    var headers: [String: String]? { [.authorizationHTTPHeaderField: "Bearer \(accessToken)"] }
+    var headers: [String: String]? { [.authorizationHTTPHeaderField: accessToken.bearerToken] }
     
     let apiConstants: APIConstants
     private let accessToken: String

@@ -10,7 +10,7 @@ import Foundation
 struct GetMessagesEndpoint: Endpoint {
     var path: String { apiPath + "contacts/\(params.contactID)/messages" }
     var headers: [String: String]? {
-        defaultHeaders.merging([.authorizationHTTPHeaderField: "Bearer \(accessToken)"]) { $1 }
+        defaultHeaders.merging([.authorizationHTTPHeaderField: accessToken.bearerToken]) { $1 }
     }
     var queryItems: [String : String]? {
         var items = [String: String]()

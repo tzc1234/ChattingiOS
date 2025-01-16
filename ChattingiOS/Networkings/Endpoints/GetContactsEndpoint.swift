@@ -10,7 +10,7 @@ import Foundation
 struct GetContactsEndpoint: Endpoint {
     var path: String { apiPath + "contacts" }
     var headers: [String: String]? {
-        defaultHeaders.merging([.authorizationHTTPHeaderField: "Bearer \(accessToken)"]) { $1 }
+        defaultHeaders.merging([.authorizationHTTPHeaderField: accessToken.bearerToken]) { $1 }
     }
     var queryItems: [String: String]? {
         [
