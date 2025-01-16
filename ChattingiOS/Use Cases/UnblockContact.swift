@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol UnblockContact {
+protocol UnblockContact: Sendable {
     func unblock(for contactID: Int) async throws(UseCaseError) -> Contact
 }
 

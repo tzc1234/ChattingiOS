@@ -41,6 +41,12 @@ final class DependenciesContainer {
     private(set) lazy var readMessages = DefaultReadMessages(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
         ReadMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
+    private(set) lazy var blockContact = DefaultBlockContact(client: httpClient) { [accessToken = accessToken()] in
+        BlockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
+    }
+    private(set) lazy var unblockContact = DefaultUnblockContact(client: httpClient) { [accessToken = accessToken()] in
+        UnblockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
+    }
     
     private func accessToken() -> (@Sendable () async throws -> String) {
         { [userTokenVault, contentViewModel] in
