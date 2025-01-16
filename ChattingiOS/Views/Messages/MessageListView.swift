@@ -16,6 +16,7 @@ struct MessageListView: View {
             avatarURL: viewModel.avatarURL,
             messages: viewModel.messages,
             isLoading: viewModel.isLoading,
+            isBlocked: viewModel.isBlocked,
             generalError: $viewModel.generalError,
             inputMessage: $viewModel.inputMessage,
             listPositionMessageID: $viewModel.listPositionMessageID,
@@ -37,6 +38,7 @@ struct MessageListContentView: View {
     let avatarURL: URL?
     let messages: [DisplayedMessage]
     let isLoading: Bool
+    let isBlocked: Bool
     @Binding var generalError: String?
     @Binding var inputMessage: String
     @Binding var listPositionMessageID: Int?
@@ -83,32 +85,34 @@ struct MessageListContentView: View {
                 }
             }
             
-            HStack(alignment: .top) {
-                TextEditor(text: $inputMessage)
-                    .font(.callout)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(.secondary, lineWidth: 1)
-                    )
-                    .clipShape(.rect(cornerRadius: 8))
-                    .focused($textEditorFocused)
-                
-                Button {
-                    sendMessage()
-                    textEditorFocused = false
-                } label: {
-                    loadingButtonLabel
-                        .frame(width: 35, height: 35)
-                        .background(Color.ctOrange)
-                        .clipShape(.circle)
+            if !isBlocked {
+                HStack(alignment: .top) {
+                    TextEditor(text: $inputMessage)
+                        .font(.callout)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(.secondary, lineWidth: 1)
+                        )
+                        .clipShape(.rect(cornerRadius: 8))
+                        .focused($textEditorFocused)
+                    
+                    Button {
+                        sendMessage()
+                        textEditorFocused = false
+                    } label: {
+                        loadingButtonLabel
+                            .frame(width: 35, height: 35)
+                            .background(Color.ctOrange)
+                            .clipShape(.circle)
+                    }
+                    .disabled(isLoading)
+                    .disabled(inputMessage.isEmpty)
+                    .brightness(isLoading || inputMessage.isEmpty ? -0.1 : 0)
                 }
-                .disabled(isLoading)
-                .disabled(inputMessage.isEmpty)
-                .brightness(isLoading || inputMessage.isEmpty ? -0.1 : 0)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 18)
+                .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 18)
-            .fixedSize(horizontal: false, vertical: true)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -160,6 +164,7 @@ struct MessageListContentView: View {
                 DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: "01/01/2025, 10:01")
             ],
             isLoading: false,
+            isBlocked: false,
             generalError: .constant(nil),
             inputMessage: .constant(""),
             listPositionMessageID: .constant(nil),
