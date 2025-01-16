@@ -75,25 +75,34 @@ struct ContactListContentView: View {
     
     var body: some View {
         List(contacts) { contact in
-            ContactView(responder: contact.responder, unreadCount: contact.unreadMessageCount)
-                .background(.white.opacity(0.01))
-                .onTapGesture {
-                    rowTapped(contact)
+            ContactView(
+                responder: contact.responder,
+                unreadCount: contact.unreadMessageCount,
+                isBlocked: contact.blockedByUserID != nil
+            )
+            .background(.white.opacity(0.01))
+            .onTapGesture {
+                rowTapped(contact)
+            }
+            .onAppear {
+                if contacts.last == contact {
+                    lastContact = contact
                 }
-                .onAppear {
-                    if contacts.last == contact {
-                        lastContact = contact
-                    }
-                }
-                .swipeActions {
-                    swipeAction(contact: contact)
-                }
+            }
+            .swipeActions {
+                swipeAction(contact: contact)
+            }
         }
         .listStyle(.plain)
         .navigationTitle("Contacts")
         .fullScreenCover(isPresented: $isFullScreenCoverPresenting) {
             LoadingView()
                 .presentationBackground(.clear)
+        }
+        .onAppear {
+            withTransaction(transaction) {
+                isFullScreenCoverPresenting = false
+            }
         }
         .onChange(of: isLoading) { newValue in
             withTransaction(transaction) {
@@ -147,7 +156,7 @@ struct ContactListContentView: View {
                         email: "harry@email.com",
                         avatarURL: nil
                     ),
-                    blockedByUserID: nil,
+                    blockedByUserID: 0,
                     unreadMessageCount: 0,
                     lastUpdate: Date()
                 ),
