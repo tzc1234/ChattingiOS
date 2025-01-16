@@ -28,6 +28,9 @@ struct ContactListView<AlertContent: View>: View {
             contacts: viewModel.contacts,
             lastContact: $lastContact,
             generalError: $viewModel.generalError,
+            isLoading: viewModel.isLoading,
+            blockContact: viewModel.blockContact,
+            unblockContact: viewModel.unblockContact,
             rowTapped: rowTapped
         )
         .task {
@@ -58,7 +61,17 @@ struct ContactListContentView: View {
     let contacts: [Contact]
     @Binding var lastContact: Contact?
     @Binding var generalError: String?
+    let isLoading: Bool
+    let blockContact: (Int) -> Void
+    let unblockContact: (Int) -> Void
     let rowTapped: (Contact) -> Void
+    
+    @State private var isFullScreenCoverPresenting = false
+    private let transaction = {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        return transaction
+    }()
     
     var body: some View {
         List(contacts) { contact in
@@ -72,14 +85,53 @@ struct ContactListContentView: View {
                         lastContact = contact
                     }
                 }
+                .swipeActions {
+                    swipeAction(contact: contact)
+                }
         }
         .listStyle(.plain)
         .navigationTitle("Contacts")
+        .fullScreenCover(isPresented: $isFullScreenCoverPresenting) {
+            LoadingView()
+                .presentationBackground(.clear)
+        }
+        .onChange(of: isLoading) { newValue in
+            withTransaction(transaction) {
+               isFullScreenCoverPresenting = newValue
+            }
+        }
         .alert("⚠️Oops!", isPresented: $generalError.toBool) {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(generalError ?? "")
         }
+    }
+    
+    @ViewBuilder
+    private func swipeAction(contact: Contact) -> some View {
+        if contact.blockedByUserID == nil {
+            blockAction(contactID: contact.id)
+        } else {
+            unblockAction(contactID: contact.id)
+        }
+    }
+    
+    private func blockAction(contactID: Int) -> some View {
+        Button {
+            blockContact(contactID)
+        } label: {
+            Label("Block", systemImage: "person.slash.fill")
+        }
+        .tint(.red)
+    }
+    
+    private func unblockAction(contactID: Int) -> some View {
+        Button {
+            unblockContact(contactID)
+        } label: {
+            Label("Unblock", systemImage: "person.fill")
+        }
+        .tint(.green)
     }
 }
 
@@ -114,6 +166,9 @@ struct ContactListContentView: View {
             ],
             lastContact: .constant(nil),
             generalError: .constant(nil),
+            isLoading: false,
+            blockContact: { _ in },
+            unblockContact: { _ in },
             rowTapped: { _ in }
         )
     }
