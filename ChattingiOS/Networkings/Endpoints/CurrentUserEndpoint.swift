@@ -10,7 +10,7 @@ import Foundation
 struct CurrentUserEndpoint: Endpoint {
     var path: String { apiPath + "me" }
     var headers: [String: String]? {
-        defaultHeaders.merging(["Authorization": "Bearer \(accessToken)"]) { $1 }
+        defaultHeaders.merging([.authorizationHTTPHeaderField: "Bearer \(accessToken)"]) { $1 }
     }
     
     let apiConstants: APIConstants
