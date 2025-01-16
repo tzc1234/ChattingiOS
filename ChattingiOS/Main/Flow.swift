@@ -96,6 +96,7 @@ final class Flow {
     
     private func contactListView(currentUserID: Int) -> some View {
         let viewModel = ContactListViewModel(
+            currentUserID: currentUserID,
             getContacts: dependencies.getContacts,
             blockContact: dependencies.blockContact,
             unblockContact: dependencies.unblockContact

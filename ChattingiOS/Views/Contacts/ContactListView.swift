@@ -31,6 +31,7 @@ struct ContactListView<AlertContent: View>: View {
             isLoading: viewModel.isLoading,
             blockContact: viewModel.blockContact,
             unblockContact: viewModel.unblockContact,
+            canUnblock: viewModel.canUnblock,
             rowTapped: rowTapped
         )
         .task {
@@ -64,6 +65,7 @@ struct ContactListContentView: View {
     let isLoading: Bool
     let blockContact: (Int) -> Void
     let unblockContact: (Int) -> Void
+    let canUnblock: (Int) -> Bool
     let rowTapped: (Contact) -> Void
     
     @State private var isFullScreenCoverPresenting = false
@@ -120,7 +122,7 @@ struct ContactListContentView: View {
     private func swipeAction(contact: Contact) -> some View {
         if contact.blockedByUserID == nil {
             blockAction(contactID: contact.id)
-        } else {
+        } else if let blockedBy = contact.blockedByUserID, canUnblock(blockedBy) {
             unblockAction(contactID: contact.id)
         }
     }
@@ -178,6 +180,7 @@ struct ContactListContentView: View {
             isLoading: false,
             blockContact: { _ in },
             unblockContact: { _ in },
+            canUnblock: { _ in true },
             rowTapped: { _ in }
         )
     }

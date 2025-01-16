@@ -15,11 +15,13 @@ final class ContactListViewModel: ObservableObject {
     
     private var canLoadMore = true
     
+    private let currentUserID: Int
     private let getContacts: GetContacts
     private let blockContact: BlockContact
     private let unblockContact: UnblockContact
     
-    init(getContacts: GetContacts, blockContact: BlockContact, unblockContact: UnblockContact) {
+    init(currentUserID: Int, getContacts: GetContacts, blockContact: BlockContact, unblockContact: UnblockContact) {
+        self.currentUserID = currentUserID
         self.getContacts = getContacts
         self.blockContact = blockContact
         self.unblockContact = unblockContact
@@ -91,5 +93,9 @@ final class ContactListViewModel: ObservableObject {
             
             isLoading = false
         }
+    }
+    
+    func canUnblock(blockedBy userID: Int) -> Bool {
+        currentUserID == userID
     }
 }
