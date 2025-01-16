@@ -9,9 +9,9 @@ import Foundation
 
 actor GeneralUseCase<Params: Sendable, Mapper: ResponseMapper> {
     private let client: HTTPClient
-    private let getRequest: @Sendable (Params) async throws -> URLRequest
+    private let getRequest: (Params) async throws -> URLRequest
     
-    init(client: HTTPClient, getRequest: @escaping @Sendable (Params) async throws -> URLRequest) {
+    init(client: HTTPClient, getRequest: sending @escaping (Params) async throws -> URLRequest) {
         self.client = client
         self.getRequest = getRequest
     }
