@@ -48,6 +48,15 @@ final class GeneralUseCaseTests: XCTestCase {
         XCTAssertEqual(client.requests, [expectedRequest])
     }
     
+    func test_perform_deliversInvalidDataErrorWhenReceivedMappingError() async {
+        MapperStub.error = .mapping
+        let (sut, _) = makeSUT()
+        
+        await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
+            XCTAssertEqual(error as? UseCaseError, .invalidData)
+        }
+    }
+    
     // MARK: - Helpers
     
     private typealias SUT = GeneralUseCase<String, MapperStub>
@@ -71,8 +80,11 @@ final class GeneralUseCaseTests: XCTestCase {
     }
     
     private enum MapperStub: ResponseMapper {
+        nonisolated(unsafe) static var error: MapperError?
+        
         static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> String {
-            ""
+            if let error { throw error }
+            return ""
         }
     }
     
@@ -82,7 +94,7 @@ final class GeneralUseCaseTests: XCTestCase {
         
         func send(_ request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
             requests.append(request)
-            throw anyNSError()
+            return (Data(), HTTPURLResponse(url: anyURL(), statusCode: 200, httpVersion: nil, headerFields: nil)!)
         }
     }
 }
