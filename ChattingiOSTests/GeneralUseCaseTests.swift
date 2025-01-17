@@ -16,11 +16,20 @@ final class GeneralUseCaseTests: XCTestCase {
         XCTAssertTrue(client.messages.isEmpty)
     }
     
+    func test_perform_deliversRequestCreationErrorOnAnyRequestError() async throws {
+        let (sut, _) = makeSUT(request: { _ in throw anyNSError() })
+        
+        try await assertThrowsError(_ = await sut.perform(with: "any")) { error in
+            XCTAssertEqual(error as? UseCaseError, .requestCreation)
+        }
+    }
+    
     // MARK: - Helpers
     
     private typealias SUT = GeneralUseCase<String, MapperStub>
     
-    private func makeSUT(request: sending @escaping (String) -> URLRequest = { _ in URLRequest(url: anyURL()) },
+    private func makeSUT(request: sending @escaping (String) async throws -> URLRequest =
+                         { _ in URLRequest(url: anyURL()) },
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: SUT, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
@@ -48,4 +57,8 @@ final class GeneralUseCaseTests: XCTestCase {
 
 func anyURL() -> URL {
     URL(string: "http://any-url.com")!
+}
+
+func anyNSError() -> NSError {
+    NSError(domain: "error", code: 0)
 }
