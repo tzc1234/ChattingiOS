@@ -57,6 +57,16 @@ final class GeneralUseCaseTests: XCTestCase {
         }
     }
     
+    func test_perform_deliversServerErrorWhenReceivedMapperServerError() async {
+        let reason = "any reason"
+        MapperStub.error = .server(reason: reason)
+        let (sut, _) = makeSUT()
+        
+        await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
+            XCTAssertEqual(error as? UseCaseError, .server(reason: reason))
+        }
+    }
+    
     // MARK: - Helpers
     
     private typealias SUT = GeneralUseCase<String, MapperStub>
