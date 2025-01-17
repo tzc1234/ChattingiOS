@@ -16,7 +16,7 @@ final class GeneralUseCaseTests: XCTestCase {
         XCTAssertTrue(client.requests.isEmpty)
     }
     
-    func test_perform_deliversRequestCreationErrorOnAnyRequestError() async {
+    func test_request_deliversRequestCreationErrorOnAnyRequestError() async {
         let (sut, _) = makeSUT(request: { _ in throw anyNSError() })
         
         await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
@@ -24,7 +24,7 @@ final class GeneralUseCaseTests: XCTestCase {
         }
     }
     
-    func test_perform_deliversOtherUseCaseErrorOnRequestWithOtherUseCaseError() async {
+    func test_request_deliversOtherUseCaseErrorOnRequestWithOtherUseCaseError() async {
         let useCaseError = UseCaseError.connectivity
         let (sut, _) = makeSUT(request: { _ in throw useCaseError })
         
@@ -33,7 +33,7 @@ final class GeneralUseCaseTests: XCTestCase {
         }
     }
     
-    func test_perform_getsRequestCorrectly() async throws {
+    func test_request_getsRequestCorrectly() async throws {
         let expectedRequest = requestForTest()
         let expectedParam = "any"
         var paramsLogged = [String]()
@@ -48,7 +48,7 @@ final class GeneralUseCaseTests: XCTestCase {
         XCTAssertEqual(client.requests, [expectedRequest])
     }
     
-    func test_perform_deliversInvalidDataErrorWhenReceivedMappingError() async {
+    func test_mapper_deliversInvalidDataErrorWhenReceivedMappingError() async {
         MapperStub.error = .mapping
         let (sut, _) = makeSUT()
         
@@ -57,7 +57,7 @@ final class GeneralUseCaseTests: XCTestCase {
         }
     }
     
-    func test_perform_deliversServerErrorWhenReceivedMapperServerError() async {
+    func test_mapper_deliversServerErrorWhenReceivedMapperServerError() async {
         let reason = "any reason"
         MapperStub.error = .server(reason: reason)
         let (sut, _) = makeSUT()
