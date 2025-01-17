@@ -98,8 +98,8 @@ final class GeneralUseCaseTests: XCTestCase {
         MapperStub.error = nil
         let client = HTTPClientSpy(stub: stub)
         let sut = SUT(client: client, getRequest: request)
-        trackMemoryLeak(sut)
-        trackMemoryLeak(client)
+        trackMemoryLeak(sut, file: file, line: line)
+        trackMemoryLeak(client, file: file, line: line)
         return (sut, client)
     }
     
