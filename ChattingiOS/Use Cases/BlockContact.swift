@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol BlockContact {
+protocol BlockContact: Sendable {
     func block(for contactID: Int) async throws(UseCaseError) -> Contact
 }
 

@@ -11,7 +11,7 @@ struct ReadMessagesEndpoint: Endpoint {
     var path: String { apiPath + "contacts/\(params.contactID)/messages/read" }
     var httpMethod: HTTPMethod { .patch }
     var headers: [String: String]? {
-        defaultHeaders.merging(["Authorization": "Bearer \(accessToken)"]) { $1 }
+        defaultHeaders.merging([.authorizationHTTPHeaderField: accessToken.bearerToken]) { $1 }
     }
     var body: Data? {
         Data("{\"until_message_id\":\(params.untilMessageID)}".utf8)

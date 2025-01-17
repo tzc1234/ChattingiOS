@@ -47,7 +47,7 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
         do {
             let token = try await refreshToken.refresh(with: refreshTokenString)
             try await tokenVault.saveToken(token)
-            return "Bearer \(token.accessToken)"
+            return token.accessToken.bearerToken
         } catch {
             throw Error.refreshTokenFailed
         }

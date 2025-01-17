@@ -28,6 +28,10 @@ struct ContactListView<AlertContent: View>: View {
             contacts: viewModel.contacts,
             lastContact: $lastContact,
             generalError: $viewModel.generalError,
+            isLoading: viewModel.isLoading,
+            blockContact: viewModel.blockContact,
+            unblockContact: viewModel.unblockContact,
+            canUnblock: viewModel.canUnblock,
             rowTapped: rowTapped
         )
         .task {
@@ -58,28 +62,87 @@ struct ContactListContentView: View {
     let contacts: [Contact]
     @Binding var lastContact: Contact?
     @Binding var generalError: String?
+    let isLoading: Bool
+    let blockContact: (Int) -> Void
+    let unblockContact: (Int) -> Void
+    let canUnblock: (Int) -> Bool
     let rowTapped: (Contact) -> Void
+    
+    @State private var isFullScreenCoverPresenting = false
+    private let transaction = {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        return transaction
+    }()
     
     var body: some View {
         List(contacts) { contact in
-            ContactView(responder: contact.responder, unreadCount: contact.unreadMessageCount)
-                .background(.white.opacity(0.01))
-                .onTapGesture {
-                    rowTapped(contact)
+            ContactView(
+                responder: contact.responder,
+                unreadCount: contact.unreadMessageCount,
+                isBlocked: contact.blockedByUserID != nil
+            )
+            .background(.white.opacity(0.01))
+            .onTapGesture {
+                rowTapped(contact)
+            }
+            .onAppear {
+                if contacts.last == contact {
+                    lastContact = contact
                 }
-                .onAppear {
-                    if contacts.last == contact {
-                        lastContact = contact
-                    }
-                }
+            }
+            .swipeActions {
+                swipeAction(contact: contact)
+            }
         }
         .listStyle(.plain)
         .navigationTitle("Contacts")
+        .fullScreenCover(isPresented: $isFullScreenCoverPresenting) {
+            LoadingView()
+                .presentationBackground(.clear)
+        }
+        .onAppear {
+            withTransaction(transaction) {
+                isFullScreenCoverPresenting = false
+            }
+        }
+        .onChange(of: isLoading) { newValue in
+            withTransaction(transaction) {
+               isFullScreenCoverPresenting = newValue
+            }
+        }
         .alert("⚠️Oops!", isPresented: $generalError.toBool) {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(generalError ?? "")
         }
+    }
+    
+    @ViewBuilder
+    private func swipeAction(contact: Contact) -> some View {
+        if contact.blockedByUserID == nil {
+            blockAction(contactID: contact.id)
+        } else if let blockedBy = contact.blockedByUserID, canUnblock(blockedBy) {
+            unblockAction(contactID: contact.id)
+        }
+    }
+    
+    private func blockAction(contactID: Int) -> some View {
+        Button {
+            blockContact(contactID)
+        } label: {
+            Label("Block", systemImage: "person.slash.fill")
+        }
+        .tint(.red)
+    }
+    
+    private func unblockAction(contactID: Int) -> some View {
+        Button {
+            unblockContact(contactID)
+        } label: {
+            Label("Unblock", systemImage: "person.fill")
+        }
+        .tint(.green)
     }
 }
 
@@ -95,7 +158,7 @@ struct ContactListContentView: View {
                         email: "harry@email.com",
                         avatarURL: nil
                     ),
-                    blockedByUserID: nil,
+                    blockedByUserID: 0,
                     unreadMessageCount: 0,
                     lastUpdate: Date()
                 ),
@@ -114,6 +177,10 @@ struct ContactListContentView: View {
             ],
             lastContact: .constant(nil),
             generalError: .constant(nil),
+            isLoading: false,
+            blockContact: { _ in },
+            unblockContact: { _ in },
+            canUnblock: { _ in true },
             rowTapped: { _ in }
         )
     }

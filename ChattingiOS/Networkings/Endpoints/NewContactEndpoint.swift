@@ -11,7 +11,7 @@ struct NewContactEndpoint: Endpoint {
     var path: String { apiPath + "contacts" }
     var httpMethod: HTTPMethod { .post }
     var headers: [String : String]? {
-        defaultHeaders.merging(["Authorization": "Bearer \(accessToken)"]) { $1 }
+        defaultHeaders.merging([.authorizationHTTPHeaderField: accessToken.bearerToken]) { $1 }
     }
     var body: Data? {
         Data("{\"responder_email\":\"\(responderEmail)\"}".utf8)

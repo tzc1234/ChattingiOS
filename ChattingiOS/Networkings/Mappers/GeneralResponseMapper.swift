@@ -23,5 +23,4 @@ typealias MessagesResponseMapper = GeneralResponseMapper<MessagesResponse>
 typealias ContactsResponseMapper = GeneralResponseMapper<ContactsResponse>
 typealias ContactResponseMapper = GeneralResponseMapper<ContactResponse>
 typealias TokenResponseMapper = GeneralResponseMapper<TokenResponse>
-typealias UserResponseMapper = GeneralResponseMapper<UserResponse>
 typealias UserTokenResponseMapper = GeneralResponseMapper<UserTokenResponse>
