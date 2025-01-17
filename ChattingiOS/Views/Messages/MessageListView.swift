@@ -65,7 +65,7 @@ struct MessageListContentView: View {
                                     loadMoreMessages()
                                 }
                                 
-                                if !message.isRead {
+                                if message.isUnread {
                                     readMessages(message.id)
                                 }
                             }

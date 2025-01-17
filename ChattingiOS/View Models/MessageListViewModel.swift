@@ -13,6 +13,8 @@ struct DisplayedMessage: Identifiable, Equatable {
     let isMine: Bool
     let isRead: Bool
     let date: String?
+    
+    var isUnread: Bool { !isRead }
 }
 
 @MainActor
@@ -25,9 +27,9 @@ final class MessageListViewModel: ObservableObject {
     
     private var contactID: Int { contact.id }
     var username: String { contact.responder.name }
-    var avatarURL: URL? { contact.responder.avatarURL.map { URL(string: $0) } ?? nil }
+    var avatarURL: URL? { contact.responder.avatarURL.map(URL.init) ?? nil }
     var isBlocked: Bool { contact.blockedByUserID != nil }
-    private var initialListPositionMessageID: Int? { messages.first { !$0.isRead }?.id ?? messages.last?.id }
+    private var initialListPositionMessageID: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
     
     private var connection: MessageChannelConnection?
     private var canLoadPrevious = false
