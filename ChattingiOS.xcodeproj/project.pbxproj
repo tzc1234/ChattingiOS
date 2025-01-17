@@ -13,14 +13,31 @@
 		BEA9F0082D145A6300A5CB22 /* NIOWebSocket in Frameworks */ = {isa = PBXBuildFile; productRef = BEA9F0072D145A6300A5CB22 /* NIOWebSocket */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		BEFFF86D2D3A9DA8008ED77C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BE206E7F2D088DDC007530E1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BE206E862D088DDC007530E1;
+			remoteInfo = ChattingiOS;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		BE206E872D088DDC007530E1 /* ChattingiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChattingiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BEFFF8692D3A9DA8008ED77C /* ChattingiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChattingiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BEFFF8722D3AA08C008ED77C /* ChattingiOS.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = ChattingiOS.xctestplan; path = ChattingiOSTests/ChattingiOS.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		BE206E892D088DDC007530E1 /* ChattingiOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ChattingiOS;
+			sourceTree = "<group>";
+		};
+		BEFFF86A2D3A9DA8008ED77C /* ChattingiOSTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ChattingiOSTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -37,13 +54,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BEFFF8662D3A9DA8008ED77C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		BE206E7E2D088DDC007530E1 = {
 			isa = PBXGroup;
 			children = (
+				BEFFF8722D3AA08C008ED77C /* ChattingiOS.xctestplan */,
 				BE206E892D088DDC007530E1 /* ChattingiOS */,
+				BEFFF86A2D3A9DA8008ED77C /* ChattingiOSTests */,
 				BE2F75702D186E33003BCCD2 /* Frameworks */,
 				BE206E882D088DDC007530E1 /* Products */,
 			);
@@ -53,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				BE206E872D088DDC007530E1 /* ChattingiOS.app */,
+				BEFFF8692D3A9DA8008ED77C /* ChattingiOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -93,6 +120,29 @@
 			productReference = BE206E872D088DDC007530E1 /* ChattingiOS.app */;
 			productType = "com.apple.product-type.application";
 		};
+		BEFFF8682D3A9DA8008ED77C /* ChattingiOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BEFFF86F2D3A9DA8008ED77C /* Build configuration list for PBXNativeTarget "ChattingiOSTests" */;
+			buildPhases = (
+				BEFFF8652D3A9DA8008ED77C /* Sources */,
+				BEFFF8662D3A9DA8008ED77C /* Frameworks */,
+				BEFFF8672D3A9DA8008ED77C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BEFFF86E2D3A9DA8008ED77C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				BEFFF86A2D3A9DA8008ED77C /* ChattingiOSTests */,
+			);
+			name = ChattingiOSTests;
+			packageProductDependencies = (
+			);
+			productName = ChattingiOSTests;
+			productReference = BEFFF8692D3A9DA8008ED77C /* ChattingiOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -100,11 +150,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1610;
+				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					BE206E862D088DDC007530E1 = {
 						CreatedOnToolsVersion = 16.1;
+					};
+					BEFFF8682D3A9DA8008ED77C = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = BE206E862D088DDC007530E1;
 					};
 				};
 			};
@@ -126,12 +180,20 @@
 			projectRoot = "";
 			targets = (
 				BE206E862D088DDC007530E1 /* ChattingiOS */,
+				BEFFF8682D3A9DA8008ED77C /* ChattingiOSTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		BE206E852D088DDC007530E1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BEFFF8672D3A9DA8008ED77C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -148,7 +210,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BEFFF8652D3A9DA8008ED77C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BEFFF86E2D3A9DA8008ED77C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BE206E862D088DDC007530E1 /* ChattingiOS */;
+			targetProxy = BEFFF86D2D3A9DA8008ED77C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		BE206E932D088DDD007530E1 /* Debug */ = {
@@ -338,6 +415,52 @@
 			};
 			name = Release;
 		};
+		BEFFF8702D3A9DA8008ED77C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DV4M5VPD3C;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tszlung.ChattingiOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChattingiOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ChattingiOS";
+			};
+			name = Debug;
+		};
+		BEFFF8712D3A9DA8008ED77C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DV4M5VPD3C;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tszlung.ChattingiOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChattingiOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ChattingiOS";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -355,6 +478,15 @@
 			buildConfigurations = (
 				BE206E962D088DDD007530E1 /* Debug */,
 				BE206E972D088DDD007530E1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BEFFF86F2D3A9DA8008ED77C /* Build configuration list for PBXNativeTarget "ChattingiOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BEFFF8702D3A9DA8008ED77C /* Debug */,
+				BEFFF8712D3A9DA8008ED77C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

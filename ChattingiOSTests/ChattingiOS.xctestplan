@@ -1,0 +1,39 @@
+{
+  "configurations" : [
+    {
+      "id" : "825C8337-3CBE-44A6-A01C-DE900633B619",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:ChattingiOS.xcodeproj",
+          "identifier" : "BE206E862D088DDC007530E1",
+          "name" : "ChattingiOS"
+        }
+      ]
+    },
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:ChattingiOS.xcodeproj",
+      "identifier" : "BE206E862D088DDC007530E1",
+      "name" : "ChattingiOS"
+    },
+    "testExecutionOrdering" : "random"
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:ChattingiOS.xcodeproj",
+        "identifier" : "BEFFF8682D3A9DA8008ED77C",
+        "name" : "ChattingiOSTests"
+      }
+    }
+  ],
+  "version" : 1
+}
