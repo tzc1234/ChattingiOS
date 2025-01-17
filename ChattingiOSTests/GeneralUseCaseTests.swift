@@ -49,8 +49,8 @@ final class GeneralUseCaseTests: XCTestCase {
     }
     
     func test_mapper_deliversInvalidDataErrorWhenReceivedMappingError() async {
-        MapperStub.error = .mapping
         let (sut, _) = makeSUT()
+        MapperStub.error = .mapping
         
         await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
             XCTAssertEqual(error as? UseCaseError, .invalidData)
@@ -59,8 +59,8 @@ final class GeneralUseCaseTests: XCTestCase {
     
     func test_mapper_deliversServerErrorWhenReceivedMapperServerError() async {
         let reason = "any reason"
-        MapperStub.error = .server(reason: reason)
         let (sut, _) = makeSUT()
+        MapperStub.error = .server(reason: reason)
         
         await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
             XCTAssertEqual(error as? UseCaseError, .server(reason: reason))
@@ -75,6 +75,17 @@ final class GeneralUseCaseTests: XCTestCase {
         }
     }
     
+    func test_perform_deliversModelCorrectly() async throws {
+        let expectedData = Data("any data".utf8)
+        let expectedResponse = anyHTTPURLResponse()
+        let (sut, _) = makeSUT(stub: .success((expectedData, expectedResponse)))
+        
+        let model = try await sut.perform(with: "any")
+        
+        XCTAssertEqual(model.data, expectedData)
+        XCTAssertEqual(model.response, expectedResponse)
+    }
+    
     // MARK: - Helpers
     
     private typealias SUT = GeneralUseCase<String, MapperStub>
@@ -84,6 +95,7 @@ final class GeneralUseCaseTests: XCTestCase {
                          stub: Result<(Data, HTTPURLResponse), Error> = .success((Data(), anyHTTPURLResponse())),
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: SUT, client: HTTPClientSpy) {
+        MapperStub.error = nil
         let client = HTTPClientSpy(stub: stub)
         let sut = SUT(client: client, getRequest: request)
         trackMemoryLeak(sut)
@@ -101,9 +113,10 @@ final class GeneralUseCaseTests: XCTestCase {
     private enum MapperStub: ResponseMapper {
         nonisolated(unsafe) static var error: MapperError?
         
-        static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> String {
+        static func map(_ data: Data,
+                        response: HTTPURLResponse) throws(MapperError) -> (data: Data, response: HTTPURLResponse) {
             if let error { throw error }
-            return ""
+            return (data, response)
         }
     }
     
