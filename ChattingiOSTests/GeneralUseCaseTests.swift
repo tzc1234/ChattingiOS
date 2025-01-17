@@ -12,11 +12,14 @@ import XCTest
 final class GeneralUseCaseTests: XCTestCase {
     func test_init_doesNotNotifyClientWhileCreation() async {
         let client = httpClientSpy()
-        let _ = GeneralUseCase<String, MapperStub>(client: client) { _ in
+        let sut = GeneralUseCase<String, MapperStub>(client: client) { _ in
             URLRequest(url: URL(string: "http://a-url.com")!)
         }
         
         XCTAssertTrue(client.messages.isEmpty)
+        
+        trackMemoryLeak(sut)
+        trackMemoryLeak(client)
     }
     
     // MARK: - Helpers
