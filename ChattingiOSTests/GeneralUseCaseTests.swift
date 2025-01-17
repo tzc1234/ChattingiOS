@@ -13,7 +13,7 @@ final class GeneralUseCaseTests: XCTestCase {
     func test_init_doesNotNotifyClientWhileCreation() {
         let (_, client) = makeSUT()
         
-        XCTAssertTrue(client.messages.isEmpty)
+        XCTAssertTrue(client.requests.isEmpty)
     }
     
     func test_perform_deliversRequestCreationErrorOnAnyRequestError() async {
@@ -33,6 +33,21 @@ final class GeneralUseCaseTests: XCTestCase {
         }
     }
     
+    func test_perform_getsRequestCorrectly() async throws {
+        let expectedRequest = requestForTest()
+        let expectedParam = "any"
+        var paramsLogged = [String]()
+        let (sut, client) = makeSUT(request: {
+            paramsLogged.append($0)
+            return expectedRequest
+        })
+        
+        _ = try? await sut.perform(with: expectedParam)
+        
+        XCTAssertEqual(paramsLogged, [expectedParam])
+        XCTAssertEqual(client.requests, [expectedRequest])
+    }
+    
     // MARK: - Helpers
     
     private typealias SUT = GeneralUseCase<String, MapperStub>
@@ -48,6 +63,13 @@ final class GeneralUseCaseTests: XCTestCase {
         return (sut, client)
     }
     
+    private func requestForTest() -> URLRequest {
+        var request = URLRequest(url: URL(string: "http://a-url.com")!)
+        request.httpMethod = "POST"
+        request.setValue("token", forHTTPHeaderField: .authorizationHTTPHeaderField)
+        return request
+    }
+    
     private enum MapperStub: ResponseMapper {
         static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> String {
             ""
@@ -56,10 +78,11 @@ final class GeneralUseCaseTests: XCTestCase {
     
     @MainActor
     private final class HTTPClientSpy: HTTPClient {
-        private(set) var messages = [Any]()
+        private(set) var requests = [URLRequest]()
         
         func send(_ request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
-            fatalError()
+            requests.append(request)
+            throw anyNSError()
         }
     }
 }
