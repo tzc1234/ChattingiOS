@@ -42,7 +42,7 @@ final class GeneralUseCaseTests: XCTestCase {
             return expectedRequest
         })
         
-        _ = try? await sut.perform(with: expectedParam)
+        _ = try await sut.perform(with: expectedParam)
         
         XCTAssertEqual(paramsLogged, [expectedParam])
         XCTAssertEqual(client.requests, [expectedRequest])
@@ -134,16 +134,4 @@ final class GeneralUseCaseTests: XCTestCase {
             return try stub.get()
         }
     }
-}
-
-func anyURL() -> URL {
-    URL(string: "http://any-url.com")!
-}
-
-func anyNSError() -> NSError {
-    NSError(domain: "error", code: 0)
-}
-
-func anyHTTPURLResponse() -> HTTPURLResponse {
-    HTTPURLResponse(url: anyURL(), statusCode: 200, httpVersion: nil, headerFields: nil)!
 }
