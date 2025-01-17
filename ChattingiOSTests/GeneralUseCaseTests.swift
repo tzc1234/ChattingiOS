@@ -67,15 +67,24 @@ final class GeneralUseCaseTests: XCTestCase {
         }
     }
     
+    func test_perform_deliversConnectivityErrorOnClientError() async {
+        let (sut, _) = makeSUT(stub: .failure(anyNSError()))
+        
+        await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
+            XCTAssertEqual(error as? UseCaseError, .connectivity)
+        }
+    }
+    
     // MARK: - Helpers
     
     private typealias SUT = GeneralUseCase<String, MapperStub>
     
     private func makeSUT(request: sending @escaping (String) async throws -> URLRequest =
                          { _ in URLRequest(url: anyURL()) },
+                         stub: Result<(Data, HTTPURLResponse), Error> = .success((Data(), anyHTTPURLResponse())),
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: SUT, client: HTTPClientSpy) {
-        let client = HTTPClientSpy()
+        let client = HTTPClientSpy(stub: stub)
         let sut = SUT(client: client, getRequest: request)
         trackMemoryLeak(sut)
         trackMemoryLeak(client)
@@ -101,10 +110,15 @@ final class GeneralUseCaseTests: XCTestCase {
     @MainActor
     private final class HTTPClientSpy: HTTPClient {
         private(set) var requests = [URLRequest]()
+        private var stub: Result<(Data, HTTPURLResponse), Error>
+        
+        init(stub: Result<(Data, HTTPURLResponse), Error>) {
+            self.stub = stub
+        }
         
         func send(_ request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
             requests.append(request)
-            return (Data(), HTTPURLResponse(url: anyURL(), statusCode: 200, httpVersion: nil, headerFields: nil)!)
+            return try stub.get()
         }
     }
 }
@@ -115,4 +129,8 @@ func anyURL() -> URL {
 
 func anyNSError() -> NSError {
     NSError(domain: "error", code: 0)
+}
+
+func anyHTTPURLResponse() -> HTTPURLResponse {
+    HTTPURLResponse(url: anyURL(), statusCode: 200, httpVersion: nil, headerFields: nil)!
 }
