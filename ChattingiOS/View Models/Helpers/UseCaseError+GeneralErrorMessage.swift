@@ -16,7 +16,7 @@ extension UseCaseError {
             "Invalid data received."
         case .connectivity:
             "Connection error occurred, please try it later."
-        case .requestCreation:
+        case .requestCreationFailed:
             "Request creation error."
         case .userInitiateSignOut:
             nil

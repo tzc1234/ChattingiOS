@@ -18,7 +18,7 @@ extension MessageChannelError {
             "Contact not found."
         case .forbidden, .userInitiateSignOut:
             nil
-        case .requestCreation:
+        case .requestCreationFailed:
             "Cannot make a request."
         case .unknown,  .other:
             "Connection error."

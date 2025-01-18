@@ -59,7 +59,7 @@ final class DependenciesContainer {
                 
                 try? await Task.sleep(for: .seconds(0.35))
                 await contentViewModel.set(generalError: .pleaseSignInMessage)
-                throw UseCaseError.requestCreation
+                throw UseCaseError.requestCreationFailed
             }
             
             return accessToken
@@ -87,7 +87,7 @@ final class DependenciesContainer {
                 
                 try? await Task.sleep(for: .seconds(0.35))
                 await contentViewModel.set(generalError: .pleaseSignInMessage)
-                throw MessageChannelError.requestCreation
+                throw MessageChannelError.requestCreationFailed
             }
             
             return accessToken

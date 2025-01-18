@@ -16,11 +16,11 @@ final class GeneralUseCaseTests: XCTestCase {
         XCTAssertTrue(client.requests.isEmpty)
     }
     
-    func test_request_deliversRequestCreationErrorOnAnyRequestError() async {
+    func test_request_deliversRequestCreationFailedErrorOnAnyRequestError() async {
         let (sut, _) = makeSUT(request: { _ in throw anyNSError() })
         
         await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
-            XCTAssertEqual(error as? UseCaseError, .requestCreation)
+            XCTAssertEqual(error as? UseCaseError, .requestCreationFailed)
         }
     }
     
