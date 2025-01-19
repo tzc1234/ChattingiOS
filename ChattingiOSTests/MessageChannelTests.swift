@@ -34,6 +34,20 @@ final class MessageChannelTests: XCTestCase {
         }
     }
     
+    func test_getRequest_passesRequestToClientCorrectly() async {
+        let expectedRequest = URLRequest(url: anyURL())
+        var loggedContactIDs = [Int]()
+        let (sut, client) = makeSUT(request: { contactID in
+            loggedContactIDs.append(contactID)
+            return expectedRequest
+        })
+        
+        _ = try? await sut.establish(for: contactID)
+        
+        XCTAssertEqual(loggedContactIDs, [contactID])
+        XCTAssertEqual(client.requests, [expectedRequest])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(request: sending @escaping (Int) async throws -> URLRequest =
@@ -71,7 +85,7 @@ final class MessageChannelTests: XCTestCase {
             XCTAssertEqual(receivedNSError, expectedNSError, file: file, line: line)
         default:
             XCTFail(
-                "Error: \(String(describing: error)) is not as expected error: \(expectedError).",
+                "Error: \(error) is not as expected error: \(expectedError).",
                 file: file,
                 line: line
             )
@@ -83,7 +97,8 @@ final class MessageChannelTests: XCTestCase {
         private(set) var requests = [URLRequest]()
         
         func connect(_ request: URLRequest) async throws(WebSocketClientError) -> WebSocket {
-            fatalError()
+            requests.append(request)
+            throw .unknown
         }
     }
 }
