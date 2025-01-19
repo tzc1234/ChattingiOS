@@ -67,9 +67,19 @@ final class MessageChannelTests: XCTestCase {
     }
     
     func test_establish_deliversConnectionSuccessfully() async throws {
-        let (sut, _) = makeSUT(stubs: [.success(WebSocketSpy())])
+        let (sut, _) = makeSUT(stubs: [.success(WebSocketSpy(sendTextStub: .success(())))])
         
         _ = try await sut.establish(for: contactID)
+    }
+    
+    // MARK: - MessageChannelConnection
+    
+    func test_sendText_deliversErrorOnWebSocketError() async throws {
+        let (connection, _) = try await makeConnection(sendTextStub: .failure(anyNSError()))
+        
+        await assertThrowsError(try await connection.send(text: "any")) { error in
+            XCTAssertEqual(error as NSError, anyNSError())
+        }
     }
     
     // MARK: - Helpers
@@ -84,6 +94,16 @@ final class MessageChannelTests: XCTestCase {
         trackMemoryLeak(client, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)
         return (sut, client)
+    }
+    
+    private func makeConnection(sendTextStub: Result<Void, Error> = .failure(anyNSError()),
+                                file: StaticString = #filePath,
+                                line: UInt = #line) async throws -> (connection: MessageChannelConnection,
+                                                                     webSocket: WebSocketSpy) {
+        let spy = WebSocketSpy(sendTextStub: sendTextStub)
+        let (sut, _) = makeSUT(stubs: [.success(spy)], file: file, line: line)
+        let connection = try await sut.establish(for: contactID)
+        return (connection, spy)
     }
     
     private var contactID: Int { 99 }
@@ -134,12 +154,18 @@ final class MessageChannelTests: XCTestCase {
     }
     
     private final class WebSocketSpy: WebSocket {
+        private let sendTextStub: Result<Void, Error>
+        
+        init(sendTextStub: Result<Void, Error>) {
+            self.sendTextStub = sendTextStub
+        }
+        
         func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
             
         }
         
         func send(data: Data) async throws {
-            
+            try sendTextStub.get()
         }
         
         func close() async throws {
