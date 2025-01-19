@@ -48,13 +48,22 @@ final class MessageChannelTests: XCTestCase {
         XCTAssertEqual(client.requests, [expectedRequest])
     }
     
+    func test_establish_deliversInvalidURLErrorWhileReceivedErrorOnClientConnect() async {
+        let (sut, _) = makeSUT(stub: .failure(.invalidURL))
+        
+        await assertThrowsError(_ = try await sut.establish(for: contactID)) { error in
+            assertMessageChannelError(error, as: .invalidURL)
+        }
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(request: sending @escaping (Int) async throws -> URLRequest =
                          { _ in URLRequest(url: anyURL()) },
+                         stub: Result<WebSocket, WebSocketClientError> = .failure(.unknown),
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: MessageChannel, client: WebSocketClientSpy) {
-        let client = WebSocketClientSpy()
+        let client = WebSocketClientSpy(stub: stub)
         let sut = DefaultMessageChannel(client: client, getRequest: request)
         trackMemoryLeak(client, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)
@@ -96,9 +105,15 @@ final class MessageChannelTests: XCTestCase {
     private final class WebSocketClientSpy: WebSocketClient {
         private(set) var requests = [URLRequest]()
         
+        private var stub: Result<WebSocket, WebSocketClientError>
+        
+        init(stub: Result<WebSocket, WebSocketClientError>) {
+            self.stub = stub
+        }
+        
         func connect(_ request: URLRequest) async throws(WebSocketClientError) -> WebSocket {
             requests.append(request)
-            throw .unknown
+            return try stub.get()
         }
     }
 }
