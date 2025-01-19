@@ -66,6 +66,12 @@ final class MessageChannelTests: XCTestCase {
         }
     }
     
+    func test_establish_deliversConnectionSuccessfully() async throws {
+        let (sut, _) = makeSUT(stubs: [.success(WebSocketSpy())])
+        
+        _ = try await sut.establish(for: contactID)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(request: sending @escaping (Int) async throws -> URLRequest =
@@ -124,6 +130,20 @@ final class MessageChannelTests: XCTestCase {
         func connect(_ request: URLRequest) async throws(WebSocketClientError) -> WebSocket {
             requests.append(request)
             return try stubs.removeFirst().get()
+        }
+    }
+    
+    private final class WebSocketSpy: WebSocket {
+        func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
+            
+        }
+        
+        func send(data: Data) async throws {
+            
+        }
+        
+        func close() async throws {
+            
         }
     }
 }
