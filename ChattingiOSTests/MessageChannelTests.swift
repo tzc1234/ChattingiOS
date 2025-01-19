@@ -82,6 +82,15 @@ final class MessageChannelTests: XCTestCase {
         }
     }
     
+    func test_sendText_delegatesTextToWebSocketSuccessfully() async throws {
+        let (connection, webSocket) = try await makeConnection()
+        let text = "any text"
+        
+        try await connection.send(text: text)
+        
+        XCTAssertEqual(webSocket.loggedTextData, [text.toData()])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(request: sending @escaping (Int) async throws -> URLRequest =
@@ -96,7 +105,7 @@ final class MessageChannelTests: XCTestCase {
         return (sut, client)
     }
     
-    private func makeConnection(sendTextStub: Result<Void, Error> = .failure(anyNSError()),
+    private func makeConnection(sendTextStub: Result<Void, Error> = .success(()),
                                 file: StaticString = #filePath,
                                 line: UInt = #line) async throws -> (connection: MessageChannelConnection,
                                                                      webSocket: WebSocketSpy) {
@@ -153,7 +162,10 @@ final class MessageChannelTests: XCTestCase {
         }
     }
     
+    @MainActor
     private final class WebSocketSpy: WebSocket {
+        private(set) var loggedTextData = [Data]()
+        
         private let sendTextStub: Result<Void, Error>
         
         init(sendTextStub: Result<Void, Error>) {
@@ -165,11 +177,22 @@ final class MessageChannelTests: XCTestCase {
         }
         
         func send(data: Data) async throws {
+            loggedTextData.append(data)
             try sendTextStub.get()
         }
         
         func close() async throws {
             
         }
+    }
+}
+
+private extension String {
+    private struct TextSent: Encodable {
+        let text: String
+    }
+    
+    func toData() -> Data {
+        try! JSONEncoder().encode(TextSent(text: self))
     }
 }
