@@ -25,6 +25,15 @@ final class MessageChannelTests: XCTestCase {
         }
     }
     
+    func test_getRequest_deliversUnknownErrorWhileReceivedOtherError() async {
+        let expectedError = anyNSError()
+        let (sut, _) = makeSUT(request: { _ in throw expectedError })
+        
+        await assertThrowsError(_ = try await sut.establish(for: contactID)) { error in
+            assertMessageChannelError(error, as: .unknown)
+        }
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(request: sending @escaping (Int) async throws -> URLRequest =
@@ -45,7 +54,7 @@ final class MessageChannelTests: XCTestCase {
                                            file: StaticString = #filePath,
                                            line: UInt = #line) {
         guard let error = error as? MessageChannelError else {
-            XCTFail("Error is not a MessageChannelError.")
+            XCTFail("Error is not a MessageChannelError.", file: file, line: line)
             return
         }
         
@@ -54,13 +63,18 @@ final class MessageChannelTests: XCTestCase {
             (.unauthorized, .unauthorized),
             (.notFound, .notFound),
             (.forbidden, .forbidden),
+            (.unknown, .unknown),
             (.userInitiateSignOut, .userInitiateSignOut),
             (.requestCreationFailed, .requestCreationFailed):
             break
         case let (.other(receivedNSError as NSError), .other(expectedNSError as NSError)):
-            XCTAssertEqual(receivedNSError, expectedNSError)
+            XCTAssertEqual(receivedNSError, expectedNSError, file: file, line: line)
         default:
-            XCTFail("Error: \(String(describing: error)) is not as expected error.")
+            XCTFail(
+                "Error: \(String(describing: error)) is not as expected error: \(expectedError).",
+                file: file,
+                line: line
+            )
         }
     }
     
