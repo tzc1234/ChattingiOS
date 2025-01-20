@@ -105,6 +105,21 @@ final class MessageChannelTests: XCTestCase {
         XCTAssertEqual(webSocket.loggedActions, [.close])
     }
     
+    func test_errorObserver_deliversErrorOnWebSocketError() async throws {
+        let errors: [(webSocket: WebSocketError, connection: MessageChannelConnectionError)] = [
+            (.disconnected, .disconnected),
+            (.unsupportedData, .unsupportedData),
+            (.other(anyNSError()), .other(anyNSError()))
+        ]
+        let (connection, _) = try await establishConnection(webSocketErrors: errors.map(\.webSocket))
+        
+        for error in errors {
+            await connection.start(messageObserver: nil) { receivedError in
+                await Self.assertMessageChannelConnectionError(receivedError, as: error.connection)
+            }
+        }
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(request: sending @escaping (Int) async throws -> URLRequest =
@@ -121,10 +136,15 @@ final class MessageChannelTests: XCTestCase {
     
     private func establishConnection(sendTextStub: Result<Void, Error> = .success(()),
                                      closeStub: Result<Void, Error> = .success(()),
+                                     webSocketErrors: [WebSocketError] = [],
                                      file: StaticString = #filePath,
                                      line: UInt = #line) async throws -> (connection: MessageChannelConnection,
                                                                           webSocket: WebSocketSpy) {
-        let spy = WebSocketSpy(sendTextStub: sendTextStub, closeStub: closeStub)
+        let spy = WebSocketSpy(
+            sendTextStub: sendTextStub,
+            closeStub: closeStub,
+            webSocketErrors: webSocketErrors
+        )
         let (sut, _) = makeSUT(stubs: [.success(spy)], file: file, line: line)
         let connection = try await sut.establish(for: contactID)
         return (connection, spy)
@@ -153,11 +173,22 @@ final class MessageChannelTests: XCTestCase {
         case let (.other(receivedNSError as NSError), .other(expectedNSError as NSError)):
             XCTAssertEqual(receivedNSError, expectedNSError, file: file, line: line)
         default:
-            XCTFail(
-                "Error: \(error) is not as expected error: \(expectedError).",
-                file: file,
-                line: line
-            )
+            XCTFail("Error: \(error) is not as expected error: \(expectedError).", file: file, line: line)
+        }
+    }
+    
+    private static func assertMessageChannelConnectionError(_ error: MessageChannelConnectionError,
+                                                            as expectedError: MessageChannelConnectionError,
+                                                            file: StaticString = #filePath,
+                                                            line: UInt = #line) {
+        switch (error, expectedError) {
+        case (.disconnected, .disconnected),
+            (.unsupportedData, .unsupportedData):
+            break
+        case let (.other(receivedNSError as NSError), .other(expectedNSError as NSError)):
+            XCTAssertEqual(receivedNSError, expectedNSError, file: file, line: line)
+        default:
+            XCTFail("Error: \(error) is not as expected error: \(expectedError).", file: file, line: line)
         }
     }
     
@@ -188,14 +219,18 @@ final class MessageChannelTests: XCTestCase {
         
         private let sendTextStub: Result<Void, Error>
         private let closeStub: Result<Void, Error>
+        private var webSocketErrors: [WebSocketError]
         
-        init(sendTextStub: Result<Void, Error>, closeStub: Result<Void, Error>) {
+        init(sendTextStub: Result<Void, Error>,
+             closeStub: Result<Void, Error>,
+             webSocketErrors: [WebSocketError]) {
             self.sendTextStub = sendTextStub
             self.closeStub = closeStub
+            self.webSocketErrors = webSocketErrors
         }
         
         func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
-            
+            await errorObserver?(webSocketErrors.removeFirst())
         }
         
         func send(data: Data) async throws {
