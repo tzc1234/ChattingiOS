@@ -120,6 +120,20 @@ final class MessageChannelTests: XCTestCase {
         }
     }
     
+    func test_messageObserver_deliversUnsupportedDataOnReceivedWebSocketInvalidData() async throws {
+        let invalidData = Data("invalid".utf8)
+        let (connection, _) = try await establishConnection(messageDataStubs: [invalidData])
+        let logger = MessagesLogger()
+        
+        await connection.start(messageObserver: { message in
+            await logger.append(message)
+        }, errorObserver: { error in
+            await Self.assertMessageChannelConnectionError(error, as: .unsupportedData)
+        })
+        
+        XCTAssertTrue(logger.messages.isEmpty)
+    }
+    
     func test_messageObserver_deliversMessageFromWebSocketSuccessfully() async throws {
         let messages = [
             Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture),
