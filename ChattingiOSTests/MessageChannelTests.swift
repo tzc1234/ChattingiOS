@@ -67,9 +67,7 @@ final class MessageChannelTests: XCTestCase {
     }
     
     func test_establish_deliversConnectionSuccessfully() async throws {
-        let (sut, _) = makeSUT(stubs: [.success(WebSocketSpy(sendTextStub: .success(())))])
-        
-        _ = try await sut.establish(for: contactID)
+        _ = try await makeConnection()
     }
     
     // MARK: - MessageChannelConnection
@@ -91,6 +89,14 @@ final class MessageChannelTests: XCTestCase {
         XCTAssertEqual(webSocket.loggedTextData, [text.toData()])
     }
     
+    func test_close_deliversErrorOnWebSocketError() async throws {
+        let (connection, _) = try await makeConnection(closeStub: .failure(anyNSError()))
+        
+        await assertThrowsError(try await connection.close()) { error in
+            XCTAssertEqual(error as NSError, anyNSError())
+        }
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(request: sending @escaping (Int) async throws -> URLRequest =
@@ -106,10 +112,11 @@ final class MessageChannelTests: XCTestCase {
     }
     
     private func makeConnection(sendTextStub: Result<Void, Error> = .success(()),
+                                closeStub: Result<Void, Error> = .success(()),
                                 file: StaticString = #filePath,
                                 line: UInt = #line) async throws -> (connection: MessageChannelConnection,
                                                                      webSocket: WebSocketSpy) {
-        let spy = WebSocketSpy(sendTextStub: sendTextStub)
+        let spy = WebSocketSpy(sendTextStub: sendTextStub, closeStub: closeStub)
         let (sut, _) = makeSUT(stubs: [.success(spy)], file: file, line: line)
         let connection = try await sut.establish(for: contactID)
         return (connection, spy)
@@ -167,9 +174,11 @@ final class MessageChannelTests: XCTestCase {
         private(set) var loggedTextData = [Data]()
         
         private let sendTextStub: Result<Void, Error>
+        private let closeStub: Result<Void, Error>
         
-        init(sendTextStub: Result<Void, Error>) {
+        init(sendTextStub: Result<Void, Error>, closeStub: Result<Void, Error>) {
             self.sendTextStub = sendTextStub
+            self.closeStub = closeStub
         }
         
         func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
@@ -182,7 +191,7 @@ final class MessageChannelTests: XCTestCase {
         }
         
         func close() async throws {
-            
+            try closeStub.get()
         }
     }
 }
