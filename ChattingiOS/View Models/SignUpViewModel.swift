@@ -18,7 +18,7 @@ final class SignUpViewModel: ObservableObject {
     @Published private(set) var isSignUpSuccess = false
     
     var canSignUp: Bool {
-        name.isValidName && Email(email).isValid && Password(password).isValid && isValidConfirmPassword
+        UserName(name).isValid && Email(email).isValid && Password(password).isValid && isValidConfirmPassword
     }
     
     private var isValidConfirmPassword: Bool {
@@ -26,9 +26,7 @@ final class SignUpViewModel: ObservableObject {
     }
     
     var nameError: String? {
-        guard name.isEmpty || name.isValidName else { return .nameErrorMessage }
-        
-        return nil
+        UserName(name).errorMessage
     }
     
     var emailError: String? {
