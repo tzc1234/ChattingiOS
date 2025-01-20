@@ -86,7 +86,7 @@ final class MessageChannelTests: XCTestCase {
         
         try await connection.send(text: text)
         
-        XCTAssertEqual(webSocket.loggedTextData, [text.toData()])
+        XCTAssertEqual(webSocket.loggedActions, [.sendText(text.toData())])
     }
     
     func test_close_deliversErrorOnWebSocketError() async throws {
@@ -95,6 +95,14 @@ final class MessageChannelTests: XCTestCase {
         await assertThrowsError(try await connection.close()) { error in
             XCTAssertEqual(error as NSError, anyNSError())
         }
+    }
+    
+    func test_close_delegatesCloseToWebSocketSuccessfully() async throws {
+        let (connection, webSocket) = try await makeConnection()
+        
+        try await connection.close()
+        
+        XCTAssertEqual(webSocket.loggedActions, [.close])
     }
     
     // MARK: - Helpers
@@ -171,7 +179,12 @@ final class MessageChannelTests: XCTestCase {
     
     @MainActor
     private final class WebSocketSpy: WebSocket {
-        private(set) var loggedTextData = [Data]()
+        enum Action: Equatable {
+            case sendText(Data)
+            case close
+        }
+        
+        private(set) var loggedActions = [Action]()
         
         private let sendTextStub: Result<Void, Error>
         private let closeStub: Result<Void, Error>
@@ -186,11 +199,12 @@ final class MessageChannelTests: XCTestCase {
         }
         
         func send(data: Data) async throws {
-            loggedTextData.append(data)
+            loggedActions.append(.sendText(data))
             try sendTextStub.get()
         }
         
         func close() async throws {
+            loggedActions.append(.close)
             try closeStub.get()
         }
     }
