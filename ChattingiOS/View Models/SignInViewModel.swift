@@ -15,7 +15,7 @@ final class SignInViewModel: ObservableObject {
     @Published private(set) var isSignInSuccess = false
     
     var canSignIn: Bool {
-        Email(email).isValid && password.isValidPassword
+        Email(email).isValid && Password(password).isValid
     }
     
     var emailError: String? {
@@ -23,9 +23,7 @@ final class SignInViewModel: ObservableObject {
     }
     
     var passwordError: String? {
-        guard password.isEmpty || password.isValidPassword else { return .passwordErrorMessage }
-        
-        return nil
+        Password(password).errorMessage
     }
     
     // iOS 17 not support explicit throws error type in closure!
