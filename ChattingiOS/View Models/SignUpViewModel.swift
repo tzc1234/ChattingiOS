@@ -18,30 +18,15 @@ final class SignUpViewModel: ObservableObject {
     @Published private(set) var isSignUpSuccess = false
     
     var canSignUp: Bool {
-        UserName(name).isValid && Email(email).isValid && Password(password).isValid && isValidConfirmPassword
+        UserName(name).isValid &&
+            Email(email).isValid &&
+            Password(password).isValid &&
+            ConfirmPassword(confirmPassword, password: password).isValid
     }
-    
-    private var isValidConfirmPassword: Bool {
-        password == confirmPassword
-    }
-    
-    var nameError: String? {
-        UserName(name).errorMessage
-    }
-    
-    var emailError: String? {
-        Email(email).errorMessage
-    }
-    
-    var passwordError: String? {
-        Password(password).errorMessage
-    }
-    
-    var confirmPasswordError: String? {
-        guard confirmPassword.isEmpty || isValidConfirmPassword else { return .confirmPasswordErrorMessage }
-        
-        return nil
-    }
+    var nameError: String? { UserName(name).errorMessage }
+    var emailError: String? { Email(email).errorMessage }
+    var passwordError: String? { Password(password).errorMessage }
+    var confirmPasswordError: String? { ConfirmPassword(confirmPassword, password: password).errorMessage }
     
     private let userSignUp: (UserSignUpParams) async throws -> Void
     

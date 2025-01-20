@@ -36,8 +36,9 @@ final class NewContactViewModel: ObservableObject {
     }
     
     private func isResponderEmailValid() -> Bool {
-        guard email.isValidEmail else {
-            error = .emailErrorMessage
+        let email = Email(email)
+        guard email.isValid else {
+            error = email.errorMessage
             return false
         }
         

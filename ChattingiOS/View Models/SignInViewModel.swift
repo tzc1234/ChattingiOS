@@ -14,17 +14,9 @@ final class SignInViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var isSignInSuccess = false
     
-    var canSignIn: Bool {
-        Email(email).isValid && Password(password).isValid
-    }
-    
-    var emailError: String? {
-        Email(email).errorMessage
-    }
-    
-    var passwordError: String? {
-        Password(password).errorMessage
-    }
+    var canSignIn: Bool { Email(email).isValid && Password(password).isValid }
+    var emailError: String? { Email(email).errorMessage }
+    var passwordError: String? { Password(password).errorMessage }
     
     // iOS 17 not support explicit throws error type in closure!
     private let userSignIn: (UserSignInParams) async throws -> Void
