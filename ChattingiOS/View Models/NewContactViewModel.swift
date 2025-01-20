@@ -13,6 +13,8 @@ final class NewContactViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var contact: Contact?
     
+    var canSubmit: Bool { Email(email).isValid }
+    
     private let newContact: NewContact
     
     init(newContact: NewContact) {
