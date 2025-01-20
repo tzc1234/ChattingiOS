@@ -55,12 +55,16 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         
         init(user: User, token: Token) {
             self.user = CodableUser(user)
-            self.accessToken = token.accessToken
+            self.accessToken = token.accessToken.wrappedString
             self.refreshToken = token.refreshToken
         }
         
         var model: CurrentUser {
-            CurrentUser(user: user.model, accessToken: accessToken, refreshToken: refreshToken)
+            CurrentUser(
+                user: user.model,
+                accessToken: AccessToken(wrappedString: accessToken),
+                refreshToken: refreshToken
+            )
         }
     }
     

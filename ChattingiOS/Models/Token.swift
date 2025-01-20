@@ -6,6 +6,6 @@
 //
 
 struct Token {
-    let accessToken: String
+    let accessToken: AccessToken
     let refreshToken: String
 }

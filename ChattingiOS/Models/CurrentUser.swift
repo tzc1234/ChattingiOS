@@ -9,6 +9,6 @@ import Foundation
 
 struct CurrentUser {
     let user: User
-    let accessToken: String
+    let accessToken: AccessToken
     let refreshToken: String
 }

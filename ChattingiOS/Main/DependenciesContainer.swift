@@ -48,7 +48,7 @@ final class DependenciesContainer {
         UnblockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
     }
     
-    private func accessToken() -> (@Sendable () async throws -> String) {
+    private func accessToken() -> (@Sendable () async throws -> AccessToken) {
         { [currentUserVault, contentViewModel] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
                 try? await currentUserVault.deleteCurrentUser()
@@ -76,7 +76,7 @@ final class DependenciesContainer {
         MessageChannelEndpoint(accessToken: try await accessToken(), contactID: $0).request
     }
     
-    private func messageChannelAccessToken() -> (@Sendable () async throws -> String) {
+    private func messageChannelAccessToken() -> (@Sendable () async throws -> AccessToken) {
         { [currentUserVault, contentViewModel] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
                 try? await currentUserVault.deleteCurrentUser()

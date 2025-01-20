@@ -19,6 +19,6 @@ struct TokenResponse {
 
 extension TokenResponse: Response {
     var toModel: Token {
-        Token(accessToken: accessToken, refreshToken: refreshToken)
+        Token(accessToken: AccessToken(wrappedString: accessToken), refreshToken: refreshToken)
     }
 }

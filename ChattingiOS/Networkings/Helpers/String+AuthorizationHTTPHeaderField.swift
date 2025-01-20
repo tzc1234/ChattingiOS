@@ -9,6 +9,4 @@ import Foundation
 
 extension String {
     static var authorizationHTTPHeaderField: String { "Authorization" }
-    
-    var bearerToken: String { "Bearer " + self }
 }

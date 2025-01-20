@@ -18,10 +18,10 @@ struct NewContactEndpoint: Endpoint {
     }
     
     let apiConstants: APIConstants
-    private let accessToken: String
+    private let accessToken: AccessToken
     private let responderEmail: String
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), accessToken: String, responderEmail: String) {
+    init(apiConstants: APIConstants = DefaultAPIConstants(), accessToken: AccessToken, responderEmail: String) {
         self.apiConstants = apiConstants
         self.accessToken = accessToken
         self.responderEmail = responderEmail
