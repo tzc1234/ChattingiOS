@@ -67,13 +67,13 @@ final class MessageChannelTests: XCTestCase {
     }
     
     func test_establish_deliversConnectionSuccessfully() async throws {
-        _ = try await makeConnection()
+        _ = try await establishConnection()
     }
     
     // MARK: - MessageChannelConnection
     
     func test_sendText_deliversErrorOnWebSocketError() async throws {
-        let (connection, _) = try await makeConnection(sendTextStub: .failure(anyNSError()))
+        let (connection, _) = try await establishConnection(sendTextStub: .failure(anyNSError()))
         
         await assertThrowsError(try await connection.send(text: "any")) { error in
             XCTAssertEqual(error as NSError, anyNSError())
@@ -81,7 +81,7 @@ final class MessageChannelTests: XCTestCase {
     }
     
     func test_sendText_delegatesTextToWebSocketSuccessfully() async throws {
-        let (connection, webSocket) = try await makeConnection()
+        let (connection, webSocket) = try await establishConnection()
         let text = "any text"
         
         try await connection.send(text: text)
@@ -90,7 +90,7 @@ final class MessageChannelTests: XCTestCase {
     }
     
     func test_close_deliversErrorOnWebSocketError() async throws {
-        let (connection, _) = try await makeConnection(closeStub: .failure(anyNSError()))
+        let (connection, _) = try await establishConnection(closeStub: .failure(anyNSError()))
         
         await assertThrowsError(try await connection.close()) { error in
             XCTAssertEqual(error as NSError, anyNSError())
@@ -98,7 +98,7 @@ final class MessageChannelTests: XCTestCase {
     }
     
     func test_close_delegatesCloseToWebSocketSuccessfully() async throws {
-        let (connection, webSocket) = try await makeConnection()
+        let (connection, webSocket) = try await establishConnection()
         
         try await connection.close()
         
@@ -119,11 +119,11 @@ final class MessageChannelTests: XCTestCase {
         return (sut, client)
     }
     
-    private func makeConnection(sendTextStub: Result<Void, Error> = .success(()),
-                                closeStub: Result<Void, Error> = .success(()),
-                                file: StaticString = #filePath,
-                                line: UInt = #line) async throws -> (connection: MessageChannelConnection,
-                                                                     webSocket: WebSocketSpy) {
+    private func establishConnection(sendTextStub: Result<Void, Error> = .success(()),
+                                     closeStub: Result<Void, Error> = .success(()),
+                                     file: StaticString = #filePath,
+                                     line: UInt = #line) async throws -> (connection: MessageChannelConnection,
+                                                                          webSocket: WebSocketSpy) {
         let spy = WebSocketSpy(sendTextStub: sendTextStub, closeStub: closeStub)
         let (sut, _) = makeSUT(stubs: [.success(spy)], file: file, line: line)
         let connection = try await sut.establish(for: contactID)
