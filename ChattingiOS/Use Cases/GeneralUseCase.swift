@@ -23,7 +23,7 @@ actor GeneralUseCase<Params: Sendable, Mapper: ResponseMapper> {
         } catch let error as UseCaseError {
             throw error
         } catch {
-            throw .requestCreation
+            throw .requestCreationFailed
         }
         
         do {

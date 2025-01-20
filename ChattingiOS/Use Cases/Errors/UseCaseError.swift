@@ -7,11 +7,11 @@
 
 import Foundation
 
-enum UseCaseError: Error {
+enum UseCaseError: Error, Equatable {
     case server(reason: String)
     case invalidData
     case connectivity
-    case requestCreation
+    case requestCreationFailed
     case userInitiateSignOut
 }
 
