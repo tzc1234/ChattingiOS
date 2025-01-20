@@ -24,13 +24,14 @@ enum CurrentUserVaultError: Error {
 }
 
 actor DefaultCurrentUserVault: CurrentUserVault {
+    private var cachedCodableCurrentUser: CodableCurrentUser?
     private var onCurrentUserStored: CurrentUserStoredObserver?
     
     func observe(onCurrentUserStored: @escaping CurrentUserStoredObserver) {
         self.onCurrentUserStored = onCurrentUserStored
     }
     
-    private struct CodableUser: Codable {
+    private struct CodableUser: Codable, Equatable {
         let id: Int
         let name: String
         let email: String
@@ -48,7 +49,7 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         }
     }
     
-    private struct CodableCurrentUser: Codable {
+    private struct CodableCurrentUser: Codable, Equatable {
         let user: CodableUser
         let accessToken: String
         let refreshToken: String
@@ -73,9 +74,8 @@ actor DefaultCurrentUserVault: CurrentUserVault {
     func saveCurrentUser(user: User, token: Token) async throws(CurrentUserVaultError) {
         let codableCurrentUser = CodableCurrentUser(user: user, token: token)
         
-        guard let data = try? JSONEncoder().encode(codableCurrentUser) else {
-            throw .dataEncodeFailed
-        }
+        guard cachedCodableCurrentUser != codableCurrentUser else { return }
+        guard let data = try? JSONEncoder().encode(codableCurrentUser) else { throw .dataEncodeFailed }
         
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -86,19 +86,19 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         let status = SecItemAdd(query as CFDictionary, nil)
         
         if status == errSecDuplicateItem {
-            try await update(data: data, currentUser: codableCurrentUser.model)
+            try await update(data: data, codableCurrentUser: codableCurrentUser)
             return
         }
         
         guard status == errSecSuccess else {
-            await onCurrentUserStored?(nil)
+            await deliverNilCurrentUser()
             throw .saveFailed
         }
         
-        await onCurrentUserStored?(codableCurrentUser.model)
+        await deliver(codableCurrentUser)
     }
     
-    private func update(data: Data, currentUser: CurrentUser) async throws(CurrentUserVaultError) {
+    private func update(data: Data, codableCurrentUser: CodableCurrentUser) async throws(CurrentUserVaultError) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: Self.currentUserKey
@@ -107,11 +107,11 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         let attributes: [String: Any] = [kSecValueData as String: data]
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         guard status == errSecSuccess else {
-            await onCurrentUserStored?(nil)
+            await deliverNilCurrentUser()
             throw .saveFailed
         }
         
-        await onCurrentUserStored?(currentUser)
+        await deliver(codableCurrentUser)
     }
     
     func retrieveCurrentUser() async -> CurrentUser? {
@@ -127,11 +127,11 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         guard status == errSecSuccess,
               let data = item as? Data,
               let codableCurrentUser = try? JSONDecoder().decode(CodableCurrentUser.self, from: data) else {
-            await onCurrentUserStored?(nil)
+            await deliverNilCurrentUser()
             return nil
         }
         
-        await onCurrentUserStored?(codableCurrentUser.model)
+        await deliver(codableCurrentUser)
         return codableCurrentUser.model
     }
     
@@ -142,10 +142,20 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         ]
         
         let status = SecItemDelete(query as CFDictionary)
-        guard status == errSecSuccess else {
-            throw .deleteFailed
-        }
+        guard status == errSecSuccess else { throw .deleteFailed }
         
+        await deliverNilCurrentUser()
+    }
+    
+    private func deliver(_ codableCurrentUser: CodableCurrentUser) async {
+        if cachedCodableCurrentUser != codableCurrentUser {
+            await onCurrentUserStored?(codableCurrentUser.model)
+            cachedCodableCurrentUser = codableCurrentUser
+        }
+    }
+    
+    private func deliverNilCurrentUser() async {
         await onCurrentUserStored?(nil)
+        cachedCodableCurrentUser = nil
     }
 }
