@@ -20,6 +20,8 @@ extension UseCaseError {
             "Request creation error."
         case .userInitiateSignOut:
             nil
+        case .saveCurrentUserFailed:
+            "Cannot save current user data."
         }
     }
 }

@@ -69,7 +69,11 @@ final class Flow {
             guard let self else { return }
             
             let (user, token) = try await dependencies.userSignIn.signIn(with: params)
-            try await currentUserVault.saveCurrentUser(user: user, token: token)
+            do {
+                try await currentUserVault.saveCurrentUser(user: user, token: token)
+            } catch {
+                throw UseCaseError.saveCurrentUserFailed
+            }
         }
         return SignInView(viewModel: viewModel, signUpTapped: { [weak self] in
             self?.contentViewModel.showSheet = true
@@ -81,7 +85,11 @@ final class Flow {
             guard let self else { return }
             
             let (user, token) = try await dependencies.userSignUp.signUp(by: params)
-            try await currentUserVault.saveCurrentUser(user: user, token: token)
+            do {
+                try await currentUserVault.saveCurrentUser(user: user, token: token)
+            } catch {
+                throw UseCaseError.saveCurrentUserFailed
+            }
         }
         return SignUpView(viewModel: viewModel)
     }

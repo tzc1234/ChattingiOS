@@ -12,9 +12,15 @@ protocol CurrentUserVault: Sendable {
     typealias CurrentUserStoredObserver = @Sendable (CurrentUser?) async -> Void
     
     func observe(onCurrentUserStored: @escaping CurrentUserStoredObserver) async
-    func saveCurrentUser(user: User, token: Token) async throws
+    func saveCurrentUser(user: User, token: Token) async throws(CurrentUserVaultError)
     @discardableResult func retrieveCurrentUser() async -> CurrentUser?
-    func deleteCurrentUser() async throws
+    func deleteCurrentUser() async throws(CurrentUserVaultError)
+}
+
+enum CurrentUserVaultError: Error {
+    case dataEncodeFailed
+    case saveFailed
+    case deleteFailed
 }
 
 actor DefaultCurrentUserVault: CurrentUserVault {
@@ -58,16 +64,15 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         }
     }
     
-    enum Error: Swift.Error {
-        case saveFailed
-        case deleteFailed
-    }
-    
     private static var currentUserKey: String { "current_user" }
     
-    func saveCurrentUser(user: User, token: Token) async throws {
+    func saveCurrentUser(user: User, token: Token) async throws(CurrentUserVaultError) {
         let codableCurrentUser = CodableCurrentUser(user: user, token: token)
-        let data = try JSONEncoder().encode(codableCurrentUser)
+        
+        guard let data = try? JSONEncoder().encode(codableCurrentUser) else {
+            throw .dataEncodeFailed
+        }
+        
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: Self.currentUserKey,
@@ -83,13 +88,13 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         
         guard status == errSecSuccess else {
             await onCurrentUserStored?(nil)
-            throw DefaultCurrentUserVault.Error.saveFailed
+            throw .saveFailed
         }
         
         await onCurrentUserStored?(codableCurrentUser.model)
     }
     
-    private func update(data: Data, currentUser: CurrentUser) async throws {
+    private func update(data: Data, currentUser: CurrentUser) async throws(CurrentUserVaultError) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: Self.currentUserKey
@@ -99,7 +104,7 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         guard status == errSecSuccess else {
             await onCurrentUserStored?(nil)
-            throw DefaultCurrentUserVault.Error.saveFailed
+            throw .saveFailed
         }
         
         await onCurrentUserStored?(currentUser)
@@ -126,7 +131,7 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         return codableCurrentUser.model
     }
     
-    func deleteCurrentUser() async throws {
+    func deleteCurrentUser() async throws(CurrentUserVaultError) {
         let query: [String: Any] = [
             kSecAttrAccount as String: Self.currentUserKey,
             kSecClass as String: kSecClassGenericPassword
@@ -134,7 +139,7 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess else {
-            throw DefaultCurrentUserVault.Error.deleteFailed
+            throw .deleteFailed
         }
         
         await onCurrentUserStored?(nil)
