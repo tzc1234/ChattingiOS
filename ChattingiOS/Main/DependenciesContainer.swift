@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor
 final class DependenciesContainer {
-    let userTokenVault = CurrentUserCredentialVault()
+    let currentUserVault = DefaultCurrentUserVault()
     let contentViewModel = ContentViewModel()
     private let httpClient = URLSessionHTTPClient(session: .shared)
     
@@ -26,7 +26,7 @@ final class DependenciesContainer {
     private(set) lazy var refreshTokenHTTPClient = RefreshTokenHTTPClientDecorator(
         decoratee: httpClient,
         refreshToken: refreshToken,
-        tokenVault: userTokenVault
+        currentUserVault: currentUserVault
     )
     
     private(set) lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
@@ -49,9 +49,9 @@ final class DependenciesContainer {
     }
     
     private func accessToken() -> (@Sendable () async throws -> String) {
-        { [userTokenVault, contentViewModel] in
-            guard let accessToken = await userTokenVault.retrieveToken()?.accessToken else {
-                try? await userTokenVault.deleteUserCredential()
+        { [currentUserVault, contentViewModel] in
+            guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
+                try? await currentUserVault.deleteCurrentUser()
                 
                 if await contentViewModel.isUserInitiateSignOut {
                     throw UseCaseError.userInitiateSignOut
@@ -69,7 +69,7 @@ final class DependenciesContainer {
     private lazy var refreshTokenWebSocketClient = RefreshTokenWebSocketClientDecorator(
         decoratee: NIOWebSocketClient(),
         refreshToken: refreshToken,
-        tokenVault: userTokenVault
+        currentUserVault: currentUserVault
     )
     
     private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [accessToken = messageChannelAccessToken()] in
@@ -77,9 +77,9 @@ final class DependenciesContainer {
     }
     
     private func messageChannelAccessToken() -> (@Sendable () async throws -> String) {
-        { [userTokenVault, contentViewModel] in
-            guard let accessToken = await userTokenVault.retrieveToken()?.accessToken else {
-                try? await userTokenVault.deleteUserCredential()
+        { [currentUserVault, contentViewModel] in
+            guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
+                try? await currentUserVault.deleteCurrentUser()
                 
                 if await contentViewModel.isUserInitiateSignOut {
                     throw MessageChannelError.userInitiateSignOut
