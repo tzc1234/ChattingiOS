@@ -15,13 +15,11 @@ final class SignInViewModel: ObservableObject {
     @Published private(set) var isSignInSuccess = false
     
     var canSignIn: Bool {
-        email.isValidEmail && password.isValidPassword
+        Email(email).isValid && password.isValidPassword
     }
     
     var emailError: String? {
-        guard email.isEmpty || email.isValidEmail else { return .emailErrorMessage }
-        
-        return nil
+        Email(email).errorMessage
     }
     
     var passwordError: String? {
