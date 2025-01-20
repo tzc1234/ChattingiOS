@@ -120,6 +120,24 @@ final class MessageChannelTests: XCTestCase {
         }
     }
     
+    func test_messageObserver_deliversMessageFromWebSocketSuccessfully() async throws {
+        let messages = [
+            Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture),
+            Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast),
+            Message(id: 2, text: "another text 2", senderID: 0, isRead: false, createdAt: nil),
+        ]
+        let (connection, _) = try await establishConnection(messageDataStubs: messages.map(\.toData))
+        let logger = MessagesLogger()
+        
+        for _ in messages {
+            await connection.start(messageObserver: { message in
+                await logger.append(message)
+            }, errorObserver: nil)
+        }
+        
+        XCTAssertEqual(logger.messages, messages)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(request: sending @escaping (Int) async throws -> URLRequest =
@@ -137,13 +155,15 @@ final class MessageChannelTests: XCTestCase {
     private func establishConnection(sendTextStub: Result<Void, Error> = .success(()),
                                      closeStub: Result<Void, Error> = .success(()),
                                      webSocketErrors: [WebSocketError] = [],
+                                     messageDataStubs: [Data] = [],
                                      file: StaticString = #filePath,
                                      line: UInt = #line) async throws -> (connection: MessageChannelConnection,
                                                                           webSocket: WebSocketSpy) {
         let spy = WebSocketSpy(
             sendTextStub: sendTextStub,
             closeStub: closeStub,
-            webSocketErrors: webSocketErrors
+            webSocketErrors: webSocketErrors,
+            messageDataStubs: messageDataStubs
         )
         let (sut, _) = makeSUT(stubs: [.success(spy)], file: file, line: line)
         let connection = try await sut.establish(for: contactID)
@@ -209,6 +229,15 @@ final class MessageChannelTests: XCTestCase {
     }
     
     @MainActor
+    private final class MessagesLogger {
+        private(set) var messages = [Message]()
+        
+        func append(_ message: Message) {
+            messages.append(message)
+        }
+    }
+    
+    @MainActor
     private final class WebSocketSpy: WebSocket {
         enum Action: Equatable {
             case sendText(Data)
@@ -220,17 +249,26 @@ final class MessageChannelTests: XCTestCase {
         private let sendTextStub: Result<Void, Error>
         private let closeStub: Result<Void, Error>
         private var webSocketErrors: [WebSocketError]
+        private var messageDataStubs: [Data]
         
         init(sendTextStub: Result<Void, Error>,
              closeStub: Result<Void, Error>,
-             webSocketErrors: [WebSocketError]) {
+             webSocketErrors: [WebSocketError],
+             messageDataStubs: [Data]) {
             self.sendTextStub = sendTextStub
             self.closeStub = closeStub
             self.webSocketErrors = webSocketErrors
+            self.messageDataStubs = messageDataStubs
         }
         
         func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
-            await errorObserver?(webSocketErrors.removeFirst())
+            if !messageDataStubs.isEmpty {
+                await dataObserver?(messageDataStubs.removeFirst())
+            }
+            
+            if !webSocketErrors.isEmpty {
+                await errorObserver?(webSocketErrors.removeFirst())
+            }
         }
         
         func send(data: Data) async throws {
@@ -252,5 +290,29 @@ private extension String {
     
     func toData() -> Data {
         try! JSONEncoder().encode(TextSent(text: self))
+    }
+}
+
+private extension Message {
+    struct MessageResponse: Encodable {
+        let id: Int
+        let text: String
+        let sender_id: Int
+        let is_read: Bool
+        let created_at: Date?
+        
+        init(_ message: Message) {
+            self.id = message.id
+            self.text = message.text
+            self.sender_id = message.senderID
+            self.is_read = message.isRead
+            self.created_at = message.createdAt
+        }
+    }
+    
+    var toData: Data {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return try! encoder.encode(MessageResponse(self))
     }
 }

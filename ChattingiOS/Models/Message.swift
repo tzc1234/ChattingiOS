@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Message {
+struct Message: Equatable {
     let id: Int
     let text: String
     let senderID: Int
