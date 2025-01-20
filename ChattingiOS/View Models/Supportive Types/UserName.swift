@@ -41,7 +41,7 @@ enum UserName {
     }
     
     
-    private static func isValid(_ password: String) -> Bool {
-        password.count >= 3
+    private static func isValid(_ name: String) -> Bool {
+        name.count >= 3
     }
 }
