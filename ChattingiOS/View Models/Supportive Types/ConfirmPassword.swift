@@ -7,36 +7,24 @@
 
 import Foundation
 
-enum ConfirmPassword {
-    case wrapped(String)
-    case empty
-    case error(String)
+enum ConfirmPasswordValidator: Validator {
+    typealias PasswordPair = (confirmPassword: String, password: String)
     
-    init(_ confirmPassword: String, password: String) {
-        guard !confirmPassword.isEmpty else {
-            self = .empty
-            return
-        }
+    static var validators: [(PasswordPair) -> ValidatorResult] { [validateEmpty, validateIdentical] }
+    
+    private static func validateEmpty(_ pair: PasswordPair) -> ValidatorResult {
+        guard pair.confirmPassword.isEmpty else { return .valid }
         
-        guard confirmPassword == password else {
-            self = .error("Password is not the same as confirm password.")
-            return
-        }
-        
-        self = .wrapped(confirmPassword)
+        return .invalid(nil)
     }
     
-    var isValid: Bool {
-        switch self {
-        case .wrapped: true
-        default: false
+    private static func validateIdentical(_ pair: PasswordPair) -> ValidatorResult {
+        guard pair.confirmPassword == pair.password else {
+            return .invalid("Password is not the same as confirm password.")
         }
-    }
-    
-    var errorMessage: String? {
-        switch self {
-        case let .error(string): string
-        default: nil
-        }
+        
+        return .valid
     }
 }
+
+typealias ConfirmPassword = Input<ConfirmPasswordValidator>

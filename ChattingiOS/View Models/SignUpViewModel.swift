@@ -21,7 +21,7 @@ final class SignUpViewModel: ObservableObject {
     var username: Username { Username(nameInput) }
     var email: Email { Email(emailInput) }
     var password: Password { Password(passwordInput) }
-    var confirmPassword: ConfirmPassword { ConfirmPassword(confirmPasswordInput, password: passwordInput) }
+    var confirmPassword: ConfirmPassword { ConfirmPassword((confirmPasswordInput, passwordInput)) }
     
     private let userSignUp: (UserSignUpParams) async throws -> Void
     
