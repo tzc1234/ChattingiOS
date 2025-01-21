@@ -7,48 +7,16 @@
 
 import Foundation
 
-enum Password {
-    case wrapped(String)
-    case empty
-    case error(String)
+enum PasswordValidator: Validator {
+    static var validators: [(String) -> ValidatorResult] { [validateEmpty, validateCount] }
     
-    init(_ password: String) {
-        guard !password.isEmpty else {
-            self = .empty
-            return
+    private static func validateCount(_ password: String) -> ValidatorResult {
+        guard password.count >= 3 else {
+            return .invalid("Password should be 3 or more characters.")
         }
         
-        guard Self.isValid(password) else {
-            self = .error("Password should be 3 or more characters.")
-            return
-        }
-        
-        self = .wrapped(password)
-    }
-    
-    var isValid: Bool {
-        switch self {
-        case .wrapped: true
-        default: false
-        }
-    }
-    
-    var value: String? {
-        switch self {
-        case let .wrapped(string): string
-        default: nil
-        }
-    }
-    
-    var errorMessage: String? {
-        switch self {
-        case let .error(string): string
-        default: nil
-        }
-    }
-    
-    
-    private static func isValid(_ password: String) -> Bool {
-        password.count >= 3
+        return .valid
     }
 }
+
+typealias Password = Input<PasswordValidator>
