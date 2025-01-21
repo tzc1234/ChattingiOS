@@ -51,8 +51,6 @@ final class DependenciesContainer {
     private var accessToken: (@Sendable () async throws -> AccessToken) {
         { [currentUserVault, contentViewModel] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
-                try? await currentUserVault.deleteCurrentUser()
-                
                 if await contentViewModel.isUserInitiateSignOut {
                     throw UseCaseError.userInitiateSignOut
                 }
@@ -79,8 +77,6 @@ final class DependenciesContainer {
     private var messageChannelAccessToken: (@Sendable () async throws -> AccessToken) {
         { [currentUserVault, contentViewModel] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
-                try? await currentUserVault.deleteCurrentUser()
-                
                 if await contentViewModel.isUserInitiateSignOut {
                     throw MessageChannelError.userInitiateSignOut
                 }
