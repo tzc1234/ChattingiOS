@@ -7,48 +7,16 @@
 
 import Foundation
 
-enum Username {
-    case wrapped(String)
-    case empty
-    case error(String)
+enum UsernameValidator: Validator {
+    static var validators: [(String) -> ValidatorResult] { [validateEmpty, validateCount] }
     
-    init(_ name: String) {
-        guard !name.isEmpty else {
-            self = .empty
-            return
+    private static func validateCount(_ name: String) -> ValidatorResult {
+        guard name.count >= 3 else {
+            return .invalid("Name should be 3 or more characters.")
         }
         
-        guard Self.isValid(name) else {
-            self = .error("Name should be 3 or more characters.")
-            return
-        }
-        
-        self = .wrapped(name)
-    }
-    
-    var isValid: Bool {
-        switch self {
-        case .wrapped: true
-        default: false
-        }
-    }
-    
-    var value: String? {
-        switch self {
-        case let .wrapped(string): string
-        default: nil
-        }
-    }
-    
-    var errorMessage: String? {
-        switch self {
-        case let .error(string): string
-        default: nil
-        }
-    }
-    
-    
-    private static func isValid(_ name: String) -> Bool {
-        name.count >= 3
+        return .valid
     }
 }
+
+typealias Username = Input<UsernameValidator>
