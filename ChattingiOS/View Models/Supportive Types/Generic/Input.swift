@@ -41,7 +41,7 @@ enum Input<V: Validator> {
     
     var errorMessage: String? {
         switch self {
-        case let .error(string): string
+        case let .error(message): message
         default: nil
         }
     }
