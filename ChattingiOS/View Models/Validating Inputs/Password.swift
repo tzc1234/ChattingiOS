@@ -19,4 +19,4 @@ enum PasswordValidator: Validator {
     }
 }
 
-typealias Password = Input<PasswordValidator>
+typealias Password = ValidatingInput<PasswordValidator>

@@ -21,4 +21,4 @@ enum EmailValidator: Validator {
     }
 }
 
-typealias Email = Input<EmailValidator>
+typealias Email = ValidatingInput<EmailValidator>
