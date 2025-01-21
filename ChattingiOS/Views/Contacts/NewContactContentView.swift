@@ -14,8 +14,7 @@ struct NewContactView: View {
     var body: some View {
         NewContactContentView(
             email: $viewModel.emailInput,
-            emailError: viewModel.email.errorMessage,
-            generalError: viewModel.generalError,
+            error: viewModel.error,
             isLoading: viewModel.isLoading,
             canSubmit: viewModel.canSubmit,
             submitTapped: viewModel.addNewContact
@@ -35,8 +34,7 @@ struct NewContactView: View {
 
 struct NewContactContentView: View {
     @Binding var email: String
-    let emailError: String?
-    let generalError: String?
+    let error: String?
     let isLoading: Bool
     let canSubmit: Bool
     let submitTapped: () -> Void
@@ -61,7 +59,7 @@ struct NewContactContentView: View {
                     text: $email,
                     keyboardType: .emailAddress,
                     textContentType: .emailAddress,
-                    error: emailError ?? generalError
+                    error: error
                 )
                 
                 Button{
@@ -95,8 +93,7 @@ struct NewContactContentView: View {
 #Preview {
     NewContactContentView(
         email: .constant(""),
-        emailError: "Email format not correct.",
-        generalError: "Other general error.",
+        error: nil,
         isLoading: false,
         canSubmit: false,
         submitTapped: {}

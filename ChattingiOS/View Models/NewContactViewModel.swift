@@ -9,12 +9,15 @@ import Foundation
 
 final class NewContactViewModel: ObservableObject {
     @Published var emailInput = ""
-    @Published private(set) var generalError: String?
+    @Published private var generalError: String?
     @Published private(set) var isLoading = false
     @Published private(set) var contact: Contact?
     
     var canSubmit: Bool { email.isValid }
     var email: Email { Email(emailInput) }
+    var error: String? {
+        email.errorMessage ?? generalError
+    }
     
     private let newContact: NewContact
     

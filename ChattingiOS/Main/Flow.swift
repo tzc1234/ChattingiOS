@@ -96,10 +96,10 @@ final class Flow {
     
     private func profileView(user: User) -> ProfileView {
         ProfileView(user: user, signOutTapped: { [weak self] in
-            self?.contentViewModel.isUserInitiateSignOut = true
-            Task {
-                try? await self?.currentUserVault.deleteCurrentUser()
-            }
+            guard let self else { return }
+            
+            contentViewModel.isUserInitiateSignOut = true
+            Task { try? await currentUserVault.deleteCurrentUser() }
         })
     }
     
