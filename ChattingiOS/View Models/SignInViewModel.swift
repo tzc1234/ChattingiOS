@@ -8,15 +8,15 @@
 import Foundation
 
 final class SignInViewModel: ObservableObject {
-    @Published var email = ""
-    @Published var password = ""
+    @Published var emailInput = ""
+    @Published var passwordInput = ""
     @Published var generalError: String?
     @Published private(set) var isLoading = false
     @Published private(set) var isSignInSuccess = false
     
-    var canSignIn: Bool { Email(email).isValid && Password(password).isValid }
-    var emailError: String? { Email(email).errorMessage }
-    var passwordError: String? { Password(password).errorMessage }
+    var canSignIn: Bool { email.isValid && password.isValid }
+    var email: Email { Email(emailInput) }
+    var password: Password { Password(passwordInput) }
     
     // iOS 17 not support explicit throws error type in closure!
     private let userSignIn: (UserSignInParams) async throws -> Void
@@ -27,7 +27,7 @@ final class SignInViewModel: ObservableObject {
     
     @MainActor
     func signIn() {
-        guard canSignIn else { return }
+        guard let email = email.value, let password = password.value else { return }
         
         isLoading = true
         Task {

@@ -33,6 +33,13 @@ enum Password {
         }
     }
     
+    var value: String? {
+        switch self {
+        case let .wrapped(string): string
+        default: nil
+        }
+    }
+    
     var errorMessage: String? {
         switch self {
         case let .error(string): string

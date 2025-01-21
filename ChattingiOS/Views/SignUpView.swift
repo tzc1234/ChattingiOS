@@ -15,16 +15,16 @@ struct SignUpView: View {
     
     var body: some View {
         SignUpContentView(
-            name: $viewModel.name,
-            email: $viewModel.email,
-            password: $viewModel.password,
-            confirmPassword: $viewModel.confirmPassword,
+            name: $viewModel.nameInput,
+            email: $viewModel.emailInput,
+            password: $viewModel.passwordInput,
+            confirmPassword: $viewModel.confirmPasswordInput,
             avatarData: $viewModel.avatarData,
             generalError: $viewModel.generalError,
-            nameError: viewModel.nameError,
-            emailError: viewModel.emailError,
-            passwordError: viewModel.passwordError,
-            confirmPasswordError: viewModel.confirmPasswordError,
+            nameError: viewModel.username.errorMessage,
+            emailError: viewModel.email.errorMessage,
+            passwordError: viewModel.password.errorMessage,
+            confirmPasswordError: viewModel.confirmPassword.errorMessage,
             isLoading: viewModel.isLoading,
             canSignUp: viewModel.canSignUp,
             signUpTapped: viewModel.signUp

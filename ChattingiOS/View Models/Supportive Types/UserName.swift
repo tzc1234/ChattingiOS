@@ -1,5 +1,5 @@
 //
-//  UserName.swift
+//  Username.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 20/01/2025.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum UserName {
+enum Username {
     case wrapped(String)
     case empty
     case error(String)
@@ -30,6 +30,13 @@ enum UserName {
         switch self {
         case .wrapped: true
         default: false
+        }
+    }
+    
+    var value: String? {
+        switch self {
+        case let .wrapped(string): string
+        default: nil
         }
     }
     
