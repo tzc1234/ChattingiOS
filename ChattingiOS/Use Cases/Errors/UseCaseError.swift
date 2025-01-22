@@ -13,6 +13,7 @@ enum UseCaseError: Error, Equatable {
     case connectivity
     case requestCreationFailed
     case userInitiateSignOut
+    case saveCurrentUserFailed
 }
 
 extension UseCaseError {

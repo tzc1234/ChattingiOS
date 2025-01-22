@@ -13,9 +13,10 @@ struct NewContactView: View {
     
     var body: some View {
         NewContactContentView(
-            email: $viewModel.email,
+            email: $viewModel.emailInput,
             error: viewModel.error,
             isLoading: viewModel.isLoading,
+            canSubmit: viewModel.canSubmit,
             submitTapped: viewModel.addNewContact
         )
         .onChange(of: viewModel.contact) { contact in
@@ -35,6 +36,7 @@ struct NewContactContentView: View {
     @Binding var email: String
     let error: String?
     let isLoading: Bool
+    let canSubmit: Bool
     let submitTapped: () -> Void
     
     @State private var keyboardHeight: CGFloat = 0
@@ -70,6 +72,8 @@ struct NewContactContentView: View {
                         .padding(12)
                         .background(.ctOrange, in: .rect(cornerRadius: 8))
                 }
+                .disabled(!canSubmit)
+                .brightness(canSubmit ? 0 : -0.25)
             }
         }
         .disabled(isLoading)
@@ -91,6 +95,7 @@ struct NewContactContentView: View {
         email: .constant(""),
         error: nil,
         isLoading: false,
+        canSubmit: false,
         submitTapped: {}
     )
 }

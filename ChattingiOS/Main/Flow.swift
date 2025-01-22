@@ -11,9 +11,8 @@ import SwiftUI
 @MainActor
 final class Flow {
     private let navigationControlViewModel = NavigationControlViewModel()
-    
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
-    private var userTokenVault: UserTokenVault { dependencies.userTokenVault }
+    private var currentUserVault: CurrentUserVault { dependencies.currentUserVault }
     
     private weak var contactListViewModel: ContactListViewModel?
     private var cancellable: Cancellable?
@@ -31,10 +30,10 @@ final class Flow {
         Task {
             try? await Task.sleep(for: .seconds(0.2)) // Show loading view a bit smoother.
             
-            await userTokenVault.observe { [contentViewModel] user in
-                await contentViewModel.set(user: user)
+            await currentUserVault.observe { [contentViewModel] currentUser in
+                await contentViewModel.set(user: currentUser?.user)
             }
-            await userTokenVault.retrieveUser() // Trigger user observer.
+            await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer.
             
             withAnimation {
                 contentViewModel.isLoading = false
@@ -69,7 +68,12 @@ final class Flow {
         let viewModel = SignInViewModel { [weak self] params in
             guard let self else { return }
             
-            try await userTokenVault.save(userCredential: dependencies.userSignIn.signIn(with: params))
+            let (user, token) = try await dependencies.userSignIn.signIn(with: params)
+            do {
+                try await currentUserVault.saveCurrentUser(user: user, token: token)
+            } catch {
+                throw UseCaseError.saveCurrentUserFailed
+            }
         }
         return SignInView(viewModel: viewModel, signUpTapped: { [weak self] in
             self?.contentViewModel.showSheet = true
@@ -80,17 +84,22 @@ final class Flow {
         let viewModel = SignUpViewModel { [weak self] params in
             guard let self else { return }
             
-            try await userTokenVault.save(userCredential: dependencies.userSignUp.signUp(by: params))
+            let (user, token) = try await dependencies.userSignUp.signUp(by: params)
+            do {
+                try await currentUserVault.saveCurrentUser(user: user, token: token)
+            } catch {
+                throw UseCaseError.saveCurrentUserFailed
+            }
         }
         return SignUpView(viewModel: viewModel)
     }
     
     private func profileView(user: User) -> ProfileView {
         ProfileView(user: user, signOutTapped: { [weak self] in
-            self?.contentViewModel.isUserInitiateSignOut = true
-            Task {
-                try? await self?.userTokenVault.deleteUserCredential()
-            }
+            guard let self else { return }
+            
+            contentViewModel.isUserInitiateSignOut = true
+            Task { try? await currentUserVault.deleteCurrentUser() }
         })
     }
     

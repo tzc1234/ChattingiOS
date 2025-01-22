@@ -13,10 +13,10 @@ struct SignInView: View {
     
     var body: some View {
         SignInContentView(
-            email: $viewModel.email,
-            password: $viewModel.password,
-            emailError: viewModel.emailError,
-            passwordError: viewModel.passwordError,
+            email: $viewModel.emailInput,
+            password: $viewModel.passwordInput,
+            emailError: viewModel.email.errorMessage,
+            passwordError: viewModel.password.errorMessage,
             generalError: $viewModel.generalError,
             isLoading: viewModel.isLoading,
             canSignIn: viewModel.canSignIn,

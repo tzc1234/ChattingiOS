@@ -8,46 +8,20 @@
 import Foundation
 
 final class SignUpViewModel: ObservableObject {
-    @Published var name = ""
-    @Published var email = ""
-    @Published var password = ""
-    @Published var confirmPassword = ""
+    @Published var nameInput = ""
+    @Published var emailInput = ""
+    @Published var passwordInput = ""
+    @Published var confirmPasswordInput = ""
     @Published var generalError: String?
     @Published var avatarData: Data?
     @Published private(set) var isLoading = false
     @Published private(set) var isSignUpSuccess = false
     
-    var canSignUp: Bool {
-        name.isValidName && email.isValidEmail && password.isValidPassword && isValidConfirmPassword
-    }
-    
-    private var isValidConfirmPassword: Bool {
-        password == confirmPassword
-    }
-    
-    var nameError: String? {
-        guard name.isEmpty || name.isValidName else { return .nameErrorMessage }
-        
-        return nil
-    }
-    
-    var emailError: String? {
-        guard email.isEmpty || email.isValidEmail else { return .emailErrorMessage }
-        
-        return nil
-    }
-    
-    var passwordError: String? {
-        guard password.isEmpty || password.isValidPassword else { return .passwordErrorMessage }
-        
-        return nil
-    }
-    
-    var confirmPasswordError: String? {
-        guard confirmPassword.isEmpty || isValidConfirmPassword else { return .confirmPasswordErrorMessage }
-        
-        return nil
-    }
+    var canSignUp: Bool { username.isValid && email.isValid && password.isValid && confirmPassword.isValid }
+    var username: Username { Username(nameInput) }
+    var email: Email { Email(emailInput) }
+    var password: Password { Password(passwordInput) }
+    var confirmPassword: ConfirmPassword { ConfirmPassword((confirmPasswordInput, passwordInput)) }
     
     private let userSignUp: (UserSignUpParams) async throws -> Void
     
@@ -57,13 +31,16 @@ final class SignUpViewModel: ObservableObject {
     
     @MainActor
     func signUp() {
-        guard canSignUp else { return }
+        guard let name = username.value, let email = email.value, let password = password.value, confirmPassword.isValid
+        else {
+            return
+        }
         
         isLoading = true
         Task {
             do {
-                let avatarParams = avatarData.map { AvatarParams(data: $0, fileType: "jpeg") }
-                let params = UserSignUpParams(name: name, email: email, password: password, avatar: avatarParams)
+                let avatar = avatarData.map { AvatarParams(data: $0, fileType: "jpeg") }
+                let params = UserSignUpParams(name: name, email: email, password: password, avatar: avatar)
                 try await userSignUp(params)
                 isSignUpSuccess = true
             } catch let error as UseCaseError {

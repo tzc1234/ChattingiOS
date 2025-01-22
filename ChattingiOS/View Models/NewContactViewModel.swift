@@ -8,10 +8,16 @@
 import Foundation
 
 final class NewContactViewModel: ObservableObject {
-    @Published var email = ""
-    @Published private(set) var error: String?
+    @Published var emailInput = ""
+    @Published private var generalError: String?
     @Published private(set) var isLoading = false
     @Published private(set) var contact: Contact?
+    
+    var canSubmit: Bool { email.isValid }
+    var email: Email { Email(emailInput) }
+    var error: String? {
+        email.errorMessage ?? generalError
+    }
     
     private let newContact: NewContact
     
@@ -21,27 +27,17 @@ final class NewContactViewModel: ObservableObject {
     
     @MainActor
     func addNewContact() {
-        guard isResponderEmailValid() else { return }
+        guard let email = email.value else { return }
         
         isLoading = true
         Task {
             do {
                 contact = try await newContact.add(by: email)
             } catch let error as UseCaseError {
-                self.error = error.toGeneralErrorMessage()
+                self.generalError = error.toGeneralErrorMessage()
             }
             
             isLoading = false
         }
-    }
-    
-    private func isResponderEmailValid() -> Bool {
-        guard email.isValidEmail else {
-            error = .emailErrorMessage
-            return false
-        }
-        
-        error = nil
-        return true
     }
 }

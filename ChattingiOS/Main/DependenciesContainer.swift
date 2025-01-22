@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor
 final class DependenciesContainer {
-    let userTokenVault = CurrentUserCredentialVault()
+    let currentUserVault = DefaultCurrentUserVault()
     let contentViewModel = ContentViewModel()
     private let httpClient = URLSessionHTTPClient(session: .shared)
     
@@ -26,33 +26,31 @@ final class DependenciesContainer {
     private(set) lazy var refreshTokenHTTPClient = RefreshTokenHTTPClientDecorator(
         decoratee: httpClient,
         refreshToken: refreshToken,
-        tokenVault: userTokenVault
+        currentUserVault: currentUserVault
     )
     
-    private(set) lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
+    private(set) lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken] in
         GetContactsEndpoint(accessToken: try await accessToken(), params: $0).request
     }
-    private(set) lazy var newContact = DefaultNewContact(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
+    private(set) lazy var newContact = DefaultNewContact(client: refreshTokenHTTPClient) { [accessToken] in
         NewContactEndpoint(accessToken: try await accessToken(), responderEmail: $0).request
     }
-    private(set) lazy var getMessages = DefaultGetMessages(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
+    private(set) lazy var getMessages = DefaultGetMessages(client: refreshTokenHTTPClient) { [accessToken] in
         GetMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
-    private(set) lazy var readMessages = DefaultReadMessages(client: refreshTokenHTTPClient) { [accessToken = accessToken()] in
+    private(set) lazy var readMessages = DefaultReadMessages(client: refreshTokenHTTPClient) { [accessToken] in
         ReadMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
-    private(set) lazy var blockContact = DefaultBlockContact(client: httpClient) { [accessToken = accessToken()] in
+    private(set) lazy var blockContact = DefaultBlockContact(client: httpClient) { [accessToken] in
         BlockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
     }
-    private(set) lazy var unblockContact = DefaultUnblockContact(client: httpClient) { [accessToken = accessToken()] in
+    private(set) lazy var unblockContact = DefaultUnblockContact(client: httpClient) { [accessToken] in
         UnblockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
     }
     
-    private func accessToken() -> (@Sendable () async throws -> String) {
-        { [userTokenVault, contentViewModel] in
-            guard let accessToken = await userTokenVault.retrieveToken()?.accessToken else {
-                try? await userTokenVault.deleteUserCredential()
-                
+    private var accessToken: (@Sendable () async throws -> AccessToken) {
+        { [currentUserVault, contentViewModel] in
+            guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
                 if await contentViewModel.isUserInitiateSignOut {
                     throw UseCaseError.userInitiateSignOut
                 }
@@ -69,18 +67,16 @@ final class DependenciesContainer {
     private lazy var refreshTokenWebSocketClient = RefreshTokenWebSocketClientDecorator(
         decoratee: NIOWebSocketClient(),
         refreshToken: refreshToken,
-        tokenVault: userTokenVault
+        currentUserVault: currentUserVault
     )
     
-    private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [accessToken = messageChannelAccessToken()] in
-        MessageChannelEndpoint(accessToken: try await accessToken(), contactID: $0).request
+    private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [messageChannelAccessToken] in
+        MessageChannelEndpoint(accessToken: try await messageChannelAccessToken(), contactID: $0).request
     }
     
-    private func messageChannelAccessToken() -> (@Sendable () async throws -> String) {
-        { [userTokenVault, contentViewModel] in
-            guard let accessToken = await userTokenVault.retrieveToken()?.accessToken else {
-                try? await userTokenVault.deleteUserCredential()
-                
+    private var messageChannelAccessToken: (@Sendable () async throws -> AccessToken) {
+        { [currentUserVault, contentViewModel] in
+            guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
                 if await contentViewModel.isUserInitiateSignOut {
                     throw MessageChannelError.userInitiateSignOut
                 }

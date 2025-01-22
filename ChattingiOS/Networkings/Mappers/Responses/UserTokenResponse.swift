@@ -22,7 +22,7 @@ struct UserTokenResponse {
 extension UserTokenResponse: Response {
     var toModel: (user: User, token: Token) {
         let user = user.toModel
-        let token = Token(accessToken: accessToken, refreshToken: refreshToken)
+        let token = Token(accessToken: AccessToken(wrappedString: accessToken), refreshToken: refreshToken)
         return (user, token)
     }
 }
