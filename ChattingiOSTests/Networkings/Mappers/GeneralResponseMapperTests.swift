@@ -1,5 +1,5 @@
 //
-//  ReadMessagesResponseMapperTests.swift
+//  GeneralResponseMapperTests.swift
 //  ChattingiOSTests
 //
 //  Created by Tsz-Lung on 22/01/2025.
@@ -8,8 +8,8 @@
 import XCTest
 @testable import ChattingiOS
 
-final class ReadMessagesResponseMapperTests: XCTestCase {
-    func test_map_deliversErrorOnNon200StatusCodeResponse() {
+final class GeneralResponseMapperTests: XCTestCase {
+    func test_map_deliversErrorOnNon200StatusCodeResponses() {
         let reason = "any reason"
         let data = Data("{\"reason\":\"\(reason)\"}".utf8)
         let non200StatusCodes = [199, 201, 300, 400]
@@ -18,7 +18,7 @@ final class ReadMessagesResponseMapperTests: XCTestCase {
             let response = HTTPURLResponse(statusCode: code)
             
             XCTAssertThrowsError(
-                try ReadMessagesResponseMapper.map(data, response: response),
+                try GeneralResponseMapper<ResponseForTest>.map(data, response: response),
                 "Expect statusCode: \(code) throws an error."
             ) { error in
                 XCTAssertEqual(error as? MapperError, .server(reason: reason))
@@ -26,10 +26,9 @@ final class ReadMessagesResponseMapperTests: XCTestCase {
         }
     }
     
-    func test_map_deliversNoErrorOn200StatusCodeResponse() throws {
-        let anyData = Data("any".utf8)
-        let response = HTTPURLResponse(statusCode: 200)
-        
-        try ReadMessagesResponseMapper.map(anyData, response: response)
+    private struct ResponseForTest: Response {
+        var toModel: String {
+            ""
+        }
     }
 }
