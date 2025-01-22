@@ -34,6 +34,15 @@ final class GeneralResponseMapperTests: XCTestCase {
         }
     }
     
+    func test_map_deliversModelCorrectly() throws {
+        let model = "any string"
+        let data = Data("{\"string\":\"\(model)\"}".utf8)
+        
+        let receivedModel = try Mapper.map(data, response: statusCode200Response)
+        
+        XCTAssertEqual(receivedModel, model)
+    }
+    
     // MARK: - Helpers
     
     private typealias Mapper = GeneralResponseMapper<ResponseForTest>
