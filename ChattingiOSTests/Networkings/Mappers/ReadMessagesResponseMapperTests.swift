@@ -25,6 +25,13 @@ final class ReadMessagesResponseMapperTests: XCTestCase {
             }
         }
     }
+    
+    func test_map_deliversNoErrorOn200StatusCodeResponse() throws {
+        let anyData = Data("any".utf8)
+        let response = HTTPURLResponse(statusCode: 200)
+        
+        try ReadMessagesResponseMapper.map(anyData, response: response)
+    }
 }
 
 private extension HTTPURLResponse {
