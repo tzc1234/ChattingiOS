@@ -18,7 +18,7 @@ final class GeneralResponseMapperTests: XCTestCase {
             let response = HTTPURLResponse(statusCode: code)
             
             XCTAssertThrowsError(
-                try GeneralResponseMapper<ResponseForTest>.map(data, response: response),
+                _ = try Mapper.map(data, response: response),
                 "Expect statusCode: \(code) throws an error."
             ) { error in
                 XCTAssertEqual(error as? MapperError, .server(reason: reason))
@@ -26,9 +26,24 @@ final class GeneralResponseMapperTests: XCTestCase {
         }
     }
     
-    private struct ResponseForTest: Response {
-        var toModel: String {
-            ""
+    func test_map_deliversMappingErrorOnInvalidData() {
+        let data = Data("invalid".utf8)
+        
+        XCTAssertThrowsError(_ = try Mapper.map(data, response: statusCode200Response)) { error in
+            XCTAssertEqual(error as? MapperError, .mapping)
         }
+    }
+    
+    // MARK: - Helpers
+    
+    private typealias Mapper = GeneralResponseMapper<ResponseForTest>
+    
+    private var statusCode200Response: HTTPURLResponse {
+        HTTPURLResponse(statusCode: 200)
+    }
+    
+    private struct ResponseForTest: Response {
+        let string: String
+        var toModel: String { string }
     }
 }
