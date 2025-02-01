@@ -66,7 +66,7 @@ final class MessageListViewModel: ObservableObject {
             self.messages = messages.map(map(message:))
             
             listPositionMessageID = initialListPositionMessageID
-        } catch  {
+        } catch {
             generalError = error.toGeneralErrorMessage()
         }
         isLoading = false
@@ -77,16 +77,16 @@ final class MessageListViewModel: ObservableObject {
         
         isLoading = true
         Task {
-            do {
+            do throws(UseCaseError) {
                 try await _loadPreviousMessages()
-            } catch let error as UseCaseError {
+            } catch {
                 generalError = error.toGeneralErrorMessage()
             }
             isLoading = false
         }
     }
     
-    private func _loadPreviousMessages() async throws {
+    private func _loadPreviousMessages() async throws(UseCaseError) {
         guard !isLoadingPreviousMessages, let firstMessageID = messages.first?.id else {
             return
         }
@@ -110,9 +110,9 @@ final class MessageListViewModel: ObservableObject {
         
         isLoading = true
         Task {
-            do {
+            do throws(UseCaseError) {
                 try await _loadMoreMessages()
-            } catch let error as UseCaseError {
+            } catch {
                 generalError = error.toGeneralErrorMessage()
             }
             isLoading = false
@@ -147,25 +147,25 @@ final class MessageListViewModel: ObservableObject {
         
         isLoading = true
         Task {
-            do {
+            do throws(UseCaseError) {
                 try await loadMoreMessageUntilTheEnd()
                 
                 try? await connection?.send(text: inputMessage)
                 inputMessage = ""
-            } catch let error as UseCaseError {
+            } catch {
                 generalError = error.toGeneralErrorMessage()
             }
             isLoading = false
         }
     }
     
-    private func loadMoreMessageUntilTheEnd() async throws {
+    private func loadMoreMessageUntilTheEnd() async throws(UseCaseError) {
         while canLoadMore {
             try await _loadMoreMessages()
         }
     }
     
-    private func _loadMoreMessages() async throws {
+    private func _loadMoreMessages() async throws(UseCaseError) {
         guard !isLoadingMoreMessages else { return }
         
         isLoadingMoreMessages = true

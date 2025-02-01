@@ -31,9 +31,9 @@ final class NewContactViewModel: ObservableObject {
         
         isLoading = true
         Task {
-            do {
+            do throws(UseCaseError) {
                 contact = try await newContact.add(by: email)
-            } catch let error as UseCaseError {
+            } catch {
                 self.generalError = error.toGeneralErrorMessage()
             }
             

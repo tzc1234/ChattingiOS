@@ -41,13 +41,13 @@ final class ContactListViewModel: ObservableObject {
         guard canLoadMore else { return }
         
         Task {
-            do {
+            do throws(UseCaseError) {
                 let lastUpdate = contacts.last?.lastUpdate
                 let params = GetContactsParams(before: lastUpdate)
                 let moreContacts = try await getContacts.get(with: params)
                 canLoadMore = !moreContacts.isEmpty
                 contacts += moreContacts
-            } catch let error as UseCaseError {
+            } catch {
                 generalError = error.toGeneralErrorMessage()
             }
         }
@@ -65,10 +65,10 @@ final class ContactListViewModel: ObservableObject {
         
         isLoading = true
         Task {
-            do {
+            do throws(UseCaseError) {
                 let newContact = try await blockContact.block(for: contactID)
                 contacts[index] = newContact
-            } catch let error as UseCaseError {
+            } catch {
                 generalError = error.toGeneralErrorMessage()
             }
             
@@ -84,10 +84,10 @@ final class ContactListViewModel: ObservableObject {
         
         isLoading = true
         Task {
-            do {
+            do throws(UseCaseError) {
                 let newContact = try await unblockContact.unblock(for: contactID)
                 contacts[index] = newContact
-            } catch let error as UseCaseError {
+            } catch {
                 generalError = error.toGeneralErrorMessage()
             }
             
