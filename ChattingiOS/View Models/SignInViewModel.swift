@@ -18,7 +18,7 @@ final class SignInViewModel: ObservableObject {
     var email: Email { Email(emailInput) }
     var password: Password { Password(passwordInput) }
     
-    // iOS 17 not support explicit throws error type in closure!
+    // Using typed throws in closure will cash in iOS17, this should be a bug!
     private let userSignIn: (UserSignInParams) async throws -> Void
     
     init(userSignIn: @escaping (UserSignInParams) async throws -> Void) {
