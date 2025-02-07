@@ -11,6 +11,7 @@ struct ContactView: View {
     let responder: User
     let unreadCount: Int
     let isBlocked: Bool
+    let lastMessageText: String?
     
     private var avatarURL: URL? {
         responder.avatarURL.map { URL(string: $0) } ?? nil
@@ -34,8 +35,10 @@ struct ContactView: View {
                 Text(responder.name)
                     .font(.headline)
                 
-                Text(responder.email)
-                    .font(.footnote)
+                if let lastMessageText {
+                    Text(lastMessageText)
+                        .font(.footnote)
+                }
             }
             
             Spacer()
@@ -62,6 +65,7 @@ struct ContactView: View {
     ContactView(
         responder: .init(id: 0, name: "abc", email: "abc@email.com", avatarURL: nil),
         unreadCount: 100,
-        isBlocked: true
+        isBlocked: true,
+        lastMessageText: nil
     )
 }
