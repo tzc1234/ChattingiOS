@@ -13,8 +13,8 @@ protocol Validator<T> {
 }
 
 extension Validator where T == String {
-    static func validateEmpty(_ email: String) -> ValidatorResult {
-        guard email.isEmpty else { return .valid }
+    static func validateEmpty(_ value: String) -> ValidatorResult {
+        guard value.isEmpty else { return .valid }
         
         return .invalid(nil)
     }

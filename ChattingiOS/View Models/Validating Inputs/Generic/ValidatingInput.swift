@@ -8,12 +8,12 @@
 import Foundation
 
 enum ValidatingInput<V: Validator> {
-    case wrapped(V.T)
+    case wrappedValue(V.T)
     case error(String?)
     
-    init(_ t: V.T) {
+    init(_ value: V.T) {
         for validator in V.validators {
-            switch validator(t) {
+            switch validator(value) {
             case .valid:
                 break
             case let .invalid(errorMessage):
@@ -22,19 +22,19 @@ enum ValidatingInput<V: Validator> {
             }
         }
         
-        self = .wrapped(t)
+        self = .wrappedValue(value)
     }
     
     var isValid: Bool {
         switch self {
-        case .wrapped: true
+        case .wrappedValue: true
         default: false
         }
     }
     
     var value: V.T? {
         switch self {
-        case let .wrapped(t): t
+        case let .wrappedValue(t): t
         default: nil
         }
     }
