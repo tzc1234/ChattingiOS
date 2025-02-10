@@ -8,7 +8,7 @@
 import Foundation
 
 enum UsernameValidator: Validator {
-    static var validators: [(String) -> ValidatorResult] { [validateEmpty, validateCount] }
+    static var validators: [(String) -> ValidatorResult] { [validateNotEmpty, validateCount] }
     
     private static func validateCount(_ name: String) -> ValidatorResult {
         guard name.count >= 3 else {

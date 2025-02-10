@@ -8,7 +8,7 @@
 import Foundation
 
 enum PasswordValidator: Validator {
-    static var validators: [(String) -> ValidatorResult] { [validateEmpty, validateCount] }
+    static var validators: [(String) -> ValidatorResult] { [validateNotEmpty, validateCount] }
     
     private static func validateCount(_ password: String) -> ValidatorResult {
         guard password.count >= 3 else {
