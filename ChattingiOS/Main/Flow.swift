@@ -43,9 +43,9 @@ final class Flow {
     
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { currentUser in
-            TabView { [self] in
-                NavigationControlView(viewModel: navigationControlViewModel) { [weak self] in
-                    self?.contactListView(currentUserID: currentUser.id)
+            TabView { [unowned self] in
+                NavigationControlView(viewModel: navigationControlViewModel) { [unowned self] in
+                    contactListView(currentUserID: currentUser.id)
                 }
                 .tabItem {
                     Label("Contacts", systemImage: "person.3")
@@ -57,17 +57,15 @@ final class Flow {
                     }
             }
             .tint(.ctOrange)
-        } signInContent: { [weak self] in
-            self?.signInView()
-        } sheet: { [weak self] in
-            self?.signUpView()
+        } signInContent: { [unowned self] in
+            signInView()
+        } sheet: { [unowned self] in
+            signUpView()
         }
     }
     
     private func signInView() -> SignInView {
-        let viewModel = SignInViewModel { [weak self] params in
-            guard let self else { return }
-            
+        let viewModel = SignInViewModel { [unowned self] params in
             let (user, token) = try await dependencies.userSignIn.signIn(with: params)
             do {
                 try await currentUserVault.saveCurrentUser(user: user, token: token)
@@ -75,15 +73,13 @@ final class Flow {
                 throw UseCaseError.saveCurrentUserFailed
             }
         }
-        return SignInView(viewModel: viewModel, signUpTapped: { [weak self] in
-            self?.contentViewModel.showSheet = true
+        return SignInView(viewModel: viewModel, signUpTapped: { [unowned self] in
+            contentViewModel.showSheet = true
         })
     }
     
     private func signUpView() -> SignUpView {
-        let viewModel = SignUpViewModel { [weak self] params in
-            guard let self else { return }
-            
+        let viewModel = SignUpViewModel { [unowned self] params in
             let (user, token) = try await dependencies.userSignUp.signUp(by: params)
             do {
                 try await currentUserVault.saveCurrentUser(user: user, token: token)
@@ -95,9 +91,7 @@ final class Flow {
     }
     
     private func profileView(user: User) -> ProfileView {
-        ProfileView(user: user, signOutTapped: { [weak self] in
-            guard let self else { return }
-            
+        ProfileView(user: user, signOutTapped: { [unowned self] in
             contentViewModel.isUserInitiateSignOut = true
             Task { try? await currentUserVault.deleteCurrentUser() }
         })
@@ -114,10 +108,10 @@ final class Flow {
         
         return ContactListView(
             viewModel: viewModel,
-            alertContent: { [weak self] alertState in
-                self?.newContactView(alertState: alertState)
-            }, rowTapped: { [weak self] contact in
-                self?.showMessageListView(currentUserID: currentUserID, contact: contact)
+            alertContent: { [unowned self] alertState in
+                newContactView(alertState: alertState)
+            }, rowTapped: { [unowned self] contact in
+                showMessageListView(currentUserID: currentUserID, contact: contact)
             })
             .navigationDestinationFor(MessageListView.self)
     }
@@ -142,6 +136,7 @@ final class Flow {
             messageChannel: dependencies.messageChannel,
             readMessages: dependencies.readMessages
         )
-        navigationControlViewModel.show(next: NavigationDestination(MessageListView(viewModel: viewModel)))
+        let destination = NavigationDestination(MessageListView(viewModel: viewModel))
+        navigationControlViewModel.show(next: destination)
     }
 }
