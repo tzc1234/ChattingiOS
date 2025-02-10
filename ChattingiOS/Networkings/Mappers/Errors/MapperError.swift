@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum MapperError: Error {
+enum MapperError: Error, Equatable {
     case server(reason: String)
     case mapping
 }
