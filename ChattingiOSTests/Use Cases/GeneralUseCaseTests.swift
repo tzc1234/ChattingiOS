@@ -19,7 +19,7 @@ final class GeneralUseCaseTests: XCTestCase {
     func test_request_deliversRequestCreationFailedErrorOnAnyRequestError() async {
         let (sut, _) = makeSUT(request: { _ in throw anyNSError() })
         
-        await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
+        await assertThrowsError(_ = try await sut.perform(with: .anyParam)) { error in
             XCTAssertEqual(error as? UseCaseError, .requestCreationFailed)
         }
     }
@@ -28,14 +28,14 @@ final class GeneralUseCaseTests: XCTestCase {
         let useCaseError = UseCaseError.connectivity
         let (sut, _) = makeSUT(request: { _ in throw useCaseError })
         
-        await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
+        await assertThrowsError(_ = try await sut.perform(with: .anyParam)) { error in
             XCTAssertEqual(error as? UseCaseError, useCaseError)
         }
     }
     
     func test_request_getsRequestCorrectly() async throws {
         let expectedRequest = requestForTest()
-        let expectedParam = "any"
+        let expectedParam = "any param"
         var paramsLogged = [String]()
         let (sut, client) = makeSUT(request: {
             paramsLogged.append($0)
@@ -52,7 +52,7 @@ final class GeneralUseCaseTests: XCTestCase {
         let (sut, _) = makeSUT()
         MapperStub.error = .mapping
         
-        await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
+        await assertThrowsError(_ = try await sut.perform(with: .anyParam)) { error in
             XCTAssertEqual(error as? UseCaseError, .invalidData)
         }
     }
@@ -62,7 +62,7 @@ final class GeneralUseCaseTests: XCTestCase {
         let (sut, _) = makeSUT()
         MapperStub.error = .server(reason: reason)
         
-        await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
+        await assertThrowsError(_ = try await sut.perform(with: .anyParam)) { error in
             XCTAssertEqual(error as? UseCaseError, .server(reason: reason))
         }
     }
@@ -70,7 +70,7 @@ final class GeneralUseCaseTests: XCTestCase {
     func test_perform_deliversConnectivityErrorOnClientError() async {
         let (sut, _) = makeSUT(stub: .failure(anyNSError()))
         
-        await assertThrowsError(_ = try await sut.perform(with: "any")) { error in
+        await assertThrowsError(_ = try await sut.perform(with: .anyParam)) { error in
             XCTAssertEqual(error as? UseCaseError, .connectivity)
         }
     }
@@ -80,7 +80,7 @@ final class GeneralUseCaseTests: XCTestCase {
         let expectedResponse = anyHTTPURLResponse()
         let (sut, _) = makeSUT(stub: .success((expectedData, expectedResponse)))
         
-        let model = try await sut.perform(with: "any")
+        let model = try await sut.perform(with: .anyParam)
         
         XCTAssertEqual(model.data, expectedData)
         XCTAssertEqual(model.response, expectedResponse)
@@ -91,8 +91,8 @@ final class GeneralUseCaseTests: XCTestCase {
     private typealias SUT = GeneralUseCase<String, MapperStub>
     
     private func makeSUT(request: sending @escaping (String) async throws -> URLRequest =
-                         { _ in URLRequest(url: anyURL()) },
-                         stub: Result<(Data, HTTPURLResponse), Error> = .success((Data(), anyHTTPURLResponse())),
+                            { _ in URLRequest(url: anyURL()) },
+                         stub: HTTPClientSpy.Stub = .success((Data(), anyHTTPURLResponse())),
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: SUT, client: HTTPClientSpy) {
         MapperStub.error = nil
@@ -106,7 +106,7 @@ final class GeneralUseCaseTests: XCTestCase {
     private func requestForTest() -> URLRequest {
         var request = URLRequest(url: URL(string: "http://a-url.com")!)
         request.httpMethod = "POST"
-        request.setValue("token", forHTTPHeaderField: .authorizationHTTPHeaderField)
+        request.setValue("any token", forHTTPHeaderField: .authorizationHTTPHeaderField)
         return request
     }
     
@@ -122,10 +122,13 @@ final class GeneralUseCaseTests: XCTestCase {
     
     @MainActor
     private final class HTTPClientSpy: HTTPClient {
-        private(set) var requests = [URLRequest]()
-        private var stub: Result<(Data, HTTPURLResponse), Error>
+        typealias Stub = Result<(Data, HTTPURLResponse), Error>
         
-        init(stub: Result<(Data, HTTPURLResponse), Error>) {
+        private(set) var requests = [URLRequest]()
+        
+        private var stub: Stub
+        
+        init(stub: Stub) {
             self.stub = stub
         }
         
@@ -134,4 +137,8 @@ final class GeneralUseCaseTests: XCTestCase {
             return try stub.get()
         }
     }
+}
+
+private extension String {
+    static var anyParam: String { "any" }
 }
