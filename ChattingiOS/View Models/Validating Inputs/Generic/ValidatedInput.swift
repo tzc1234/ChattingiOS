@@ -1,5 +1,5 @@
 //
-//  ValidatingInput.swift
+//  ValidatedInput.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 21/01/2025.
@@ -7,16 +7,15 @@
 
 import Foundation
 
-enum ValidatingInput<V: Validator> {
+enum ValidatedInput<V: Validator> {
     case wrappedValue(V.T)
     case error(String?)
     
     init(_ value: V.T) {
         for validator in V.validators {
             switch validator(value) {
-            case .valid:
-                break
-            case let .invalid(errorMessage):
+            case .valid: break
+            case .invalid(let errorMessage):
                 self = .error(errorMessage)
                 return
             }
@@ -34,7 +33,7 @@ enum ValidatingInput<V: Validator> {
     
     var value: V.T? {
         switch self {
-        case let .wrappedValue(t): t
+        case let .wrappedValue(value): value
         default: nil
         }
     }

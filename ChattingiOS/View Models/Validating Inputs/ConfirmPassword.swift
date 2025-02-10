@@ -27,4 +27,4 @@ enum ConfirmPasswordValidator: Validator {
     }
 }
 
-typealias ConfirmPassword = ValidatingInput<ConfirmPasswordValidator>
+typealias ConfirmPassword = ValidatedInput<ConfirmPasswordValidator>

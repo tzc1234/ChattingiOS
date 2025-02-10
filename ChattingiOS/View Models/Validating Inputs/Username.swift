@@ -19,4 +19,4 @@ enum UsernameValidator: Validator {
     }
 }
 
-typealias Username = ValidatingInput<UsernameValidator>
+typealias Username = ValidatedInput<UsernameValidator>
