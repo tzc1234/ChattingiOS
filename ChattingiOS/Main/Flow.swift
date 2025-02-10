@@ -5,7 +5,6 @@
 //  Created by Tsz-Lung on 24/12/2024.
 //
 
-import Combine
 import SwiftUI
 
 @MainActor
@@ -15,7 +14,7 @@ final class Flow {
     private var currentUserVault: CurrentUserVault { dependencies.currentUserVault }
     
     private weak var contactListViewModel: ContactListViewModel?
-    private var cancellable: Cancellable?
+    private var newContactTask: Task<Void, Never>?
     
     private let dependencies: DependenciesContainer
     
@@ -118,12 +117,14 @@ final class Flow {
     
     private func newContactView(with alertState: Binding<AlertState>) -> NewContactView {
         let viewModel = NewContactViewModel(newContact: dependencies.newContact)
-        cancellable = viewModel.$contact
-            .sink { [weak contactListViewModel] contact in
-                guard let contact else { return }
-                
-                contactListViewModel?.add(contact: contact)
+        newContactTask?.cancel()
+        newContactTask = Task { [unowned self] in
+            for await contact in viewModel.$contact.values {
+                if let contact {
+                    contactListViewModel?.add(contact: contact)
+                }
             }
+        }
         
         return NewContactView(viewModel: viewModel, alertState: alertState)
     }
