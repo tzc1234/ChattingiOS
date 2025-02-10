@@ -65,7 +65,7 @@ final class Flow {
     }
     
     private func signInView() -> SignInView {
-        let viewModel = SignInViewModel { [unowned self] params in
+        let viewModel = SignInViewModel { [unowned self] params throws(UseCaseError) in
             let (user, token) = try await dependencies.userSignIn.signIn(with: params)
             do {
                 try await currentUserVault.saveCurrentUser(user: user, token: token)
@@ -79,7 +79,7 @@ final class Flow {
     }
     
     private func signUpView() -> SignUpView {
-        let viewModel = SignUpViewModel { [unowned self] params in
+        let viewModel = SignUpViewModel { [unowned self] params throws(UseCaseError) in
             let (user, token) = try await dependencies.userSignUp.signUp(by: params)
             do {
                 try await currentUserVault.saveCurrentUser(user: user, token: token)
@@ -109,14 +109,14 @@ final class Flow {
         return ContactListView(
             viewModel: viewModel,
             alertContent: { [unowned self] alertState in
-                newContactView(alertState: alertState)
+                newContactView(with: alertState)
             }, rowTapped: { [unowned self] contact in
                 showMessageListView(currentUserID: currentUserID, contact: contact)
             })
             .navigationDestinationFor(MessageListView.self)
     }
     
-    private func newContactView(alertState: Binding<AlertState>) -> NewContactView {
+    private func newContactView(with alertState: Binding<AlertState>) -> NewContactView {
         let viewModel = NewContactViewModel(newContact: dependencies.newContact)
         cancellable = viewModel.$contact
             .sink { [weak contactListViewModel] contact in
