@@ -62,18 +62,13 @@ struct NewContactContentView: View {
                     error: error
                 )
                 
-                Button{
+                Button {
                     submitTapped()
                 } label: {
                     loadingButtonLabel(title: "Submit")
-                        .font(.headline)
-                        .foregroundStyle(.background)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(.ctOrange, in: .rect(cornerRadius: 8))
                 }
+                .buttonStyle(.ctStyle(brightness: canSubmit ? 0 : -0.25))
                 .disabled(!canSubmit)
-                .brightness(canSubmit ? 0 : -0.25)
             }
         }
         .disabled(isLoading)

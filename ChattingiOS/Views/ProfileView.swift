@@ -42,12 +42,8 @@ struct ProfileView: View {
                     
                     Button(action: signOutTapped) {
                         Text("Sign Out")
-                            .font(.headline)
-                            .foregroundStyle(.background)
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(.ctRed, in: .rect(cornerRadius: 8))
                     }
+                    .buttonStyle(.ctStyle(backgroundColor: .ctRed))
                 }
             }
         }

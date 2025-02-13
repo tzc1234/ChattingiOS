@@ -85,23 +85,14 @@ struct SignInContentView: View {
                         withAnimation { signInTapped() }
                     } label: {
                         loadingButtonLabel(title: "Sign In")
-                            .font(.headline)
-                            .foregroundStyle(.background)
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(.ctOrange, in: .rect(cornerRadius: 8))
                     }
+                    .buttonStyle(.ctStyle(brightness: canSignIn ? 0 : -0.25))
                     .disabled(!canSignIn)
-                    .brightness(canSignIn ? 0 : -0.25)
                     
                     Button(action: signUpTapped) {
                         Text("Sign Up")
-                            .font(.headline)
-                            .foregroundStyle(.background)
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(.ctBlue, in: .rect(cornerRadius: 8))
                     }
+                    .buttonStyle(.ctStyle(backgroundColor: .ctBlue))
                 }
             }
             .disabled(isLoading)

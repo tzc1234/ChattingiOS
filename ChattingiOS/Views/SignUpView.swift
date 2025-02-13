@@ -132,14 +132,9 @@ struct SignUpContentView: View {
                     
                     Button(action: signUpTapped) {
                         loadingButtonLabel(title: "Sign Up")
-                            .font(.headline)
-                            .foregroundStyle(.background)
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(.ctBlue, in: .rect(cornerRadius: 8))
                     }
+                    .buttonStyle(.ctStyle(backgroundColor: .ctBlue, brightness: canSignUp ? 0 : -0.15))
                     .disabled(!canSignUp)
-                    .brightness(canSignUp ? 0 : -0.15)
                 }
             }
             .disabled(isLoading)
