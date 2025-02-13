@@ -40,10 +40,8 @@ struct ProfileView: View {
                         }
                     }
                     
-                    Button(action: signOutTapped) {
-                        Text("Sign Out")
-                    }
-                    .buttonStyle(.ctStyle(backgroundColor: .ctRed))
+                    Button("Sign Out", action: signOutTapped)
+                        .buttonStyle(.ctStyle(backgroundColor: .ctRed))
                 }
             }
         }

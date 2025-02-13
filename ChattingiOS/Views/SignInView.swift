@@ -89,10 +89,8 @@ struct SignInContentView: View {
                     .buttonStyle(.ctStyle(brightness: canSignIn ? 0 : -0.25))
                     .disabled(!canSignIn)
                     
-                    Button(action: signUpTapped) {
-                        Text("Sign Up")
-                    }
-                    .buttonStyle(.ctStyle(backgroundColor: .ctBlue))
+                    Button("Sign Up", action: signUpTapped)
+                        .buttonStyle(.ctStyle(backgroundColor: .ctBlue))
                 }
             }
             .disabled(isLoading)
