@@ -65,23 +65,13 @@ struct NewContactContentView: View {
                 Button {
                     submitTapped()
                 } label: {
-                    loadingButtonLabel(title: "Submit")
+                    LoadingTextLabel(isLoading: isLoading, title: "Submit")
                 }
                 .buttonStyle(.ctStyle(brightness: canSubmit ? 0 : -0.25))
                 .disabled(!canSubmit)
             }
         }
         .disabled(isLoading)
-    }
-    
-    @ViewBuilder
-    private func loadingButtonLabel(title: String) -> some View {
-        if isLoading {
-            ProgressView()
-                .tint(.white)
-        } else {
-            Text(title)
-        }
     }
 }
 

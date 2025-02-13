@@ -84,7 +84,7 @@ struct SignInContentView: View {
                     Button {
                         withAnimation { signInTapped() }
                     } label: {
-                        loadingButtonLabel(title: "Sign In")
+                        LoadingTextLabel(isLoading: isLoading, title: "Sign In")
                     }
                     .buttonStyle(.ctStyle(brightness: canSignIn ? 0 : -0.25))
                     .disabled(!canSignIn)
@@ -103,16 +103,6 @@ struct SignInContentView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(generalError ?? "")
-        }
-    }
-    
-    @ViewBuilder
-    private func loadingButtonLabel(title: String) -> some View {
-        if isLoading {
-            ProgressView()
-                .tint(.white)
-        } else {
-            Text(title)
         }
     }
 }
