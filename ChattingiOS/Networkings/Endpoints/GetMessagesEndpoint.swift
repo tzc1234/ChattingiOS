@@ -32,7 +32,7 @@ struct GetMessagesEndpoint: Endpoint {
     private let accessToken: AccessToken
     private let params: GetMessagesParams
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), accessToken: AccessToken, params: GetMessagesParams) {
+    init(apiConstants: APIConstants = APIConstants(), accessToken: AccessToken, params: GetMessagesParams) {
         self.apiConstants = apiConstants
         self.accessToken = accessToken
         self.params = params

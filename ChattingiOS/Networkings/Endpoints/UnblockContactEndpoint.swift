@@ -18,7 +18,7 @@ struct UnblockContactEndpoint: Endpoint {
     private let accessToken: AccessToken
     private let contactID: Int
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), accessToken: AccessToken, contactID: Int) {
+    init(apiConstants: APIConstants = APIConstants(), accessToken: AccessToken, contactID: Int) {
         self.apiConstants = apiConstants
         self.accessToken = accessToken
         self.contactID = contactID

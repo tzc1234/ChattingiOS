@@ -21,7 +21,7 @@ struct NewContactEndpoint: Endpoint {
     private let accessToken: AccessToken
     private let responderEmail: String
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), accessToken: AccessToken, responderEmail: String) {
+    init(apiConstants: APIConstants = APIConstants(), accessToken: AccessToken, responderEmail: String) {
         self.apiConstants = apiConstants
         self.accessToken = accessToken
         self.responderEmail = responderEmail

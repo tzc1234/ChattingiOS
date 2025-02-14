@@ -20,7 +20,7 @@ struct UserSignUpEndpoint: Endpoint {
     let apiConstants: APIConstants
     private let params: UserSignUpParams
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), params: UserSignUpParams) {
+    init(apiConstants: APIConstants = APIConstants(), params: UserSignUpParams) {
         self.apiConstants = apiConstants
         self.params = params
     }

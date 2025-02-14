@@ -23,7 +23,7 @@ struct GetContactsEndpoint: Endpoint {
     private let accessToken: AccessToken
     private let params: GetContactsParams
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), accessToken: AccessToken, params: GetContactsParams) {
+    init(apiConstants: APIConstants = APIConstants(), accessToken: AccessToken, params: GetContactsParams) {
         self.apiConstants = apiConstants
         self.accessToken = accessToken
         self.params = params
