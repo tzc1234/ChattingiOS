@@ -17,12 +17,20 @@ final class UserSignInEndpointTests: XCTestCase {
         
         XCTAssertEqual(request.url, expectedURL)
         XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.allHTTPHeaderFields, expectedHeaderFields)
     }
     
     // MARK: - Helpers
     
     private var param: UserSignInParams {
         UserSignInParams(email: "any@email.com", password: "any-password")
+    }
+    
+    private var expectedHeaderFields: [String: String] {
+        [
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        ]
     }
 }
 
