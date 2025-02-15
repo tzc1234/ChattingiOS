@@ -23,6 +23,7 @@ final class SignUpViewModel: ObservableObject {
     var password: Password { Password(passwordInput) }
     var confirmPassword: ConfirmPassword { ConfirmPassword((confirmPasswordInput, passwordInput)) }
     
+    // Using typed throws in closure will cash in iOS17, this should be a bug!
     private let userSignUp: (UserSignUpParams) async throws -> Void
     
     init(userSignUp: @escaping (UserSignUpParams) async throws -> Void) {

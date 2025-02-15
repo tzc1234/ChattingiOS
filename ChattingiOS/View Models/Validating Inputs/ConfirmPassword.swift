@@ -10,9 +10,9 @@ import Foundation
 enum ConfirmPasswordValidator: Validator {
     typealias PasswordPair = (confirmPassword: String, password: String)
     
-    static var validators: [(PasswordPair) -> ValidatorResult] { [validateEmpty, validateIdentical] }
+    static var validators: [(PasswordPair) -> ValidatorResult] { [validateNotEmpty, validateIdentical] }
     
-    private static func validateEmpty(_ pair: PasswordPair) -> ValidatorResult {
+    private static func validateNotEmpty(_ pair: PasswordPair) -> ValidatorResult {
         guard pair.confirmPassword.isEmpty else { return .valid }
         
         return .invalid(nil)
@@ -27,4 +27,4 @@ enum ConfirmPasswordValidator: Validator {
     }
 }
 
-typealias ConfirmPassword = ValidatingInput<ConfirmPasswordValidator>
+typealias ConfirmPassword = ValidatedInput<ConfirmPasswordValidator>

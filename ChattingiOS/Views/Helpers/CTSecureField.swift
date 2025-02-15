@@ -13,8 +13,10 @@ struct CTSecureField: View {
         case text
     }
     
-    @State private var isSecure = true
     @FocusState private var focused: FocusedField?
+    @State private var isSecure = true {
+        didSet { refocus() }
+    }
     
     private let placeholder: String
     @Binding private var text: String
@@ -37,10 +39,7 @@ struct CTSecureField: View {
                     .padding(8)
                     
                 Button {
-                    withAnimation {
-                        isSecure.toggle()
-                        setFocused()
-                    }
+                    withAnimation { isSecure.toggle() }
                 } label: {
                     Image(systemName: isSecure ? "eye" : "eye.slash")
                         .foregroundStyle(.ctOrange)
@@ -66,25 +65,23 @@ struct CTSecureField: View {
     
     @ViewBuilder
     private var inputField: some View {
-        if isSecure {
-            SecureField(placeholder, text: $text)
-                .textContentType(textContentType)
-                .focused($focused, equals: .secure)
-        } else {
-            TextField(placeholder, text: $text)
-                .textContentType(textContentType)
-                .focused($focused, equals: .text)
+        Group {
+            if isSecure {
+                SecureField(placeholder, text: $text)
+                    .focused($focused, equals: .secure)
+            } else {
+                TextField(placeholder, text: $text)
+                    .focused($focused, equals: .text)
+            }
         }
+        .textContentType(textContentType)
     }
     
-    private func setFocused() {
-        switch focused {
-        case .secure:
-            focused = .text
-        case .text:
-            focused = .secure
-        default:
-            break
+    private func refocus() {
+        focused = switch focused {
+        case .secure: .text
+        case .text: .secure
+        case .none: .none
         }
     }
 }

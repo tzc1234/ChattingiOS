@@ -11,9 +11,7 @@ struct MessageView: View {
     let width: CGFloat
     let message: DisplayedMessage
     
-    private var isMine: Bool {
-        message.isMine
-    }
+    private var isMine: Bool { message.isMine }
     
     var body: some View {
         ZStack {
@@ -37,12 +35,12 @@ struct MessageView: View {
     }
     
     private var cornerRadii: RectangleCornerRadii {
-        let corner: CGFloat = 12
-        return if isMine {
-            RectangleCornerRadii(topLeading: corner, bottomLeading: corner, topTrailing: corner)
-        } else {
-            RectangleCornerRadii(topLeading: corner, bottomTrailing: corner, topTrailing: corner)
-        }
+        RectangleCornerRadii(
+            topLeading: 12,
+            bottomLeading: isMine ? 12 : 0,
+            bottomTrailing: isMine ? 0 : 12,
+            topTrailing: 12
+        )
     }
 }
 

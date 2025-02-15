@@ -84,24 +84,13 @@ struct SignInContentView: View {
                     Button {
                         withAnimation { signInTapped() }
                     } label: {
-                        loadingButtonLabel(title: "Sign In")
-                            .font(.headline)
-                            .foregroundStyle(.background)
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(.ctOrange, in: .rect(cornerRadius: 8))
+                        LoadingTextLabel(isLoading: isLoading, title: "Sign In")
                     }
+                    .buttonStyle(.ctStyle(brightness: canSignIn ? 0 : -0.25))
                     .disabled(!canSignIn)
-                    .brightness(canSignIn ? 0 : -0.25)
                     
-                    Button(action: signUpTapped) {
-                        Text("Sign Up")
-                            .font(.headline)
-                            .foregroundStyle(.background)
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(.ctBlue, in: .rect(cornerRadius: 8))
-                    }
+                    Button("Sign Up", action: signUpTapped)
+                        .buttonStyle(.ctStyle(backgroundColor: .ctBlue))
                 }
             }
             .disabled(isLoading)
@@ -112,16 +101,6 @@ struct SignInContentView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(generalError ?? "")
-        }
-    }
-    
-    @ViewBuilder
-    private func loadingButtonLabel(title: String) -> some View {
-        if isLoading {
-            ProgressView()
-                .tint(.white)
-        } else {
-            Text(title)
         }
     }
 }

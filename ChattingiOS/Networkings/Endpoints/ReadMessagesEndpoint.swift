@@ -21,7 +21,7 @@ struct ReadMessagesEndpoint: Endpoint {
     private let accessToken: AccessToken
     private let params: ReadMessagesParams
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), accessToken: AccessToken, params: ReadMessagesParams) {
+    init(apiConstants: APIConstants = APIConstants(), accessToken: AccessToken, params: ReadMessagesParams) {
         self.apiConstants = apiConstants
         self.accessToken = accessToken
         self.params = params

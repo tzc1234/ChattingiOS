@@ -18,7 +18,7 @@ struct ProfileView: View {
             CTCardView {
                 VStack(spacing: 12) {
                     VStack(spacing: 4) {
-                        AsyncImage(url: URL(string: user.avatarURL ?? "")) { image in
+                        AsyncImage(url: user.avatarURL.map(URL.init) ?? nil) { image in
                             image
                                 .resizable()
                                 .scaledToFill()
@@ -40,14 +40,8 @@ struct ProfileView: View {
                         }
                     }
                     
-                    Button(action: signOutTapped) {
-                        Text("Sign Out")
-                            .font(.headline)
-                            .foregroundStyle(.background)
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(.ctRed, in: .rect(cornerRadius: 8))
-                    }
+                    Button("Sign Out", action: signOutTapped)
+                        .buttonStyle(.ctStyle(backgroundColor: .ctRed))
                 }
             }
         }

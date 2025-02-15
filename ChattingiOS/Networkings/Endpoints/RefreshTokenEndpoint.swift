@@ -18,7 +18,7 @@ struct RefreshTokenEndpoint: Endpoint {
     let apiConstants: APIConstants
     private let refreshToken: String
     
-    init(apiConstants: APIConstants = DefaultAPIConstants(), refreshToken: String) {
+    init(apiConstants: APIConstants = APIConstants(), refreshToken: String) {
         self.apiConstants = apiConstants
         self.refreshToken = refreshToken
     }

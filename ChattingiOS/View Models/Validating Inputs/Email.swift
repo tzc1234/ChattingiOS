@@ -8,7 +8,7 @@
 import Foundation
 
 enum EmailValidator: Validator {
-    static var validators: [(String) -> ValidatorResult] { [validateEmpty, validateFormat] }
+    static var validators: [(String) -> ValidatorResult] { [validateNotEmpty, validateFormat] }
     
     private static func validateFormat(_ email: String) -> ValidatorResult {
         let regex = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,64}$"
@@ -21,4 +21,4 @@ enum EmailValidator: Validator {
     }
 }
 
-typealias Email = ValidatingInput<EmailValidator>
+typealias Email = ValidatedInput<EmailValidator>

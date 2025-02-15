@@ -7,14 +7,14 @@
 
 import Foundation
 
-protocol Validator<T> {
+protocol Validator {
     associatedtype T
     static var validators: [(T) -> ValidatorResult] { get }
 }
 
 extension Validator where T == String {
-    static func validateEmpty(_ email: String) -> ValidatorResult {
-        guard email.isEmpty else { return .valid }
+    static func validateNotEmpty(_ value: String) -> ValidatorResult {
+        guard value.isEmpty else { return .valid }
         
         return .invalid(nil)
     }

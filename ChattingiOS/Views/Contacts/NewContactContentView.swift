@@ -62,31 +62,16 @@ struct NewContactContentView: View {
                     error: error
                 )
                 
-                Button{
+                Button {
                     submitTapped()
                 } label: {
-                    loadingButtonLabel(title: "Submit")
-                        .font(.headline)
-                        .foregroundStyle(.background)
-                        .frame(maxWidth: .infinity)
-                        .padding(12)
-                        .background(.ctOrange, in: .rect(cornerRadius: 8))
+                    LoadingTextLabel(isLoading: isLoading, title: "Submit")
                 }
+                .buttonStyle(.ctStyle(brightness: canSubmit ? 0 : -0.25))
                 .disabled(!canSubmit)
-                .brightness(canSubmit ? 0 : -0.25)
             }
         }
         .disabled(isLoading)
-    }
-    
-    @ViewBuilder
-    private func loadingButtonLabel(title: String) -> some View {
-        if isLoading {
-            ProgressView()
-                .tint(.white)
-        } else {
-            Text(title)
-        }
     }
 }
 

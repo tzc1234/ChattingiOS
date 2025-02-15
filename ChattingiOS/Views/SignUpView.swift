@@ -131,15 +131,10 @@ struct SignUpContentView: View {
                     .focused($focused, equals: .confirmPassword)
                     
                     Button(action: signUpTapped) {
-                        loadingButtonLabel(title: "Sign Up")
-                            .font(.headline)
-                            .foregroundStyle(.background)
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(.ctBlue, in: .rect(cornerRadius: 8))
+                        LoadingTextLabel(isLoading: isLoading, title: "Sign Up")
                     }
+                    .buttonStyle(.ctStyle(backgroundColor: .ctBlue, brightness: canSignUp ? 0 : -0.15))
                     .disabled(!canSignUp)
-                    .brightness(canSignUp ? 0 : -0.15)
                 }
             }
             .disabled(isLoading)
@@ -163,16 +158,6 @@ struct SignUpContentView: View {
             Image(systemName: "person.fill")
                 .font(.system(size: 75).weight(.ultraLight))
                 .foregroundStyle(Color(uiColor: .systemGray))
-        }
-    }
-    
-    @ViewBuilder
-    private func loadingButtonLabel(title: String) -> some View {
-        if isLoading {
-            ProgressView()
-                .tint(.white)
-        } else {
-            Text(title)
         }
     }
 }

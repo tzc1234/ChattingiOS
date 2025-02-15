@@ -111,7 +111,7 @@ final class MessageChannelTests: XCTestCase {
             (.unsupportedData, .unsupportedData),
             (.other(anyNSError()), .other(anyNSError()))
         ]
-        let (connection, _) = try await establishConnection(webSocketErrors: errors.map(\.webSocket))
+        let (connection, _) = try await establishConnection(webSocketErrorStubs: errors.map(\.webSocket))
         
         for error in errors {
             await connection.start(messageObserver: nil) { receivedError in
@@ -155,7 +155,7 @@ final class MessageChannelTests: XCTestCase {
     // MARK: - Helpers
     
     private func makeSUT(request: sending @escaping (Int) async throws -> URLRequest =
-                         { _ in URLRequest(url: anyURL()) },
+                            { _ in URLRequest(url: anyURL()) },
                          stubs: [Result<WebSocket, WebSocketClientError>] = [.failure(.unknown)],
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: MessageChannel, client: WebSocketClientSpy) {
@@ -168,7 +168,7 @@ final class MessageChannelTests: XCTestCase {
     
     private func establishConnection(sendTextStub: Result<Void, Error> = .success(()),
                                      closeStub: Result<Void, Error> = .success(()),
-                                     webSocketErrors: [WebSocketError] = [],
+                                     webSocketErrorStubs: [WebSocketError] = [],
                                      messageDataStubs: [Data] = [],
                                      file: StaticString = #filePath,
                                      line: UInt = #line) async throws -> (connection: MessageChannelConnection,
@@ -176,7 +176,7 @@ final class MessageChannelTests: XCTestCase {
         let spy = WebSocketSpy(
             sendTextStub: sendTextStub,
             closeStub: closeStub,
-            webSocketErrors: webSocketErrors,
+            webSocketErrorStubs: webSocketErrorStubs,
             messageDataStubs: messageDataStubs
         )
         let (sut, _) = makeSUT(stubs: [.success(spy)], file: file, line: line)
@@ -228,11 +228,13 @@ final class MessageChannelTests: XCTestCase {
     
     @MainActor
     private final class WebSocketClientSpy: WebSocketClient {
+        typealias Stub = Result<WebSocket, WebSocketClientError>
+        
         private(set) var requests = [URLRequest]()
         
-        private var stubs: [Result<WebSocket, WebSocketClientError>]
+        private var stubs: [Stub]
         
-        init(stubs: [Result<WebSocket, WebSocketClientError>]) {
+        init(stubs: [Stub]) {
             self.stubs = stubs
         }
         
@@ -262,16 +264,16 @@ final class MessageChannelTests: XCTestCase {
         
         private let sendTextStub: Result<Void, Error>
         private let closeStub: Result<Void, Error>
-        private var webSocketErrors: [WebSocketError]
+        private var webSocketErrorStubs: [WebSocketError]
         private var messageDataStubs: [Data]
         
         init(sendTextStub: Result<Void, Error>,
              closeStub: Result<Void, Error>,
-             webSocketErrors: [WebSocketError],
+             webSocketErrorStubs: [WebSocketError],
              messageDataStubs: [Data]) {
             self.sendTextStub = sendTextStub
             self.closeStub = closeStub
-            self.webSocketErrors = webSocketErrors
+            self.webSocketErrorStubs = webSocketErrorStubs
             self.messageDataStubs = messageDataStubs
         }
         
@@ -280,8 +282,8 @@ final class MessageChannelTests: XCTestCase {
                 await dataObserver?(messageDataStubs.removeFirst())
             }
             
-            if !webSocketErrors.isEmpty {
-                await errorObserver?(webSocketErrors.removeFirst())
+            if !webSocketErrorStubs.isEmpty {
+                await errorObserver?(webSocketErrorStubs.removeFirst())
             }
         }
         
@@ -308,7 +310,7 @@ private extension String {
 }
 
 private extension Message {
-    struct MessageResponse: Encodable {
+    private struct MessageResponse: Encodable {
         let id: Int
         let text: String
         let sender_id: Int

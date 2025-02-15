@@ -80,7 +80,8 @@ struct ContactListContentView: View {
             ContactView(
                 responder: contact.responder,
                 unreadCount: contact.unreadMessageCount,
-                isBlocked: contact.blockedByUserID != nil
+                isBlocked: contact.blockedByUserID != nil,
+                lastMessageText: contact.lastMessageText
             )
             .background(.white.opacity(0.01))
             .onTapGesture {
@@ -160,7 +161,8 @@ struct ContactListContentView: View {
                     ),
                     blockedByUserID: 0,
                     unreadMessageCount: 0,
-                    lastUpdate: Date()
+                    lastUpdate: Date(),
+                    lastMessageText: nil
                 ),
                 Contact(
                     id: 1,
@@ -172,7 +174,8 @@ struct ContactListContentView: View {
                     ),
                     blockedByUserID: nil,
                     unreadMessageCount: 100,
-                    lastUpdate: Date()
+                    lastUpdate: Date(),
+                    lastMessageText: "last message text"
                 )
             ],
             lastContact: .constant(nil),
