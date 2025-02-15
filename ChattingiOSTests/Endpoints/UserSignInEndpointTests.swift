@@ -10,11 +10,12 @@ import XCTest
 
 final class UserSignInEndpointTests: XCTestCase {
     func test_request_constructsRequestCorrectly() throws {
-        let endpoint = try UserSignInEndpoint(apiConstants: .test, params: param)
+        let constants = APIConstants.test
+        let endpoint = try UserSignInEndpoint(apiConstants: constants, params: param)
         
         let request = endpoint.request
         
-        XCTAssertEqual(request.url, APIConstants.test.url(last: "login"))
+        XCTAssertEqual(request.url, constants.url(last: "login"))
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.allHTTPHeaderFields, expectedHeaderFields)
         assertBody(request.httpBody, asAttributesOf: param)
@@ -49,22 +50,5 @@ final class UserSignInEndpointTests: XCTestCase {
     private struct Body: Decodable {
         let email: String
         let password: String
-    }
-}
-
-extension APIConstants {
-    static var test: Self {
-        APIConstants(
-            scheme: "http",
-            webSocketScheme: "ws",
-            host: "test-host",
-            port: 81,
-            apiPath: "/api-path/"
-        )
-    }
-    
-    func url(last: String) -> URL {
-        let string = "\(scheme)://\(host):\(port!)\(apiPath)\(last)"
-        return URL(string: string)!
     }
 }
