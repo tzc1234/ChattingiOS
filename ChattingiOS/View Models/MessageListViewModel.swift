@@ -126,7 +126,6 @@ final class MessageListViewModel: ObservableObject {
             await connection.start { [weak self] message in
                 await self?.appendNewMessage(message)
             } errorObserver: { error in
-                // TODO: Should log the webSocket error
                 print("error received: \(error)")
             }
         } catch {
