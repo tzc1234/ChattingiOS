@@ -19,8 +19,8 @@ extension APIConstants {
         )
     }
     
-    func url(last: String) -> URL {
-        let string = "\(scheme)://\(host):\(port!)\(apiPath)\(last)"
+    func url(lastPart: String) -> URL {
+        let string = "\(scheme)://\(host):\(port!)\(apiPath)\(lastPart)"
         return URL(string: string)!
     }
 }
