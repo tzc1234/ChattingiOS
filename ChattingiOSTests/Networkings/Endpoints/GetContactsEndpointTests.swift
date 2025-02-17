@@ -57,11 +57,3 @@ final class GetContactsEndpointTests: XCTestCase {
         return fields
     }
 }
-
-extension URL {
-    func withoutQuery() -> URL? {
-        var components = URLComponents(url: self, resolvingAgainstBaseURL: true)
-        components?.query = nil
-        return components?.url
-    }
-}
