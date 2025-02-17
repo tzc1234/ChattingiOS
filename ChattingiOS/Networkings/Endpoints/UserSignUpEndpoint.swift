@@ -11,17 +11,18 @@ struct UserSignUpEndpoint: Endpoint {
     var path: String { apiPath + "register" }
     var httpMethod: HTTPMethod { .post }
     
-    private let boundary = UUID().uuidString
     var headers: [String: String]? {
         let multipartFormDataHeaders = ["Content-Type": "multipart/form-data; boundary=\(boundary)"]
         return defaultHeaders.merging(multipartFormDataHeaders) { $1 }
     }
     
     let apiConstants: APIConstants
+    private let boundary: String
     private let params: UserSignUpParams
     
-    init(apiConstants: APIConstants = APIConstants(), params: UserSignUpParams) {
+    init(apiConstants: APIConstants = APIConstants(), boundary: String = UUID().uuidString, params: UserSignUpParams) {
         self.apiConstants = apiConstants
+        self.boundary = boundary
         self.params = params
     }
     
