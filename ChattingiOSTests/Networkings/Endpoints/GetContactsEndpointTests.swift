@@ -37,13 +37,14 @@ final class GetContactsEndpointTests: XCTestCase {
     }
     
     func test_request_constructsRequestCorrectly() {
+        let token = anyAccessToken
         let params = GetContactsParams(before: .now)
-        let endpoint = GetContactsEndpoint(apiConstants: .test, accessToken: anyAccessToken, params: params)
+        let endpoint = GetContactsEndpoint(apiConstants: .test, accessToken: token, params: params)
         
         let request = endpoint.request
         
         XCTAssertEqual(request.httpMethod, "GET")
-        XCTAssertEqual(request.allHTTPHeaderFields, expectedHeaderFields)
+        XCTAssertEqual(request.allHTTPHeaderFields, expectedHeaderFields(with: token))
         XCTAssertNil(request.httpBody)
     }
     
@@ -51,9 +52,9 @@ final class GetContactsEndpointTests: XCTestCase {
     
     private var anyAccessToken: AccessToken { AccessToken(wrappedString: "any-token") }
     
-    private var expectedHeaderFields: [String: String] {
+    private func expectedHeaderFields(with accessToken: AccessToken) -> [String: String] {
         var fields = httpHeaderFields
-        fields["Authorization"] = anyAccessToken.bearerToken
+        fields["Authorization"] = accessToken.bearerToken
         return fields
     }
 }
