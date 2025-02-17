@@ -19,8 +19,21 @@ final class RefreshTokenEndpointTests: XCTestCase {
         XCTAssertEqual(request.url, constants.url(lastPart: "refreshToken"))
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.allHTTPHeaderFields, httpHeaderFields)
+        assertBody(request.httpBody, as: token)
     }
     
     // MARK: - Helpers
     
+    private func assertBody(_ data: Data?, as token: String, file: StaticString = #filePath, line: UInt = #line) {
+        guard let data else {
+            return XCTFail("Body should not be nil", file: file, line: line)
+        }
+        
+        let body = try! JSONDecoder().decode(Body.self, from: data)
+        XCTAssertEqual(body.refresh_token, token)
+    }
+    
+    private struct Body: Decodable {
+        let refresh_token: String
+    }
 }
