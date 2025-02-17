@@ -46,12 +46,4 @@ final class GetContactsEndpointTests: XCTestCase {
         XCTAssertEqual(request.allHTTPHeaderFields, expectedHeaderFields(with: token))
         XCTAssertNil(request.httpBody)
     }
-    
-    // MARK: - Helpers
-    
-    private func expectedHeaderFields(with accessToken: AccessToken) -> [String: String] {
-        var fields = httpHeaderFields
-        fields["Authorization"] = accessToken.bearerToken
-        return fields
-    }
 }

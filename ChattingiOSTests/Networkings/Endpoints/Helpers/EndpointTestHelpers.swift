@@ -16,3 +16,9 @@ var httpHeaderFields: [String: String] {
 }
 
 var anyAccessToken: AccessToken { AccessToken(wrappedString: "any-token") }
+
+func expectedHeaderFields(with accessToken: AccessToken) -> [String: String] {
+    var fields = httpHeaderFields
+    fields["Authorization"] = accessToken.bearerToken
+    return fields
+}
