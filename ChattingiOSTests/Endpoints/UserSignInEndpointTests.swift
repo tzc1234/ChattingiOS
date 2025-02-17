@@ -17,7 +17,7 @@ final class UserSignInEndpointTests: XCTestCase {
         
         XCTAssertEqual(request.url, constants.url(lastPart: "login"))
         XCTAssertEqual(request.httpMethod, "POST")
-        XCTAssertEqual(request.allHTTPHeaderFields, expectedHeaderFields)
+        XCTAssertEqual(request.allHTTPHeaderFields, httpHeaderFields)
         assertBody(request.httpBody, asAttributesOf: params)
     }
     
@@ -25,13 +25,6 @@ final class UserSignInEndpointTests: XCTestCase {
     
     private var params: UserSignInParams {
         UserSignInParams(email: "any@email.com", password: "any-password")
-    }
-    
-    private var expectedHeaderFields: [String: String] {
-        [
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        ]
     }
     
     private func assertBody(_ data: Data?,
