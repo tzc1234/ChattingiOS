@@ -17,5 +17,10 @@ final class RefreshTokenEndpointTests: XCTestCase {
         let request = endpoint.request
         
         XCTAssertEqual(request.url, constants.url(lastPart: "refreshToken"))
+        XCTAssertEqual(request.httpMethod, "POST")
     }
+    
+    // MARK: - Helpers
+    
+    
 }
