@@ -33,7 +33,6 @@ final class GetContactsEndpointTests: XCTestCase {
         XCTAssertEqual(url.withoutQuery(), constants.url(lastPart: "contacts"))
         XCTAssertTrue(url.absoluteString.contains("before=\(params.before!.timeIntervalSince1970)"))
         XCTAssertTrue(url.absoluteString.contains("limit=\(params.limit!)"))
-        XCTAssertEqual(request.httpMethod, "GET")
     }
     
     func test_request_constructsRequestCorrectly() {
@@ -48,9 +47,7 @@ final class GetContactsEndpointTests: XCTestCase {
         XCTAssertNil(request.httpBody)
     }
     
-    // MARK: Helpers
-    
-    private var anyAccessToken: AccessToken { AccessToken(wrappedString: "any-token") }
+    // MARK: - Helpers
     
     private func expectedHeaderFields(with accessToken: AccessToken) -> [String: String] {
         var fields = httpHeaderFields

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+@testable import ChattingiOS
 
 var httpHeaderFields: [String: String] {
     [
@@ -13,3 +14,5 @@ var httpHeaderFields: [String: String] {
         "Content-Type": "application/json"
     ]
 }
+
+var anyAccessToken: AccessToken { AccessToken(wrappedString: "any-token") }
