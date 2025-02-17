@@ -23,4 +23,9 @@ extension APIConstants {
         let string = "\(scheme)://\(host):\(port!)\(apiPath)\(lastPart)"
         return URL(string: string)!
     }
+    
+    func webSocketURL(lastPart: String) -> URL {
+        let string = "\(webSocketScheme)://\(host):\(port!)\(apiPath)\(lastPart)"
+        return URL(string: string)!
+    }
 }
