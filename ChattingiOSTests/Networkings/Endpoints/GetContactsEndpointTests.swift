@@ -9,26 +9,26 @@ import XCTest
 @testable import ChattingiOS
 
 final class GetContactsEndpointTests: XCTestCase {
-    func test_request_constructsURLCorrectlyWithBeforeParam() {
+    func test_request_constructsURLCorrectlyWithBeforeParam() throws {
         let constants = APIConstants.test
         let params = GetContactsParams(before: .distantFuture)
         let endpoint = GetContactsEndpoint(apiConstants: constants, accessToken: anyAccessToken, params: params)
         
         let request = endpoint.request
-        let url = request.url!
+        let url = try XCTUnwrap(request.url)
         
         XCTAssertEqual(url.withoutQuery(), constants.url(lastPart: "contacts"))
         XCTAssertTrue(url.absoluteString.contains("before=\(params.before!.timeIntervalSince1970)"))
         XCTAssertFalse(url.absoluteString.contains("limit"))
     }
     
-    func test_request_constructsURLCorrectlyWithBeforeAndLimitParams() {
+    func test_request_constructsURLCorrectlyWithBeforeAndLimitParams() throws {
         let constants = APIConstants.test
         let params = GetContactsParams(before: .distantPast, limit: 99)
         let endpoint = GetContactsEndpoint(apiConstants: constants, accessToken: anyAccessToken, params: params)
         
         let request = endpoint.request
-        let url = request.url!
+        let url = try XCTUnwrap(request.url)
         
         XCTAssertEqual(url.withoutQuery(), constants.url(lastPart: "contacts"))
         XCTAssertTrue(url.absoluteString.contains("before=\(params.before!.timeIntervalSince1970)"))
