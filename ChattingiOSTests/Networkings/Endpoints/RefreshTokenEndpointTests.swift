@@ -18,9 +18,9 @@ final class RefreshTokenEndpointTests: XCTestCase {
         
         XCTAssertEqual(request.url, constants.url(lastPart: "refreshToken"))
         XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.allHTTPHeaderFields, httpHeaderFields)
     }
     
     // MARK: - Helpers
-    
     
 }
