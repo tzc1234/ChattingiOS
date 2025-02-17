@@ -39,6 +39,23 @@ final class GetMessagesEndpointTests: XCTestCase {
         XCTAssertTrue(url.absoluteString.contains("limit=\(limit)"))
     }
     
+    func test_request_constructsRequestCorrectly() {
+        let constants = APIConstants.test
+        let token = anyAccessToken
+        let params = GetMessagesParams(contactID: contactID, messageID: .after(messageID), limit: limit)
+        let endpoint = GetMessagesEndpoint(apiConstants: constants, accessToken: token, params: params)
+        
+        let request = endpoint.request
+        let url = request.url!
+        
+        XCTAssertFalse(url.absoluteString.contains("before_message_id="))
+        XCTAssertTrue(url.absoluteString.contains("after_message_id=\(messageID)"))
+        XCTAssertTrue(url.absoluteString.contains("limit=\(limit)"))
+        XCTAssertEqual(request.httpMethod, "GET")
+        XCTAssertEqual(request.allHTTPHeaderFields, expectedHeaderFields(with: token))
+        XCTAssertNil(request.httpBody)
+    }
+    
     // MARK: - Helpers
     
     private var contactID: Int { 1 }
