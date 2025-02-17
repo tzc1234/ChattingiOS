@@ -22,6 +22,22 @@ final class UserSignUpEndpointTests: XCTestCase {
         try assertBody(request.httpBody, with: params)
     }
     
+    func test_request_constructsRequestCorrectlyWithAvatar() throws {
+        let constants = APIConstants.test
+        let avatar = AvatarParams(data: Data("any-avatar".utf8), fileType: "anyType")
+        let params = UserSignUpParams(
+            name: "any name",
+            email: "any@email.com",
+            password: "any-password",
+            avatar: avatar
+        )
+        let endpoint = UserSignUpEndpoint(apiConstants: constants, boundary: boundary, params: params)
+        
+        let request = endpoint.request
+        
+        try assertBody(request.httpBody, with: params)
+    }
+    
     // MARK: - Helpers
     
     private let boundary = UUID().uuidString
@@ -43,6 +59,9 @@ final class UserSignUpEndpointTests: XCTestCase {
         body = checkAndRemoveFirst(content(name: "name", value: params.name), in: body, file: file, line: line)
         body = checkAndRemoveFirst(content(name: "email", value: params.email), in: body, file: file, line: line)
         body = checkAndRemoveFirst(content(name: "password", value: params.password), in: body, file: file, line: line)
+        if let avatar = params.avatar {
+            body = checkAndRemoveFirst(avatarContent(from: avatar), in: body, file: file, line: line)
+        }
         body = checkAndRemoveFirst("--\(boundary)--\r\n", in: body, file: file, line: line)
         XCTAssertTrue(body.isEmpty, file: file, line: line)
     }
@@ -57,5 +76,12 @@ final class UserSignUpEndpointTests: XCTestCase {
     
     private func content(name: String, value: String) -> String {
         "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\n\r\n\(value)\r\n"
+    }
+    
+    private func avatarContent(from params: AvatarParams) -> String {
+        "--\(boundary)\r\n" +
+            "Content-Disposition: form-data; name=\"avatar\"; filename=\"avatar.\(params.fileType)\"\r\n" +
+            "Content-Type: image/\(params.fileType)\r\n\r\n" +
+            "\(String(data: params.data, encoding: .utf8)!)\r\n"
     }
 }
