@@ -11,9 +11,13 @@ import XCTest
 final class NewContactEndpointTests: XCTestCase {
     func test_request_constructsRequestCorrectly() throws {
         let constants = APIConstants.test
-        let token = anyAccessToken
+        let token = "any-token"
         let email = "any@email.com"
-        let endpoint = NewContactEndpoint(apiConstants: constants, accessToken: token, responderEmail: email)
+        let endpoint = NewContactEndpoint(
+            apiConstants: constants,
+            accessToken: AccessToken(wrappedString: token),
+            responderEmail: email
+        )
         
         let request = endpoint.request
         

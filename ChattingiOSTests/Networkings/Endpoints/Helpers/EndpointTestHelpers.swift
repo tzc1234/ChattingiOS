@@ -15,17 +15,10 @@ var httpHeaderFields: [String: String] {
     ]
 }
 
-var anyAccessToken: AccessToken { AccessToken(wrappedString: "any-token") }
-
-func expectedHeaderFields(with accessToken: AccessToken,
+func expectedHeaderFields(with token: String,
                           file: StaticString = #filePath,
                           line: UInt = #line) -> [String: String] {
-    guard !accessToken.bearerToken.isEmpty else {
-        XCTFail("Bearer access token should not be empty", file: file, line: line)
-        return [:]
-    }
-    
     var fields = httpHeaderFields
-    fields["Authorization"] = accessToken.bearerToken
+    fields["Authorization"] = "Bearer \(token)"
     return fields
 }

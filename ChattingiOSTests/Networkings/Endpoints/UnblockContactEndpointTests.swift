@@ -11,9 +11,13 @@ import XCTest
 final class UnblockContactEndpointTests: XCTestCase {
     func test_request_constructsRequestCorrectly() {
         let constants = APIConstants.test
-        let token = anyAccessToken
+        let token = "any-token"
         let contactID = 99
-        let endpoint = UnblockContactEndpoint(apiConstants: constants, accessToken: token, contactID: contactID)
+        let endpoint = UnblockContactEndpoint(
+            apiConstants: constants,
+            accessToken: AccessToken(wrappedString: token),
+            contactID: contactID
+        )
         
         let request = endpoint.request
         

@@ -11,11 +11,15 @@ import XCTest
 final class ReadMessagesEndpointTests: XCTestCase {
     func test_request_constructsRequestCorrectly() throws {
         let constants = APIConstants.test
-        let token = anyAccessToken
+        let token = "any-token"
         let contactID = 55
         let messageID = 99
         let params = ReadMessagesParams(contactID: contactID, untilMessageID: messageID)
-        let endpoint = ReadMessagesEndpoint(apiConstants: constants, accessToken: token, params: params)
+        let endpoint = ReadMessagesEndpoint(
+            apiConstants: constants,
+            accessToken: AccessToken(wrappedString: token),
+            params: params
+        )
         
         let request = endpoint.request
         

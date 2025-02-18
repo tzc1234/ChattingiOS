@@ -11,9 +11,13 @@ import XCTest
 final class GetMessagesEndpointTests: XCTestCase {
     func test_request_constructsURLCorrectlyWithMessageID() throws {
         let constants = APIConstants.test
-        let token = anyAccessToken
+        let token = "any-token"
         let params = GetMessagesParams(contactID: contactID, messageID: .before(messageID))
-        let endpoint = GetMessagesEndpoint(apiConstants: constants, accessToken: token, params: params)
+        let endpoint = GetMessagesEndpoint(
+            apiConstants: constants,
+            accessToken: AccessToken(wrappedString: token),
+            params: params
+        )
         
         let request = endpoint.request
         let url = try XCTUnwrap(request.url)
@@ -26,9 +30,13 @@ final class GetMessagesEndpointTests: XCTestCase {
     
     func test_request_constructsURLCorrectlyWithLimit() throws {
         let constants = APIConstants.test
-        let token = anyAccessToken
+        let token = "any-token"
         let params = GetMessagesParams(contactID: contactID, limit: limit)
-        let endpoint = GetMessagesEndpoint(apiConstants: constants, accessToken: token, params: params)
+        let endpoint = GetMessagesEndpoint(
+            apiConstants: constants,
+            accessToken: AccessToken(wrappedString: token),
+            params: params
+        )
         
         let request = endpoint.request
         let url = try XCTUnwrap(request.url)
@@ -41,9 +49,13 @@ final class GetMessagesEndpointTests: XCTestCase {
     
     func test_request_constructsRequestCorrectly() throws {
         let constants = APIConstants.test
-        let token = anyAccessToken
+        let token = "any-token"
         let params = GetMessagesParams(contactID: contactID, messageID: .after(messageID), limit: limit)
-        let endpoint = GetMessagesEndpoint(apiConstants: constants, accessToken: token, params: params)
+        let endpoint = GetMessagesEndpoint(
+            apiConstants: constants,
+            accessToken: AccessToken(wrappedString: token),
+            params: params
+        )
         
         let request = endpoint.request
         let url = try XCTUnwrap(request.url)
