@@ -281,9 +281,6 @@ final class MessageChannelTests: XCTestCase {
         private var webSocketErrorStubs: [WebSocketError]
         private var messageDataStubs: [Data]
         
-        let outputStream: AsyncThrowingStream<Data, Error>
-        private let continuation: AsyncThrowingStream<Data, Error>.Continuation
-        
         init(sendTextStub: Result<Void, Error>,
              closeStub: Result<Void, Error>,
              webSocketErrorStubs: [WebSocketError],
@@ -292,7 +289,6 @@ final class MessageChannelTests: XCTestCase {
             self.closeStub = closeStub
             self.webSocketErrorStubs = webSocketErrorStubs
             self.messageDataStubs = messageDataStubs
-            (self.outputStream, self.continuation) = AsyncThrowingStream.makeStream()
         }
         
         func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {

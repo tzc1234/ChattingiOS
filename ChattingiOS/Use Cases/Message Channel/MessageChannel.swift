@@ -27,7 +27,6 @@ protocol MessageChannelConnection: Sendable {
     typealias ErrorObserver = @Sendable (MessageChannelConnectionError) async -> Void
     
     var messageStream: AsyncThrowingStream<Message, Error> { get }
-    func start(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async
     func send(text: String) async throws
     func close() async throws
 }

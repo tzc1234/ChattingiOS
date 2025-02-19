@@ -49,19 +49,6 @@ actor DefaultMessageChannel: MessageChannel {
             }
         }
         
-        func start(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async {
-            await webSocket.setObservers { data in
-                do {
-                    let message = try MessageChannelReceivedMessageMapper.map(data)
-                    await messageObserver?(message)
-                } catch {
-                    await errorObserver?(.unsupportedData)
-                }
-            } errorObserver: { error in
-                await errorObserver?(error.toMessageChannelError)
-            }
-        }
-        
         func send(text: String) async throws {
             let data = try MessageChannelSentTextMapper.map(text)
             try await webSocket.send(data: data)
