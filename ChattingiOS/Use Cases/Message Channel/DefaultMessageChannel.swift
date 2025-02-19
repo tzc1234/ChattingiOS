@@ -33,10 +33,8 @@ actor DefaultMessageChannel: MessageChannel {
                         for try await data in webSocket.outputStream {
                             continuation.yield(try MessageChannelReceivedMessageMapper.map(data))
                         }
-                    } catch WebSocketError.disconnected {
-                        continuation.finish()
                     } catch let error as WebSocketError {
-                        continuation.finish(throwing: error.toMessageChannelError)
+                        continuation.finish(throwing: error.toMessageChannelConnectionError)
                     } catch {
                         continuation.finish(throwing: MessageChannelConnectionError.unsupportedData)
                     }
@@ -97,10 +95,10 @@ private extension WebSocketClientError {
 }
 
 private extension WebSocketError {
-    var toMessageChannelError: MessageChannelConnectionError {
+    var toMessageChannelConnectionError: MessageChannelConnectionError? {
         switch self {
         case .disconnected:
-            .disconnected
+            .none
         case .unsupportedData:
             .unsupportedData
         case .other(let error):
