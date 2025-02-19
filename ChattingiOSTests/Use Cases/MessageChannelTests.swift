@@ -86,7 +86,7 @@ final class MessageChannelTests: XCTestCase {
         
         try await connection.send(text: text)
         
-        XCTAssertEqual(webSocket.loggedActions, [.sendText(text.toData())])
+        XCTAssertEqual(webSocket.loggedActions, [.sendText(text.toData)])
     }
     
     func test_close_deliversErrorOnWebSocketError() async throws {
@@ -105,25 +105,30 @@ final class MessageChannelTests: XCTestCase {
         XCTAssertEqual(webSocket.loggedActions, [.close])
     }
     
-    func test_messageStream_deliversErrorOnWebSocketError() async throws {
-        let errors: [(webSocketError: WebSocketError, connectionError: MessageChannelConnectionError)] = [
-            (.unsupportedData, .unsupportedData),
-            (.other(anyNSError()), .other(anyNSError()))
-        ]
-        let (connection, _) = try await establishConnection(webSocketErrorStubs: errors.map(\.webSocketError))
+    func test_messageStream_deliversUnsupportedDataErrorOnUnsupportedData() async throws {
+        let (connection, _) = try await establishConnection(webSocketErrorStub: .unsupportedData)
         
-        for error in errors {
-            do {
-                for try await _ in connection.messageStream {}
-                XCTFail("Should not succeed")
-            } catch let receivedError as MessageChannelConnectionError {
-                assertMessageChannelConnectionError(receivedError, as: error.connectionError)
-            }
+        do {
+            for try await _ in connection.messageStream {}
+            XCTFail("Should not succeed")
+        } catch let receivedError as MessageChannelConnectionError {
+            assertMessageChannelConnectionError(receivedError as MessageChannelConnectionError, as: .unsupportedData)
+        }
+    }
+    
+    func test_messageStream_deliversOtherErrorOnOtherError() async throws {
+        let (connection, _) = try await establishConnection(webSocketErrorStub: .other(anyNSError()))
+        
+        do {
+            for try await _ in connection.messageStream {}
+            XCTFail("Should not succeed")
+        } catch let receivedError as MessageChannelConnectionError {
+            assertMessageChannelConnectionError(receivedError as MessageChannelConnectionError, as: .other(anyNSError()))
         }
     }
     
     func test_messageStream_finishesOnDisconnectedError() async throws {
-        let (connection, _) = try await establishConnection(webSocketErrorStubs: [.disconnected])
+        let (connection, _) = try await establishConnection(webSocketErrorStub: .disconnected)
         
         do {
             for try await _ in connection.messageStream {}
@@ -182,7 +187,7 @@ final class MessageChannelTests: XCTestCase {
     
     private func establishConnection(sendTextStub: Result<Void, Error> = .success(()),
                                      closeStub: Result<Void, Error> = .success(()),
-                                     webSocketErrorStubs: [WebSocketError] = [],
+                                     webSocketErrorStub: WebSocketError? = nil,
                                      messageDataStubs: [Data] = [],
                                      file: StaticString = #filePath,
                                      line: UInt = #line) async throws -> (connection: MessageChannelConnection,
@@ -190,7 +195,7 @@ final class MessageChannelTests: XCTestCase {
         let spy = WebSocketSpy(
             sendTextStub: sendTextStub,
             closeStub: closeStub,
-            webSocketErrorStubs: webSocketErrorStubs,
+            webSocketErrorStub: webSocketErrorStub,
             messageDataStubs: messageDataStubs
         )
         let (sut, _) = makeSUT(stubs: [.success(spy)], file: file, line: line)
@@ -230,8 +235,7 @@ final class MessageChannelTests: XCTestCase {
                                                      file: StaticString = #filePath,
                                                      line: UInt = #line) {
         switch (error, expectedError) {
-        case (.disconnected, .disconnected),
-            (.unsupportedData, .unsupportedData):
+        case (.unsupportedData, .unsupportedData):
             break
         case let (.other(receivedNSError as NSError), .other(expectedNSError as NSError)):
             XCTAssertEqual(receivedNSError, expectedNSError, file: file, line: line)
@@ -278,17 +282,21 @@ final class MessageChannelTests: XCTestCase {
         
         private let sendTextStub: Result<Void, Error>
         private let closeStub: Result<Void, Error>
-        private var webSocketErrorStubs: [WebSocketError]
+        private let webSocketErrorStub: WebSocketError?
         private var messageDataStubs: [Data]
+        
+        nonisolated let outputStream: AsyncThrowingStream<Data, Error>
+        private let continuation: AsyncThrowingStream<Data, Error>.Continuation
         
         init(sendTextStub: Result<Void, Error>,
              closeStub: Result<Void, Error>,
-             webSocketErrorStubs: [WebSocketError],
+             webSocketErrorStub: WebSocketError?,
              messageDataStubs: [Data]) {
             self.sendTextStub = sendTextStub
             self.closeStub = closeStub
-            self.webSocketErrorStubs = webSocketErrorStubs
+            self.webSocketErrorStub = webSocketErrorStub
             self.messageDataStubs = messageDataStubs
+            (self.outputStream, self.continuation) = AsyncThrowingStream.makeStream()
         }
         
         func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
@@ -299,8 +307,21 @@ final class MessageChannelTests: XCTestCase {
                 await errorObserver?(WebSocketError.disconnected)
             }
             
-            if !webSocketErrorStubs.isEmpty {
-                await errorObserver?(webSocketErrorStubs.removeFirst())
+            if let webSocketErrorStub {
+                await errorObserver?(webSocketErrorStub)
+            }
+        }
+        
+        func start() async {
+            if !messageDataStubs.isEmpty {
+                for stub in messageDataStubs {
+                    continuation.yield(stub)
+                }
+                continuation.finish(throwing: WebSocketError.disconnected)
+            }
+            
+            if let webSocketErrorStub {
+                continuation.finish(throwing: webSocketErrorStub)
             }
         }
         
@@ -321,7 +342,7 @@ private extension String {
         let text: String
     }
     
-    func toData() -> Data {
+    var toData: Data {
         try! JSONEncoder().encode(TextSent(text: self))
     }
 }

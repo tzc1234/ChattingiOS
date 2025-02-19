@@ -16,15 +16,18 @@ actor DefaultWebSocket: WebSocket {
     private var errorObserver: ErrorObserver?
     
     private let asyncChannel: AsyncChannel
+    let outputStream: AsyncThrowingStream<Data, Error>
+    private let continuation: AsyncThrowingStream<Data, Error>.Continuation
     
     init(asyncChannel: AsyncChannel) {
         self.asyncChannel = asyncChannel
+        (self.outputStream, self.continuation) = AsyncThrowingStream.makeStream()
     }
     
     func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
         self.dataObserver = dataObserver
         self.errorObserver = errorObserver
-        await handleChannel()
+        await start()
     }
     
     func close() async throws {
@@ -56,7 +59,7 @@ actor DefaultWebSocket: WebSocket {
         try await channel.writeAndFlush(frame)
     }
     
-    private func handleChannel() async {
+    func start() async {
         do {
             try await asyncChannel.executeThenClose { [weak self] inbound in
                 for try await frame in inbound {
@@ -69,6 +72,7 @@ actor DefaultWebSocket: WebSocket {
             }
         } catch {
             await errorObserver?(.other(error))
+            continuation.finish(throwing: WebSocketError.other(error))
         }
     }
     
@@ -76,15 +80,19 @@ actor DefaultWebSocket: WebSocket {
         switch frame.opcode {
         case .binary:
             await dataObserver?(frame.toData)
+            continuation.yield(frame.toData)
         case .connectionClose:
             await errorObserver?(.disconnected)
+            continuation.finish(throwing: WebSocketError.disconnected)
         case .ping, .pong:
             break
         case .continuation, .text:
             await errorObserver?(.unsupportedData)
+            continuation.finish(throwing: WebSocketError.unsupportedData)
         default:
             try await sendClose(code: .unacceptableData)
             await errorObserver?(.unsupportedData)
+            continuation.finish(throwing: WebSocketError.unsupportedData)
         }
     }
 }
