@@ -23,10 +23,8 @@ enum MessageChannelError: Error {
 }
 
 protocol MessageChannelConnection: Sendable {
-    typealias MessageObserver = @Sendable (Message) async -> Void
-    typealias ErrorObserver = @Sendable (MessageChannelConnectionError) async -> Void
-    
     var messageStream: AsyncThrowingStream<Message, Error> { get }
+    
     func send(text: String) async throws
     func close() async throws
 }

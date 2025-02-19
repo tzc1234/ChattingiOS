@@ -299,19 +299,6 @@ final class MessageChannelTests: XCTestCase {
             (self.outputStream, self.continuation) = AsyncThrowingStream.makeStream()
         }
         
-        func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
-            if !messageDataStubs.isEmpty {
-                for stub in messageDataStubs {
-                    await dataObserver?(stub)
-                }
-                await errorObserver?(WebSocketError.disconnected)
-            }
-            
-            if let webSocketErrorStub {
-                await errorObserver?(webSocketErrorStub)
-            }
-        }
-        
         func start() async {
             if !messageDataStubs.isEmpty {
                 for stub in messageDataStubs {
