@@ -84,6 +84,7 @@ actor DefaultWebSocket: WebSocket {
             await errorObserver?(.unsupportedData)
         default:
             try await sendClose(code: .unacceptableData)
+            await errorObserver?(.unsupportedData)
         }
     }
 }

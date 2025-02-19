@@ -105,36 +105,49 @@ final class MessageChannelTests: XCTestCase {
         XCTAssertEqual(webSocket.loggedActions, [.close])
     }
     
-    func test_errorObserver_deliversErrorOnWebSocketError() async throws {
-        let errors: [(webSocket: WebSocketError, connection: MessageChannelConnectionError)] = [
-            (.disconnected, .disconnected),
+    func test_messageStream_deliversErrorOnWebSocketError() async throws {
+        let errors: [(webSocketError: WebSocketError, connectionError: MessageChannelConnectionError)] = [
             (.unsupportedData, .unsupportedData),
             (.other(anyNSError()), .other(anyNSError()))
         ]
-        let (connection, _) = try await establishConnection(webSocketErrorStubs: errors.map(\.webSocket))
+        let (connection, _) = try await establishConnection(webSocketErrorStubs: errors.map(\.webSocketError))
         
         for error in errors {
-            await connection.start(messageObserver: nil) { receivedError in
-                await Self.assertMessageChannelConnectionError(receivedError, as: error.connection)
+            do {
+                for try await _ in connection.messageStream {}
+                XCTFail("Should not succeed")
+            } catch let receivedError as MessageChannelConnectionError {
+                assertMessageChannelConnectionError(receivedError, as: error.connectionError)
             }
         }
     }
     
-    func test_messageObserver_deliversUnsupportedDataOnReceivedWebSocketInvalidData() async throws {
+    func test_messageStream_finishesOnDisconnectedError() async throws {
+        let (connection, _) = try await establishConnection(webSocketErrorStubs: [.disconnected])
+        
+        do {
+            for try await _ in connection.messageStream {}
+        } catch {
+            XCTFail("Should not fail")
+        }
+    }
+    
+    func test_messageStream_deliversUnsupportedDataOnReceivedWebSocketInvalidData() async throws {
         let invalidData = Data("invalid".utf8)
         let (connection, _) = try await establishConnection(messageDataStubs: [invalidData])
         let logger = MessagesLogger()
         
-        await connection.start(messageObserver: { message in
-            await logger.append(message)
-        }, errorObserver: { error in
-            await Self.assertMessageChannelConnectionError(error, as: .unsupportedData)
-        })
-        
+        do {
+            for try await message in connection.messageStream {
+                logger.append(message)
+            }
+        } catch let receivedError as MessageChannelConnectionError {
+            assertMessageChannelConnectionError(receivedError, as: .unsupportedData)
+        }
         XCTAssertTrue(logger.messages.isEmpty)
     }
     
-    func test_messageObserver_deliversMessageFromWebSocketSuccessfully() async throws {
+    func test_messageStream_deliversMessageFromWebSocketSuccessfully() async throws {
         let messages = [
             Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture),
             Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast),
@@ -143,12 +156,13 @@ final class MessageChannelTests: XCTestCase {
         let (connection, _) = try await establishConnection(messageDataStubs: messages.map(\.toData))
         let logger = MessagesLogger()
         
-        for _ in messages {
-            await connection.start(messageObserver: { message in
-                await logger.append(message)
-            }, errorObserver: nil)
+        do {
+            for try await message in connection.messageStream {
+                logger.append(message)
+            }
+        } catch {
+            XCTFail("Should not fail")
         }
-        
         XCTAssertEqual(logger.messages, messages)
     }
     
@@ -211,10 +225,10 @@ final class MessageChannelTests: XCTestCase {
         }
     }
     
-    private static func assertMessageChannelConnectionError(_ error: MessageChannelConnectionError,
-                                                            as expectedError: MessageChannelConnectionError,
-                                                            file: StaticString = #filePath,
-                                                            line: UInt = #line) {
+    private func assertMessageChannelConnectionError(_ error: MessageChannelConnectionError,
+                                                     as expectedError: MessageChannelConnectionError,
+                                                     file: StaticString = #filePath,
+                                                     line: UInt = #line) {
         switch (error, expectedError) {
         case (.disconnected, .disconnected),
             (.unsupportedData, .unsupportedData):
@@ -267,6 +281,9 @@ final class MessageChannelTests: XCTestCase {
         private var webSocketErrorStubs: [WebSocketError]
         private var messageDataStubs: [Data]
         
+        let outputStream: AsyncThrowingStream<Data, Error>
+        private let continuation: AsyncThrowingStream<Data, Error>.Continuation
+        
         init(sendTextStub: Result<Void, Error>,
              closeStub: Result<Void, Error>,
              webSocketErrorStubs: [WebSocketError],
@@ -275,11 +292,15 @@ final class MessageChannelTests: XCTestCase {
             self.closeStub = closeStub
             self.webSocketErrorStubs = webSocketErrorStubs
             self.messageDataStubs = messageDataStubs
+            (self.outputStream, self.continuation) = AsyncThrowingStream.makeStream()
         }
         
         func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
             if !messageDataStubs.isEmpty {
-                await dataObserver?(messageDataStubs.removeFirst())
+                for stub in messageDataStubs {
+                    await dataObserver?(stub)
+                }
+                await errorObserver?(WebSocketError.disconnected)
             }
             
             if !webSocketErrorStubs.isEmpty {

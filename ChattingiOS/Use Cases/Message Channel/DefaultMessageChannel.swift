@@ -23,6 +23,32 @@ actor DefaultMessageChannel: MessageChannel {
             self.webSocket = webSocket
         }
         
+        var messageStream: AsyncThrowingStream<Message, Error> {
+            AsyncThrowingStream { continuation in
+                let task = Task {
+                    await webSocket.setObservers { data in
+                        do {
+                            let message = try MessageChannelReceivedMessageMapper.map(data)
+                            continuation.yield(message)
+                        } catch {
+                            continuation.finish(throwing: MessageChannelConnectionError.unsupportedData)
+                        }
+                    } errorObserver: { error in
+                        switch error {
+                        case .disconnected:
+                            continuation.finish()
+                        case .unsupportedData, .other:
+                            continuation.finish(throwing: error.toMessageChannelError)
+                        }
+                    }
+                }
+                
+                continuation.onTermination = { _ in
+                    task.cancel()
+                }
+            }
+        }
+        
         func start(messageObserver: MessageObserver?, errorObserver: ErrorObserver?) async {
             await webSocket.setObservers { data in
                 do {
