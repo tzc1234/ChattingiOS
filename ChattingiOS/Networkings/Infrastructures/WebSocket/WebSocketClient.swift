@@ -21,10 +21,9 @@ enum WebSocketClientError: Error {
 }
 
 protocol WebSocket: Sendable {
-    typealias DataObserver = @Sendable (Data) async -> Void
-    typealias ErrorObserver = @Sendable (WebSocketError) async -> Void
+    var outputStream: AsyncThrowingStream<Data, Error> { get }
     
-    func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async
+    func start() async
     func send(data: Data) async throws
     func close() async throws
 }

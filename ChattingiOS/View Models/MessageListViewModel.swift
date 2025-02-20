@@ -123,10 +123,13 @@ final class MessageListViewModel: ObservableObject {
         do {
             let connection = try await messageChannel.establish(for: contactID)
             self.connection = connection
-            await connection.start { [weak self] message in
-                await self?.appendNewMessage(message)
-            } errorObserver: { error in
-                print("error received: \(error)")
+            
+            do {
+                for try await message in connection.messageStream {
+                    appendNewMessage(message)
+                }
+            } catch {
+                print("Message channel error received: \(error)")
             }
         } catch {
             generalError = error.toGeneralErrorMessage

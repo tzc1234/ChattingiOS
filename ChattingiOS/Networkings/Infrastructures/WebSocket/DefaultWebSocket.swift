@@ -12,19 +12,14 @@ import NIOFoundationCompat
 
 actor DefaultWebSocket: WebSocket {
     private var channel: Channel { asyncChannel.channel }
-    private var dataObserver: DataObserver?
-    private var errorObserver: ErrorObserver?
     
     private let asyncChannel: AsyncChannel
+    let outputStream: AsyncThrowingStream<Data, Error>
+    private let continuation: AsyncThrowingStream<Data, Error>.Continuation
     
     init(asyncChannel: AsyncChannel) {
         self.asyncChannel = asyncChannel
-    }
-    
-    func setObservers(dataObserver: DataObserver?, errorObserver: ErrorObserver?) async {
-        self.dataObserver = dataObserver
-        self.errorObserver = errorObserver
-        await handleChannel()
+        (self.outputStream, self.continuation) = AsyncThrowingStream.makeStream()
     }
     
     func close() async throws {
@@ -56,7 +51,7 @@ actor DefaultWebSocket: WebSocket {
         try await channel.writeAndFlush(frame)
     }
     
-    private func handleChannel() async {
+    func start() async {
         do {
             try await asyncChannel.executeThenClose { [weak self] inbound in
                 for try await frame in inbound {
@@ -68,21 +63,22 @@ actor DefaultWebSocket: WebSocket {
                 }
             }
         } catch {
-            await errorObserver?(.other(error))
+            continuation.finish(throwing: WebSocketError.other(error))
         }
     }
     
     private func handleFrame(_ frame: WebSocketFrame) async throws {
         switch frame.opcode {
         case .binary:
-            await dataObserver?(frame.toData)
+            continuation.yield(frame.toData)
         case .connectionClose:
-            await errorObserver?(.disconnected)
+            continuation.finish(throwing: WebSocketError.disconnected)
         case .ping, .pong:
             break
         case .continuation, .text:
-            await errorObserver?(.unsupportedData)
+            fallthrough
         default:
+            continuation.finish(throwing: WebSocketError.unsupportedData)
             try await sendClose(code: .unacceptableData)
         }
     }
