@@ -76,8 +76,7 @@ actor DefaultWebSocket: WebSocket {
         case .ping, .pong:
             break
         case .continuation, .text:
-            continuation.finish(throwing: WebSocketError.unsupportedData)
-            try await sendClose(code: .unacceptableData)
+            fallthrough
         default:
             continuation.finish(throwing: WebSocketError.unsupportedData)
             try await sendClose(code: .unacceptableData)
