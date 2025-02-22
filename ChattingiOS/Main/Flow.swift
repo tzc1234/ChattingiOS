@@ -32,7 +32,7 @@ final class Flow {
             await currentUserVault.observe { [contentViewModel] currentUser in
                 await contentViewModel.set(user: currentUser?.user)
             }
-            await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer.
+            await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
             
             withAnimation {
                 contentViewModel.isLoading = false

@@ -19,7 +19,7 @@ final class ContentViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var generalError: String?
     @Published var showSheet = false
-    private(set) var signOutReason = SignOutReason.none
+    private(set) var signOutReason: SignOutReason = .none
     
     func set(user: User?) {
         if user != nil {
