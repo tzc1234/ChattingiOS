@@ -27,16 +27,14 @@ final class Flow {
         contentViewModel.isLoading = true
         
         Task {
-            try? await Task.sleep(for: .seconds(0.2)) // Show loading view a bit smoother.
-            
             await currentUserVault.observe { [contentViewModel] currentUser in
-                await contentViewModel.set(user: currentUser?.user)
+                guard let user = currentUser?.user else { return }
+                
+                await contentViewModel.set(signInState: .signedIn(user))
             }
             await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
             
-            withAnimation {
-                contentViewModel.isLoading = false
-            }
+            withAnimation { contentViewModel.isLoading = false }
         }
     }
     
@@ -91,8 +89,10 @@ final class Flow {
     
     private func profileView(user: User) -> ProfileView {
         ProfileView(user: user, signOutTapped: { [unowned self] in
-            contentViewModel.set(signOutReason: .userInitiated)
-            Task { try? await currentUserVault.deleteCurrentUser() }
+            Task {
+                try? await currentUserVault.deleteCurrentUser()
+                await contentViewModel.set(signInState: .userInitiatedSignOut)
+            }
         })
     }
     

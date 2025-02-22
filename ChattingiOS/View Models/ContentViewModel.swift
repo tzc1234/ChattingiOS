@@ -9,33 +9,35 @@ import SwiftUI
 
 @MainActor
 final class ContentViewModel: ObservableObject {
-    enum SignOutReason {
-        case none
-        case userInitiated
-        case refreshTokenFailed
+    enum SignInState {
+        case signedIn(User)
+        case userInitiatedSignOut
+        case tokenInvalid
     }
     
     @Published private(set) var user: User?
     @Published var isLoading = false
     @Published var generalError: String?
     @Published var showSheet = false
-    private(set) var signOutReason: SignOutReason = .none
     
-    func set(user: User?) {
-        if user != nil {
-            signOutReason = .none
+    func set(signInState: SignInState) async {
+        switch signInState {
+        case let .signedIn(user):
+            await set(user: user)
+        case .userInitiatedSignOut:
+            await set(user: nil)
+        case .tokenInvalid:
+            await set(user: nil)
+            generalError = .pleaseSignInAgain
         }
-        
-        withAnimation {
-            self.user = user
-        }
     }
     
-    func set(signOutReason: SignOutReason) {
-        self.signOutReason = signOutReason
+    private func set(user: User?) async {
+        withAnimation { self.user = user }
+        try? await Task.sleep(for: .seconds(0.5))
     }
-    
-    func set(generalError: String?) {
-        self.generalError = generalError
-    }
+}
+
+private extension String {
+    static var pleaseSignInAgain: String { "Issue occurred, please sign in again." }
 }

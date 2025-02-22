@@ -17,7 +17,7 @@ enum MessageChannelError: Error {
     case notFound
     case forbidden
     case unknown
-    case userInitiateSignOut
+    case accessTokenNotFound
     case requestCreationFailed
     case other(Error)
 }

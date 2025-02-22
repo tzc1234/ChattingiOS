@@ -45,7 +45,7 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
     
     private func refreshToken() async throws -> String {
         guard let currentUser = await currentUserVault.retrieveCurrentUser() else {
-            await gotoSignInPage()
+            await gotoSignIn()
             throw Error.refreshTokenFailed
         }
         
@@ -54,15 +54,13 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
             try await currentUserVault.saveCurrentUser(user: currentUser.user, token: token)
             return token.accessToken.bearerToken
         } catch {
-            await gotoSignInPage()
+            await gotoSignIn()
             throw Error.refreshTokenFailed
         }
     }
     
-    private func gotoSignInPage() async {
+    private func gotoSignIn() async {
         try? await currentUserVault.deleteCurrentUser()
-        try? await Task.sleep(for: .seconds(0.35))
-        await contentViewModel.set(signOutReason: .refreshTokenFailed)
-        await contentViewModel.set(generalError: .tokenExpired)
+        await contentViewModel.set(signInState: .tokenInvalid)
     }
 }

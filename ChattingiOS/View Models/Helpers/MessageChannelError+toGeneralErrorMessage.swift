@@ -16,7 +16,7 @@ extension MessageChannelError {
             "Unauthorized user."
         case .notFound:
             "Contact not found."
-        case .forbidden, .userInitiateSignOut:
+        case .forbidden, .accessTokenNotFound:
             nil
         case .requestCreationFailed:
             "Cannot make a request."

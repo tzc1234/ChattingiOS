@@ -12,7 +12,7 @@ enum UseCaseError: Error, Equatable {
     case invalidData
     case connectivity
     case requestCreationFailed
-    case userInitiateSignOut
+    case accessTokenNotFound
     case saveCurrentUserFailed
 }
 

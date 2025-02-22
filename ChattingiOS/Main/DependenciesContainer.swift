@@ -50,15 +50,9 @@ final class DependenciesContainer {
     }
     
     private var accessToken: (@Sendable () async throws -> AccessToken) {
-        { [currentUserVault, contentViewModel] in
+        { [currentUserVault] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
-                if await contentViewModel.signOutReason == .userInitiated {
-                    throw UseCaseError.userInitiateSignOut
-                }
-                
-                try? await Task.sleep(for: .seconds(0.35))
-                await contentViewModel.set(generalError: .pleaseSignInMessage)
-                throw UseCaseError.requestCreationFailed
+                throw UseCaseError.accessTokenNotFound
             }
             
             return accessToken
@@ -76,15 +70,9 @@ final class DependenciesContainer {
     }
     
     private var messageChannelAccessToken: (@Sendable () async throws -> AccessToken) {
-        { [currentUserVault, contentViewModel] in
+        { [currentUserVault] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
-                if await contentViewModel.signOutReason == .userInitiated {
-                    throw MessageChannelError.userInitiateSignOut
-                }
-                
-                try? await Task.sleep(for: .seconds(0.35))
-                await contentViewModel.set(generalError: .pleaseSignInMessage)
-                throw MessageChannelError.requestCreationFailed
+                throw MessageChannelError.accessTokenNotFound
             }
             
             return accessToken
