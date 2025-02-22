@@ -22,10 +22,4 @@ extension ResponseMapper {
     }
     
     private static var defaultErrorReason: String { "Internal server error." }
-    
-    static var decoder: JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return decoder
-    }
 }

@@ -17,6 +17,12 @@ enum GeneralResponseMapper<R: Response>: ResponseMapper {
         
         return response.toModel
     }
+    
+    private static var decoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
 }
 
 typealias MessagesResponseMapper = GeneralResponseMapper<MessagesResponse>
