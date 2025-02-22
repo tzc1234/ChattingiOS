@@ -9,20 +9,30 @@ import SwiftUI
 
 @MainActor
 final class ContentViewModel: ObservableObject {
+    enum SignOutReason {
+        case none
+        case userInitiated
+        case refreshTokenFailed
+    }
+    
     @Published private(set) var user: User?
     @Published var isLoading = false
     @Published var generalError: String?
     @Published var showSheet = false
-    var isUserInitiateSignOut = false
+    private(set) var signOutReason = SignOutReason.none
     
     func set(user: User?) {
         if user != nil {
-            isUserInitiateSignOut = false
+            signOutReason = .none
         }
         
         withAnimation {
             self.user = user
         }
+    }
+    
+    func set(signOutReason: SignOutReason) {
+        self.signOutReason = signOutReason
     }
     
     func set(generalError: String?) {

@@ -11,11 +11,16 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
     private let decoratee: HTTPClient
     private let refreshToken: RefreshToken
     private let currentUserVault: CurrentUserVault
+    private let contentViewModel: ContentViewModel
     
-    init(decoratee: HTTPClient, refreshToken: RefreshToken, currentUserVault: CurrentUserVault) {
+    init(decoratee: HTTPClient,
+         refreshToken: RefreshToken,
+         currentUserVault: CurrentUserVault,
+         contentViewModel: ContentViewModel) {
         self.decoratee = decoratee
         self.refreshToken = refreshToken
         self.currentUserVault = currentUserVault
+        self.contentViewModel = contentViewModel
     }
     
     enum Error: Swift.Error {
@@ -49,7 +54,14 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
             try await currentUserVault.saveCurrentUser(user: currentUser.user, token: token)
             return token.accessToken.bearerToken
         } catch {
+            try await currentUserVault.deleteCurrentUser()
+            await contentViewModel.set(signOutReason: .refreshTokenFailed)
+            await contentViewModel.set(generalError: .tokenExpired)
             throw Error.refreshTokenFailed
         }
     }
+}
+
+extension String {
+    static var tokenExpired: String { "Token expired, please sign in again." }
 }

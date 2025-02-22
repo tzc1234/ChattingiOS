@@ -91,7 +91,7 @@ final class Flow {
     
     private func profileView(user: User) -> ProfileView {
         ProfileView(user: user, signOutTapped: { [unowned self] in
-            contentViewModel.isUserInitiateSignOut = true
+            contentViewModel.set(signOutReason: .userInitiated)
             Task { try? await currentUserVault.deleteCurrentUser() }
         })
     }

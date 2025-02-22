@@ -26,7 +26,8 @@ final class DependenciesContainer {
     private(set) lazy var refreshTokenHTTPClient = RefreshTokenHTTPClientDecorator(
         decoratee: httpClient,
         refreshToken: refreshToken,
-        currentUserVault: currentUserVault
+        currentUserVault: currentUserVault,
+        contentViewModel: contentViewModel
     )
     
     private(set) lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken] in
@@ -51,7 +52,7 @@ final class DependenciesContainer {
     private var accessToken: (@Sendable () async throws -> AccessToken) {
         { [currentUserVault, contentViewModel] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
-                if await contentViewModel.isUserInitiateSignOut {
+                if await contentViewModel.signOutReason == .userInitiated {
                     throw UseCaseError.userInitiateSignOut
                 }
                 
@@ -77,7 +78,7 @@ final class DependenciesContainer {
     private var messageChannelAccessToken: (@Sendable () async throws -> AccessToken) {
         { [currentUserVault, contentViewModel] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
-                if await contentViewModel.isUserInitiateSignOut {
+                if await contentViewModel.signOutReason == .userInitiated {
                     throw MessageChannelError.userInitiateSignOut
                 }
                 
