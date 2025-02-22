@@ -24,7 +24,6 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
     }
     
     enum Error: Swift.Error {
-        case refreshTokenNotFound
         case refreshTokenFailed
     }
     
@@ -46,7 +45,7 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
     
     private func refreshToken() async throws -> String {
         guard let currentUser = await currentUserVault.retrieveCurrentUser() else {
-            throw Error.refreshTokenNotFound
+            throw Error.refreshTokenFailed
         }
         
         do {
@@ -60,8 +59,4 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
             throw Error.refreshTokenFailed
         }
     }
-}
-
-extension String {
-    static var tokenExpired: String { "Token expired, please sign in again." }
 }

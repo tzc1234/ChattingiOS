@@ -91,7 +91,3 @@ final class DependenciesContainer {
         }
     }
 }
-
-private extension String {
-    static var pleaseSignInMessage: String { "Please sign in again." }
-}
