@@ -10,7 +10,7 @@ import Foundation
 extension UseCaseError {
     func toGeneralErrorMessage() -> String? {
         switch self {
-        case .server(let reason):
+        case let .server(reason, _):
             reason
         case .invalidData:
             "Invalid data received."

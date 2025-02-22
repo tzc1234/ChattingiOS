@@ -60,10 +60,10 @@ final class GeneralUseCaseTests: XCTestCase {
     func test_mapper_deliversServerErrorWhenReceivedMapperServerError() async {
         let reason = "any reason"
         let (sut, _) = makeSUT()
-        MapperStub.error = .server(reason: reason)
+        MapperStub.error = .server(reason: reason, statusCode: 0)
         
         await assertThrowsError(_ = try await sut.perform(with: .anyParam)) { error in
-            XCTAssertEqual(error as? UseCaseError, .server(reason: reason))
+            XCTAssertEqual(error as? UseCaseError, .server(reason: reason, statusCode: 0))
         }
     }
     
