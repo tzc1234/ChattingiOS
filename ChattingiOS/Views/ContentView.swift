@@ -33,6 +33,7 @@ struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: Vie
     private var content: some View {
         if let user = viewModel.user {
             signedInContent(user)
+                .id(viewModel.signedInContentID)
         } else {
             signInContent()
         }

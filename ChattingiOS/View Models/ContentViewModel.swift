@@ -19,6 +19,7 @@ final class ContentViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var generalError: String?
     @Published var showSheet = false
+    @Published private(set) var signedInContentID = true
     
     func set(signInState: SignInState) async {
         switch signInState {
@@ -35,6 +36,13 @@ final class ContentViewModel: ObservableObject {
     private func set(user: User?) async {
         withAnimation { self.user = user }
         try? await Task.sleep(for: .seconds(0.5))
+        forceSignedInContentReload(user: user)
+    }
+    
+    private func forceSignedInContentReload(user: User?) {
+        if user != nil {
+            withAnimation { signedInContentID.toggle() }
+        }
     }
 }
 
