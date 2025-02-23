@@ -15,11 +15,12 @@ final class ContentViewModel: ObservableObject {
         case tokenInvalid
     }
     
+    let navigationControl = NavigationControlViewModel()
+    
     @Published private(set) var user: User?
     @Published var isLoading = false
     @Published var generalError: String?
     @Published var showSheet = false
-    @Published private(set) var signedInContentID = true
     
     func set(signInState: SignInState) async {
         switch signInState {
@@ -34,18 +35,14 @@ final class ContentViewModel: ObservableObject {
     }
     
     private func set(user: User?) async {
+        if user == nil {
+            navigationControl.popToRoot()
+        }
         withAnimation { self.user = user }
         try? await Task.sleep(for: .seconds(0.5))
-        forceSignedInContentReload(user: user)
-    }
-    
-    private func forceSignedInContentReload(user: User?) {
-        if user != nil {
-            withAnimation { signedInContentID.toggle() }
-        }
     }
 }
 
 private extension String {
-    static var pleaseSignInAgain: String { "Issue occurred, please sign in again." }
+    static var pleaseSignInAgain: String { "Token invalid, please sign in again." }
 }

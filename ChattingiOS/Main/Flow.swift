@@ -9,9 +9,9 @@ import SwiftUI
 
 @MainActor
 final class Flow {
-    private let navigationControlViewModel = NavigationControlViewModel()
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
     private var currentUserVault: CurrentUserVault { dependencies.currentUserVault }
+    private var navigationControl: NavigationControlViewModel { contentViewModel.navigationControl }
     
     private weak var contactListViewModel: ContactListViewModel?
     private var newContactTask: Task<Void, Never>?
@@ -41,7 +41,7 @@ final class Flow {
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { currentUser in
             TabView { [unowned self] in
-                NavigationControlView(viewModel: navigationControlViewModel) { [unowned self] in
+                NavigationControlView(viewModel: navigationControl) { [unowned self] in
                     contactListView(currentUserID: currentUser.id)
                 }
                 .tabItem {
@@ -138,6 +138,6 @@ final class Flow {
             readMessages: dependencies.readMessages
         )
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
-        navigationControlViewModel.show(next: destination)
+        navigationControl.show(next: destination)
     }
 }
