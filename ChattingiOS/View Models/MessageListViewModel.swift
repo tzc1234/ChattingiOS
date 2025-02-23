@@ -152,13 +152,15 @@ final class MessageListViewModel: ObservableObject {
         
         isLoading = true
         Task {
-            do throws(UseCaseError) {
+            do {
                 try await loadMoreMessageUntilTheEnd()
                 
-                try? await connection?.send(text: inputMessage)
+                try await connection?.send(text: inputMessage)
                 inputMessage = ""
-            } catch {
+            } catch let error as UseCaseError {
                 generalError = error.toGeneralErrorMessage()
+            } catch {
+                generalError = "Cannot send the message, please try it again later."
             }
             isLoading = false
         }
