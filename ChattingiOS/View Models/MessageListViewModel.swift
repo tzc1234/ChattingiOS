@@ -132,18 +132,14 @@ final class MessageListViewModel: ObservableObject {
         
         do {
             for try await message in connection.messageStream {
-                appendNewMessage(message)
+                messages.append(map(message: message))
+                
+                if listPositionMessageID == nil {
+                    listPositionMessageID = message.id
+                }
             }
         } catch {
             print("Message channel error received: \(error)")
-        }
-    }
-    
-    private func appendNewMessage(_ message: Message) {
-        messages.append(map(message: message))
-        
-        if listPositionMessageID == nil {
-            listPositionMessageID = message.id
         }
     }
     
