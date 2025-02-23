@@ -27,7 +27,6 @@ struct MessageListView: View {
         )
         .task {
             await viewModel.loadMessages()
-            await viewModel.establishChannel()
         }
         .toolbar(.hidden, for: .tabBar)
     }

@@ -8,7 +8,7 @@
 import Foundation
 
 extension MessageChannelError {
-    var toGeneralErrorMessage: String? {
+    func toGeneralErrorMessage() -> String? {
         switch self {
         case .invalidURL:
             "Invalid URL."

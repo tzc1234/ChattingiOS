@@ -59,17 +59,26 @@ final class MessageListViewModel: ObservableObject {
     func loadMessages() async {
         isLoading = true
         do {
-            let param = GetMessagesParams(contactID: contactID)
-            let messages = try await getMessages.get(with: param)
-            canLoadPrevious = !messages.isEmpty
-            canLoadMore = !messages.isEmpty
-            self.messages = messages.map(map(message:))
-            
-            listPositionMessageID = initialListPositionMessageID
-        } catch {
+            try await _loadMessages()
+            try await establishMessageChannel()
+        } catch let error as UseCaseError {
             generalError = error.toGeneralErrorMessage()
+        } catch let error as MessageChannelError {
+            generalError = error.toGeneralErrorMessage()
+        } catch {
+            print("This is required to silence `non-exhaustive` catch error. Should never come here.")
         }
         isLoading = false
+    }
+    
+    private func _loadMessages() async throws(UseCaseError) {
+        let param = GetMessagesParams(contactID: contactID)
+        let messages = try await getMessages.get(with: param)
+        canLoadPrevious = !messages.isEmpty
+        canLoadMore = !messages.isEmpty
+        self.messages = messages.map(map(message:))
+        
+        listPositionMessageID = initialListPositionMessageID
     }
     
     func loadPreviousMessages() {
@@ -87,9 +96,7 @@ final class MessageListViewModel: ObservableObject {
     }
     
     private func _loadPreviousMessages() async throws(UseCaseError) {
-        guard !isLoadingPreviousMessages, let firstMessageID = messages.first?.id else {
-            return
-        }
+        guard !isLoadingPreviousMessages, let firstMessageID = messages.first?.id else { return }
         
         isLoadingPreviousMessages = true
         
@@ -119,20 +126,16 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
-    func establishChannel() async {
+    private func establishMessageChannel() async throws(MessageChannelError) {
+        let connection = try await messageChannel.establish(for: contactID)
+        self.connection = connection
+        
         do {
-            let connection = try await messageChannel.establish(for: contactID)
-            self.connection = connection
-            
-            do {
-                for try await message in connection.messageStream {
-                    appendNewMessage(message)
-                }
-            } catch {
-                print("Message channel error received: \(error)")
+            for try await message in connection.messageStream {
+                appendNewMessage(message)
             }
         } catch {
-            generalError = error.toGeneralErrorMessage
+            print("Message channel error received: \(error)")
         }
     }
     
