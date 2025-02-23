@@ -56,10 +56,10 @@ final class MessageListViewModel: ObservableObject {
         self.readMessages = readMessages
     }
     
-    func loadMessages() async {
+    func loadMessagesAndEstablishMessageChannel() async {
         isLoading = true
         do {
-            try await _loadMessages()
+            try await loadMessages()
             try await establishMessageChannel()
         } catch let error as UseCaseError {
             generalError = error.toGeneralErrorMessage()
@@ -71,7 +71,7 @@ final class MessageListViewModel: ObservableObject {
         isLoading = false
     }
     
-    private func _loadMessages() async throws(UseCaseError) {
+    private func loadMessages() async throws(UseCaseError) {
         let param = GetMessagesParams(contactID: contactID)
         let messages = try await getMessages.get(with: param)
         canLoadPrevious = !messages.isEmpty
