@@ -62,7 +62,8 @@ final class DependenciesContainer {
     private lazy var refreshTokenWebSocketClient = RefreshTokenWebSocketClientDecorator(
         decoratee: NIOWebSocketClient(),
         refreshToken: refreshToken,
-        currentUserVault: currentUserVault
+        currentUserVault: currentUserVault,
+        contentViewModel: contentViewModel
     )
     
     private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [messageChannelAccessToken] in
