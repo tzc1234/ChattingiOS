@@ -59,8 +59,11 @@ final class MessageListViewModel: ObservableObject {
     func loadMessagesAndEstablishMessageChannel() async {
         isLoading = true
         do {
-            try await loadMessages()
-            try await establishMessageChannel()
+            async let loadMessage: Void = loadMessages()
+            async let establishMessageChannel: Void = establishMessageChannel()
+            
+            try await loadMessage
+            try await establishMessageChannel
         } catch let error as UseCaseError {
             generalError = error.toGeneralErrorMessage()
         } catch let error as MessageChannelError {
