@@ -66,8 +66,8 @@ final class ContactListViewModel: ObservableObject {
         isLoading = true
         Task {
             do throws(UseCaseError) {
-                let newContact = try await blockContact.block(for: contactID)
-                contacts[index] = newContact
+                let blockedContact = try await blockContact.block(for: contactID)
+                contacts[index] = blockedContact
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
@@ -85,8 +85,8 @@ final class ContactListViewModel: ObservableObject {
         isLoading = true
         Task {
             do throws(UseCaseError) {
-                let newContact = try await unblockContact.unblock(for: contactID)
-                contacts[index] = newContact
+                let unblockedContact = try await unblockContact.unblock(for: contactID)
+                contacts[index] = unblockedContact
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
