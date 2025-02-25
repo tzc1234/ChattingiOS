@@ -23,8 +23,8 @@ actor NIOWebSocketClient: WebSocketClient {
         }
         
         do {
-            let group = MultiThreadedEventLoopGroup.singleton
-            let bootstrap = ClientBootstrap(group: group)
+            let eventLoopGroup = MultiThreadedEventLoopGroup.singleton
+            let bootstrap = ClientBootstrap(group: eventLoopGroup)
             let connect = try await bootstrap.connect(host: host, port: port) { channel in
                 channel.eventLoop.makeCompletedFuture {
                     let promise = channel.eventLoop.makePromise(of: AsyncChannel.self)

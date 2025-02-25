@@ -209,7 +209,7 @@ final class MessageChannelTests: XCTestCase {
             (.notFound, .notFound),
             (.forbidden, .forbidden),
             (.unknown, .unknown),
-            (.userInitiateSignOut, .userInitiateSignOut),
+            (.accessTokenNotFound, .accessTokenNotFound),
             (.requestCreationFailed, .requestCreationFailed):
             break
         case let (.other(receivedNSError as NSError), .other(expectedNSError as NSError)):

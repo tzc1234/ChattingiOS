@@ -26,7 +26,8 @@ final class DependenciesContainer {
     private(set) lazy var refreshTokenHTTPClient = RefreshTokenHTTPClientDecorator(
         decoratee: httpClient,
         refreshToken: refreshToken,
-        currentUserVault: currentUserVault
+        currentUserVault: currentUserVault,
+        contentViewModel: contentViewModel
     )
     
     private(set) lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken] in
@@ -49,15 +50,9 @@ final class DependenciesContainer {
     }
     
     private var accessToken: (@Sendable () async throws -> AccessToken) {
-        { [currentUserVault, contentViewModel] in
+        { [currentUserVault] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
-                if await contentViewModel.isUserInitiateSignOut {
-                    throw UseCaseError.userInitiateSignOut
-                }
-                
-                try? await Task.sleep(for: .seconds(0.35))
-                await contentViewModel.set(generalError: .pleaseSignInMessage)
-                throw UseCaseError.requestCreationFailed
+                throw UseCaseError.accessTokenNotFound
             }
             
             return accessToken
@@ -67,7 +62,8 @@ final class DependenciesContainer {
     private lazy var refreshTokenWebSocketClient = RefreshTokenWebSocketClientDecorator(
         decoratee: NIOWebSocketClient(),
         refreshToken: refreshToken,
-        currentUserVault: currentUserVault
+        currentUserVault: currentUserVault,
+        contentViewModel: contentViewModel
     )
     
     private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [messageChannelAccessToken] in
@@ -75,22 +71,12 @@ final class DependenciesContainer {
     }
     
     private var messageChannelAccessToken: (@Sendable () async throws -> AccessToken) {
-        { [currentUserVault, contentViewModel] in
+        { [currentUserVault] in
             guard let accessToken = await currentUserVault.retrieveCurrentUser()?.accessToken else {
-                if await contentViewModel.isUserInitiateSignOut {
-                    throw MessageChannelError.userInitiateSignOut
-                }
-                
-                try? await Task.sleep(for: .seconds(0.35))
-                await contentViewModel.set(generalError: .pleaseSignInMessage)
-                throw MessageChannelError.requestCreationFailed
+                throw MessageChannelError.accessTokenNotFound
             }
             
             return accessToken
         }
     }
-}
-
-private extension String {
-    static var pleaseSignInMessage: String { "Please sign in again." }
 }

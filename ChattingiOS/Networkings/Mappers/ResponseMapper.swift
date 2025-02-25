@@ -17,15 +17,9 @@ extension ResponseMapper {
     static func validate(_ response: HTTPURLResponse, with data: Data) throws(MapperError) {
         guard response.isOK else {
             let reason = ErrorResponseMapper.map(errorData: data)
-            throw .server(reason: reason ?? defaultErrorReason)
+            throw .server(reason: reason ?? defaultErrorReason, statusCode: response.statusCode)
         }
     }
     
     private static var defaultErrorReason: String { "Internal server error." }
-    
-    static var decoder: JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return decoder
-    }
 }

@@ -10,6 +10,7 @@ import SwiftUI
 struct NewContactView: View {
     @ObservedObject var viewModel: NewContactViewModel
     @Binding var alertState: AlertState
+    let onDisappear: (() -> Void)?
     
     var body: some View {
         NewContactContentView(
@@ -19,6 +20,7 @@ struct NewContactView: View {
             canSubmit: viewModel.canSubmit,
             submitTapped: viewModel.addNewContact
         )
+        .onDisappear(perform: onDisappear)
         .onChange(of: viewModel.contact) { contact in
             if contact != nil {
                 // Fix animation when closing the custom alert.

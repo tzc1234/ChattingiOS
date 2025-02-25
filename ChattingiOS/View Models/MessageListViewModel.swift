@@ -21,6 +21,7 @@ struct DisplayedMessage: Identifiable, Equatable {
 final class MessageListViewModel: ObservableObject {
     @Published private(set) var messages = [DisplayedMessage]()
     @Published var generalError: String?
+    @Published var initialError: String?
     @Published var inputMessage = ""
     @Published private(set) var isLoading = false
     @Published var listPositionMessageID: Int?
@@ -56,20 +57,32 @@ final class MessageListViewModel: ObservableObject {
         self.readMessages = readMessages
     }
     
-    func loadMessages() async {
+    func loadMessagesAndEstablishMessageChannel() async {
         isLoading = true
         do {
-            let param = GetMessagesParams(contactID: contactID)
-            let messages = try await getMessages.get(with: param)
-            canLoadPrevious = !messages.isEmpty
-            canLoadMore = !messages.isEmpty
-            self.messages = messages.map(map(message:))
+            async let loadMessage: Void = loadMessages()
+            async let establishMessageChannel: Void = establishMessageChannel()
             
-            listPositionMessageID = initialListPositionMessageID
+            try await loadMessage
+            try await establishMessageChannel
+        } catch let error as UseCaseError {
+            initialError = error.toGeneralErrorMessage()
+        } catch let error as MessageChannelError {
+            initialError = error.toGeneralErrorMessage()
         } catch {
-            generalError = error.toGeneralErrorMessage()
+            print("This is required to silence `non-exhaustive` catch error. Should never come here.")
         }
         isLoading = false
+    }
+    
+    private func loadMessages() async throws(UseCaseError) {
+        let param = GetMessagesParams(contactID: contactID)
+        let messages = try await getMessages.get(with: param)
+        canLoadPrevious = !messages.isEmpty
+        canLoadMore = !messages.isEmpty
+        self.messages = messages.map(map(message:))
+        
+        listPositionMessageID = initialListPositionMessageID
     }
     
     func loadPreviousMessages() {
@@ -87,9 +100,7 @@ final class MessageListViewModel: ObservableObject {
     }
     
     private func _loadPreviousMessages() async throws(UseCaseError) {
-        guard !isLoadingPreviousMessages, let firstMessageID = messages.first?.id else {
-            return
-        }
+        guard !isLoadingPreviousMessages, let firstMessageID = messages.first?.id else { return }
         
         isLoadingPreviousMessages = true
         
@@ -119,28 +130,20 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
-    func establishChannel() async {
+    private func establishMessageChannel() async throws(MessageChannelError) {
+        let connection = try await messageChannel.establish(for: contactID)
+        self.connection = connection
+        
         do {
-            let connection = try await messageChannel.establish(for: contactID)
-            self.connection = connection
-            
-            do {
-                for try await message in connection.messageStream {
-                    appendNewMessage(message)
+            for try await message in connection.messageStream {
+                messages.append(map(message: message))
+                
+                if listPositionMessageID == nil {
+                    listPositionMessageID = message.id
                 }
-            } catch {
-                print("Message channel error received: \(error)")
             }
         } catch {
-            generalError = error.toGeneralErrorMessage
-        }
-    }
-    
-    private func appendNewMessage(_ message: Message) {
-        messages.append(map(message: message))
-        
-        if listPositionMessageID == nil {
-            listPositionMessageID = message.id
+            print("Message channel error received: \(error)")
         }
     }
     
@@ -149,13 +152,15 @@ final class MessageListViewModel: ObservableObject {
         
         isLoading = true
         Task {
-            do throws(UseCaseError) {
+            do {
                 try await loadMoreMessageUntilTheEnd()
                 
-                try? await connection?.send(text: inputMessage)
+                try await connection?.send(text: inputMessage)
                 inputMessage = ""
-            } catch {
+            } catch let error as UseCaseError {
                 generalError = error.toGeneralErrorMessage()
+            } catch {
+                generalError = "Cannot send the message, please try it again later."
             }
             isLoading = false
         }

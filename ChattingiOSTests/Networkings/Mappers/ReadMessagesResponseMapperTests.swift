@@ -21,7 +21,7 @@ final class ReadMessagesResponseMapperTests: XCTestCase {
                 try ReadMessagesResponseMapper.map(data, response: response),
                 "Expect statusCode: \(code) throws an error."
             ) { error in
-                XCTAssertEqual(error as? MapperError, .server(reason: reason))
+                XCTAssertEqual(error as? MapperError, .server(reason: reason, statusCode: code))
             }
         }
     }

@@ -11,11 +11,16 @@ final class RefreshTokenWebSocketClientDecorator: WebSocketClient {
     private let decoratee: WebSocketClient
     private let refreshToken: RefreshToken
     private let currentUserVault: CurrentUserVault
+    private let contentViewModel: ContentViewModel
     
-    init(decoratee: WebSocketClient, refreshToken: RefreshToken, currentUserVault: CurrentUserVault) {
+    init(decoratee: WebSocketClient,
+         refreshToken: RefreshToken,
+         currentUserVault: CurrentUserVault,
+         contentViewModel: ContentViewModel) {
         self.decoratee = decoratee
         self.refreshToken = refreshToken
         self.currentUserVault = currentUserVault
+        self.contentViewModel = contentViewModel
     }
     
     func connect(_ request: URLRequest) async throws(WebSocketClientError) -> WebSocket {
@@ -36,6 +41,7 @@ final class RefreshTokenWebSocketClientDecorator: WebSocketClient {
     
     private func refreshToken() async throws(WebSocketClientError) -> String {
         guard let currentUser = await currentUserVault.retrieveCurrentUser() else {
+            await gotoSignIn()
             throw .unauthorized
         }
         
@@ -44,7 +50,13 @@ final class RefreshTokenWebSocketClientDecorator: WebSocketClient {
             try await currentUserVault.saveCurrentUser(user: currentUser.user, token: token)
             return token.accessToken.bearerToken
         } catch {
+            await gotoSignIn()
             throw .unauthorized
         }
+    }
+    
+    private func gotoSignIn() async {
+        try? await currentUserVault.deleteCurrentUser()
+        await contentViewModel.set(signInState: .tokenInvalid)
     }
 }

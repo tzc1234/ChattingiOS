@@ -26,10 +26,17 @@ struct MessageListView: View {
             readMessages: viewModel.readMessages
         )
         .task {
-            await viewModel.loadMessages()
-            await viewModel.establishChannel()
+            await viewModel.loadMessagesAndEstablishMessageChannel()
         }
         .toolbar(.hidden, for: .tabBar)
+        .alert("⚠️Oops!", isPresented: $viewModel.initialError.toBool) {
+            Button("Retry", role: .none) {
+                Task { await viewModel.loadMessagesAndEstablishMessageChannel() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(viewModel.initialError ?? "")
+        }
     }
 }
 

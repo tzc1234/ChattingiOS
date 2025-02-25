@@ -10,7 +10,7 @@ import Foundation
 extension UseCaseError {
     func toGeneralErrorMessage() -> String? {
         switch self {
-        case .server(let reason):
+        case let .server(reason, _):
             reason
         case .invalidData:
             "Invalid data received."
@@ -18,7 +18,7 @@ extension UseCaseError {
             "Connection error occurred, please try it later."
         case .requestCreationFailed:
             "Request creation error."
-        case .userInitiateSignOut:
+        case .accessTokenNotFound:
             nil
         case .saveCurrentUserFailed:
             "Cannot save current user data."

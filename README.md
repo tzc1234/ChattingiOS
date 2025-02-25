@@ -18,4 +18,5 @@
 2. Deal with Swift 6
 3. Centralise UI flow in one component
 4. MVVM
-5. Built server side with Swift Vapor
+5. Build server side with Swift Vapor
+6. Use decorator for refresh token logic

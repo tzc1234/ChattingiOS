@@ -13,6 +13,10 @@ final class NavigationControlViewModel: ObservableObject {
     func show(next: some Hashable) {
         path.append(next)
     }
+    
+    func popToRoot() {
+        path = NavigationPath()
+    }
 }
 
 struct NavigationControlView<Content: View>: View {

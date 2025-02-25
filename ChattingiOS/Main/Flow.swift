@@ -9,12 +9,11 @@ import SwiftUI
 
 @MainActor
 final class Flow {
-    private let navigationControlViewModel = NavigationControlViewModel()
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
     private var currentUserVault: CurrentUserVault { dependencies.currentUserVault }
+    private var navigationControl: NavigationControlViewModel { contentViewModel.navigationControl }
     
     private weak var contactListViewModel: ContactListViewModel?
-    private var newContactTask: Task<Void, Never>?
     
     private let dependencies: DependenciesContainer
     
@@ -27,23 +26,21 @@ final class Flow {
         contentViewModel.isLoading = true
         
         Task {
-            try? await Task.sleep(for: .seconds(0.2)) // Show loading view a bit smoother.
-            
             await currentUserVault.observe { [contentViewModel] currentUser in
-                await contentViewModel.set(user: currentUser?.user)
+                guard let user = currentUser?.user else { return }
+                
+                await contentViewModel.set(signInState: .signedIn(user))
             }
-            await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer.
+            await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
             
-            withAnimation {
-                contentViewModel.isLoading = false
-            }
+            withAnimation { contentViewModel.isLoading = false }
         }
     }
     
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { currentUser in
             TabView { [unowned self] in
-                NavigationControlView(viewModel: navigationControlViewModel) { [unowned self] in
+                NavigationControlView(viewModel: navigationControl) { [unowned self] in
                     contactListView(currentUserID: currentUser.id)
                 }
                 .tabItem {
@@ -91,8 +88,10 @@ final class Flow {
     
     private func profileView(user: User) -> ProfileView {
         ProfileView(user: user, signOutTapped: { [unowned self] in
-            contentViewModel.isUserInitiateSignOut = true
-            Task { try? await currentUserVault.deleteCurrentUser() }
+            Task {
+                try? await currentUserVault.deleteCurrentUser()
+                await contentViewModel.set(signInState: .userInitiatedSignOut)
+            }
         })
     }
     
@@ -117,16 +116,14 @@ final class Flow {
     
     private func newContactView(with alertState: Binding<AlertState>) -> NewContactView {
         let viewModel = NewContactViewModel(newContact: dependencies.newContact)
-        newContactTask?.cancel()
-        newContactTask = Task { [unowned self] in
+        let task = Task { [unowned self] in
             for await contact in viewModel.$contact.values {
                 if let contact {
                     contactListViewModel?.add(contact: contact)
                 }
             }
         }
-        
-        return NewContactView(viewModel: viewModel, alertState: alertState)
+        return NewContactView(viewModel: viewModel, alertState: alertState, onDisappear: { task.cancel() })
     }
     
     private func showMessageListView(currentUserID: Int, contact: Contact) {
@@ -138,6 +135,6 @@ final class Flow {
             readMessages: dependencies.readMessages
         )
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
-        navigationControlViewModel.show(next: destination)
+        navigationControl.show(next: destination)
     }
 }
