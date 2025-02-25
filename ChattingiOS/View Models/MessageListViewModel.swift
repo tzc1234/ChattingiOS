@@ -21,6 +21,7 @@ struct DisplayedMessage: Identifiable, Equatable {
 final class MessageListViewModel: ObservableObject {
     @Published private(set) var messages = [DisplayedMessage]()
     @Published var generalError: String?
+    @Published var initialError: String?
     @Published var inputMessage = ""
     @Published private(set) var isLoading = false
     @Published var listPositionMessageID: Int?
@@ -65,9 +66,9 @@ final class MessageListViewModel: ObservableObject {
             try await loadMessage
             try await establishMessageChannel
         } catch let error as UseCaseError {
-            generalError = error.toGeneralErrorMessage()
+            initialError = error.toGeneralErrorMessage()
         } catch let error as MessageChannelError {
-            generalError = error.toGeneralErrorMessage()
+            initialError = error.toGeneralErrorMessage()
         } catch {
             print("This is required to silence `non-exhaustive` catch error. Should never come here.")
         }
