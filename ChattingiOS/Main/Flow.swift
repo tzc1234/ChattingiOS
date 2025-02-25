@@ -14,7 +14,6 @@ final class Flow {
     private var navigationControl: NavigationControlViewModel { contentViewModel.navigationControl }
     
     private weak var contactListViewModel: ContactListViewModel?
-    private var newContactTask: Task<Void, Never>?
     
     private let dependencies: DependenciesContainer
     
@@ -117,16 +116,14 @@ final class Flow {
     
     private func newContactView(with alertState: Binding<AlertState>) -> NewContactView {
         let viewModel = NewContactViewModel(newContact: dependencies.newContact)
-        newContactTask?.cancel()
-        newContactTask = Task { [unowned self] in
+        let task = Task { [unowned self] in
             for await contact in viewModel.$contact.values {
                 if let contact {
                     contactListViewModel?.add(contact: contact)
                 }
             }
         }
-        
-        return NewContactView(viewModel: viewModel, alertState: alertState)
+        return NewContactView(viewModel: viewModel, alertState: alertState, onDisappear: { task.cancel() })
     }
     
     private func showMessageListView(currentUserID: Int, contact: Contact) {
