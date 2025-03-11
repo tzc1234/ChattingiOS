@@ -64,15 +64,17 @@ final class MessageListViewModel: ObservableObject {
             async let establishMessageChannel: Void = establishMessageChannel()
             
             try await loadMessage
+            isLoading = false
+            
             try await establishMessageChannel
         } catch let error as UseCaseError {
             initialError = error.toGeneralErrorMessage()
+            isLoading = false
         } catch let error as MessageChannelError {
             initialError = error.toGeneralErrorMessage()
         } catch {
             print("This is required to silence `non-exhaustive` catch error. Should never come here.")
         }
-        isLoading = false
     }
     
     private func loadMessages() async throws(UseCaseError) {
