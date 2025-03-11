@@ -136,6 +136,10 @@ final class MessageListViewModel: ObservableObject {
         let connection = try await messageChannel.establish(for: contactID)
         self.connection = connection
         
+        defer {
+            Task { try? await connection.close() }
+        }
+        
         do {
             for try await message in connection.messageStream {
                 messages.append(map(message: message))
@@ -207,12 +211,6 @@ final class MessageListViewModel: ObservableObject {
             
             let param = ReadMessagesParams(contactID: contactID, untilMessageID: maxMessageID)
             try? await readMessages.read(with: param)
-        }
-    }
-    
-    deinit {
-        Task { [connection] in
-            try? await connection?.close()
         }
     }
 }
