@@ -12,5 +12,5 @@ struct Message: Equatable {
     let text: String
     let senderID: Int
     let isRead: Bool
-    let createdAt: Date?
+    let createdAt: Date
 }
