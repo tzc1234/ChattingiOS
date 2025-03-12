@@ -18,8 +18,7 @@ final class MessageChannelReceivedMessageMapperTests: XCTestCase {
     }
     
     func test_map_deliversMessageCorrectly() throws {
-        let nowInterval = Int(Date().timeIntervalSince1970)
-        let now = Date(timeIntervalSince1970: TimeInterval(nowInterval))
+        let now = Date.now.removeTimeIntervalDecimal()
         let expectedMessages = [
             Message(id: 1, text: "any text", senderID: 1, isRead: false, createdAt: now),
             Message(id: 99, text: "another text", senderID: 99, isRead: true, createdAt: .distantFuture)

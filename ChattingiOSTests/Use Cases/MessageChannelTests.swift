@@ -144,8 +144,7 @@ final class MessageChannelTests: XCTestCase {
     }
     
     func test_messageStream_deliversMessagesSuccessfully() async throws {
-        let nowInterval = Int(Date().timeIntervalSince1970)
-        let now = Date(timeIntervalSince1970: TimeInterval(nowInterval))
+        let now = Date.now.removeTimeIntervalDecimal()
         let messages = [
             Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture),
             Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast),
