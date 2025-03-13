@@ -23,7 +23,7 @@ struct ContactResponse {
     let blockedByUserID: Int?
     let unreadMessageCount: Int
     let lastUpdate: Date
-    let lastMessageText: String?
+    let lastMessage: MessageResponse?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -31,7 +31,7 @@ struct ContactResponse {
         case blockedByUserID = "blocked_by_user_id"
         case unreadMessageCount = "unread_message_count"
         case lastUpdate = "last_update"
-        case lastMessageText = "last_message_text"
+        case lastMessage = "last_message"
     }
 }
 
@@ -43,7 +43,7 @@ extension ContactResponse: Response {
             blockedByUserID: blockedByUserID,
             unreadMessageCount: unreadMessageCount,
             lastUpdate: lastUpdate,
-            lastMessageText: lastMessageText
+            lastMessage: lastMessage?.toModel
         )
     }
 }
