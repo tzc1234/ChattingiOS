@@ -144,10 +144,11 @@ final class MessageChannelTests: XCTestCase {
     }
     
     func test_messageStream_deliversMessagesSuccessfully() async throws {
+        let now = Date.now.removeTimeIntervalDecimal()
         let messages = [
             Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture),
             Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast),
-            Message(id: 2, text: "another text 2", senderID: 0, isRead: false, createdAt: nil),
+            Message(id: 2, text: "another text 2", senderID: 0, isRead: false, createdAt: now),
         ]
         let (connection, _) = try await establishConnection(messageDataStubs: messages.map(\.toData))
         let logger = MessagesLogger()

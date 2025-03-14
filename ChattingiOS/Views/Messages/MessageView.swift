@@ -20,10 +20,8 @@ struct MessageView: View {
                     .font(.callout)
                     .fixedSize(horizontal: true, vertical: false)
                 
-                if let date = message.date {
-                    Text(date)
-                        .font(.system(size: 10))
-                }
+                Text(message.date)
+                    .font(.system(size: 10))
             }
             .foregroundStyle(.white)
             .padding(8)

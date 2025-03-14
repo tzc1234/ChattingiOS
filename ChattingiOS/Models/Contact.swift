@@ -13,5 +13,5 @@ struct Contact: Identifiable, Equatable {
     let blockedByUserID: Int?
     let unreadMessageCount: Int
     let lastUpdate: Date
-    let lastMessageText: String?
+    let lastMessage: Message?
 }
