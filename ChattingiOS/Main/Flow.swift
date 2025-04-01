@@ -38,6 +38,15 @@ final class Flow {
         }
     }
     
+    func shouldReloadContactList(for userID: Int) {
+        let currentUserID = contentViewModel.user?.id
+        guard currentUserID == userID else { return }
+        
+        Task {
+            await contactListViewModel?.loadContacts()
+        }
+    }
+    
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { currentUser in
             TabView { [unowned self] in

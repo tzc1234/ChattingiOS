@@ -121,6 +121,9 @@ struct MessageListContentView: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
         }
+        .onTapGesture {
+            textEditorFocused = false
+        }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {

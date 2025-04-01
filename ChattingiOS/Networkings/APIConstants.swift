@@ -14,7 +14,7 @@ struct APIConstants {
     
     init(scheme: String = "http",
          webSocketScheme: String = "ws",
-         host: String = "localhost",
+         host: String = "localhost", // Change to your server's hostname here.
          port: Int? = 8080,
          apiPath: String = "/api/v1/") {
         self.scheme = scheme
