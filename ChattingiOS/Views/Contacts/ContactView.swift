@@ -38,6 +38,7 @@ struct ContactView: View {
                 if let lastMessageText {
                     Text(lastMessageText)
                         .font(.footnote)
+                        .lineLimit(1)
                 }
             }
             
