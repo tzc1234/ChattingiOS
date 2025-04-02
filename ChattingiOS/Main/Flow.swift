@@ -38,12 +38,12 @@ final class Flow {
         }
     }
     
-    func shouldReloadContactList(for userID: Int) {
+    func addNewContactToList(for userID: Int, contact: Contact) {
         let currentUserID = contentViewModel.user?.id
         guard currentUserID == userID else { return }
         
-        Task {
-            await contactListViewModel?.loadContacts()
+        DispatchQueue.main.async {
+            self.contactListViewModel?.add(contact: contact)
         }
     }
     
