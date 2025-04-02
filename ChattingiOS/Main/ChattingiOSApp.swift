@@ -16,7 +16,7 @@ struct ChattingiOSApp: App {
     
     init() {
         flow = Flow(dependencies: dependencies)
-        appDelegate.onReceivedNewContactAdded = flow.addNewContactToList
+        appDelegate.onReceiveNewContactAddedNotification = flow.addNewContactToList
     }
     
     var body: some Scene {

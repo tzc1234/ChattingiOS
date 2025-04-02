@@ -9,7 +9,7 @@ import UIKit
 @preconcurrency import UserNotifications
 
 final class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
-    var onReceivedNewContactAdded: ((Int, Contact) -> Void)?
+    var onReceiveNewContactAddedNotification: ((Int, Contact) -> Void)?
     
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
@@ -70,7 +70,7 @@ extension AppDelegate: @preconcurrency UNUserNotificationCenterDelegate {
             if let forUserID = userInfo["for_user_id"] as? Int,
                let contactInfo = userInfo["contact"] as? [AnyHashable: Any],
                let contact = contactInfo.toModel() {
-                onReceivedNewContactAdded?(forUserID, contact)
+                onReceiveNewContactAddedNotification?(forUserID, contact)
             }
         default:
             break
