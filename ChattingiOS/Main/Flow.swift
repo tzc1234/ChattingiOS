@@ -15,6 +15,7 @@ final class Flow {
     
     private weak var contactListViewModel: ContactListViewModel?
     private var newContactTask: Task<Void, Never>?
+    var deviceToken: String?
     
     private let dependencies: DependenciesContainer
     
@@ -27,15 +28,22 @@ final class Flow {
         contentViewModel.isLoading = true
         
         Task {
-            await currentUserVault.observe { [contentViewModel] currentUser in
-                guard let user = currentUser?.user else { return }
+            await currentUserVault.observe { [unowned self] currentUser in
+                guard let user = currentUser?.user, await user != contentViewModel.user else { return }
                 
                 await contentViewModel.set(signInState: .signedIn(user))
+                await updateDeviceToken()
             }
             await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
             
             withAnimation { contentViewModel.isLoading = false }
         }
+    }
+    
+    private func updateDeviceToken() async {
+        guard let deviceToken else { return }
+        
+        try? await dependencies.updateDeviceToken.update(with: UpdateDeviceTokenParams(deviceToken: deviceToken))
     }
     
     func addNewContactToList(for userID: Int, contact: Contact) {

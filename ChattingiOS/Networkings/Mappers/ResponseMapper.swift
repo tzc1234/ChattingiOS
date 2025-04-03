@@ -23,3 +23,10 @@ extension ResponseMapper {
     
     private static var defaultErrorReason: String { "Internal server error." }
 }
+
+// For those responses only contain status code but without body.
+extension ResponseMapper where Model == Void {
+    static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) {
+        try validate(response, with: data)
+    }
+}

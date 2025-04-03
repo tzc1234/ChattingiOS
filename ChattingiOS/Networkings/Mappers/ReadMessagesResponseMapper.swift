@@ -7,8 +7,4 @@
 
 import Foundation
 
-enum ReadMessagesResponseMapper: ResponseMapper {
-    static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) {
-        try validate(response, with: data)
-    }
-}
+enum ReadMessagesResponseMapper: ResponseMapper {}

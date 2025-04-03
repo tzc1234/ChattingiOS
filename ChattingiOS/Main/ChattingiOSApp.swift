@@ -16,7 +16,14 @@ struct ChattingiOSApp: App {
     
     init() {
         flow = Flow(dependencies: dependencies)
-        appDelegate.onReceiveNewContactAddedNotification = flow.addNewContactToList
+        appDelegate.onReceiveDeviceToken = { [weak flow] in flow?.deviceToken = $0 }
+        
+        let pushNotificationHandler = dependencies.pushNotificationHandler
+        pushNotificationHandler.onReceiveNewContactAddedNotification = { [weak flow] userID, contact in
+            flow?.addNewContactToList(for: userID, contact: contact)
+        }
+        
+        Task { await pushNotificationHandler.setupPushNotifications() }
     }
     
     var body: some Scene {
