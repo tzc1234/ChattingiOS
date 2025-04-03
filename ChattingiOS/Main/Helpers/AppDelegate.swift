@@ -23,7 +23,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let hexDeviceToken = deviceToken.map { String(format: "%02x", $0) }.joined()
-        print("device token: \(hexDeviceToken)")
         onReceiveDeviceToken?(hexDeviceToken)
     }
     

@@ -38,11 +38,16 @@ final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificati
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
         let userInfo = response.notification.request.content.userInfo
-        print("didReceive userInfo: \(userInfo)")
+        performActionAfterReceivedNotification(userInfo: userInfo)
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
         let userInfo = notification.request.content.userInfo
+        performActionAfterReceivedNotification(userInfo: userInfo)
+        return .init(rawValue: 0)
+    }
+    
+    private func performActionAfterReceivedNotification(userInfo: [AnyHashable: Any]) {
         let action = userInfo["action"] as? String
         switch action {
         case "new_contact_added":
@@ -53,8 +58,6 @@ final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificati
             }
         default: break
         }
-        
-        return .init(rawValue: 0)
     }
 }
 
