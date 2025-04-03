@@ -11,6 +11,7 @@ import Foundation
 final class ContactListViewModel: ObservableObject {
     @Published private(set) var contacts = [Contact]()
     @Published var generalError: String?
+    @Published var message: String?
     @Published private(set) var isLoading = false
     
     private var canLoadMore = true

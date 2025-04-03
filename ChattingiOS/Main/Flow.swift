@@ -52,6 +52,7 @@ final class Flow {
         
         DispatchQueue.main.async {
             self.contactListViewModel?.add(contact: contact)
+            self.contactListViewModel?.message = "\(contact.responder.name) added you."
         }
     }
     
