@@ -54,8 +54,9 @@ final class ContactListViewModel: ObservableObject {
         }
     }
     
-    func add(contact: Contact) {
+    func add(contact: Contact, message: String? = nil) {
         contacts.insert(contact, at: 0)
+        self.message = message
     }
     
     func blockContact(contactID: Int) {
