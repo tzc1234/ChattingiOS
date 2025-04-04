@@ -25,6 +25,7 @@ final class Flow {
     init(dependencies: DependenciesContainer) {
         self.dependencies = dependencies
         self.observeUserSignIn()
+        self.observeNewContactAddedNotification()
     }
     
     private func observeUserSignIn() {
@@ -34,9 +35,7 @@ final class Flow {
             await currentUserVault.observe { [unowned self] currentUser in
                 guard let user = currentUser?.user, await user != contentViewModel.user else { return }
                 
-                await resetContactListViewModelAfterCurrentUserUpdated()
-                await contentViewModel.set(signInState: .signedIn(user))
-                await updateDeviceTokenAfterCurrentUserUpdated()
+                await actionsAfterCurrentUserUpdated(user: user)
             }
             await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
             
@@ -44,23 +43,29 @@ final class Flow {
         }
     }
     
-    private func resetContactListViewModelAfterCurrentUserUpdated() {
+    private func actionsAfterCurrentUserUpdated(user: User) async {
+        // Orders matter!
+        await contentViewModel.set(signInState: .signedIn(user))
         contactListViewModel = nil
+        await updateDeviceToken()
     }
     
-    private func updateDeviceTokenAfterCurrentUserUpdated() async {
+    private func updateDeviceToken() async {
         guard let deviceToken else { return }
         
         try? await dependencies.updateDeviceToken.update(with: UpdateDeviceTokenParams(deviceToken: deviceToken))
     }
     
-    func addNewContactToList(for userID: Int, contact: Contact) {
-        let currentUserID = contentViewModel.user?.id
-        guard currentUserID == userID else { return }
-        
-        DispatchQueue.main.async { [unowned self] in
-            contactListViewModel?.add(contact: contact, message: "\(contact.responder.name) added you.")
-        }
+    private func observeNewContactAddedNotification() {
+        dependencies.pushNotificationHandler
+            .onReceiveNewContactAddedNotification = { [unowned self] userID, contact in
+                let currentUserID = contentViewModel.user?.id
+                guard currentUserID == userID else { return }
+                
+                DispatchQueue.main.async {
+                    self.contactListViewModel?.add(contact: contact, message: "\(contact.responder.name) added you.")
+                }
+            }
     }
     
     func startView() -> some View {
@@ -153,7 +158,7 @@ final class Flow {
         newContactTask = Task { [unowned self] in
             for await contact in viewModel.$contact.values {
                 if let contact, let contactListViewModel {
-                    try? await Task.sleep(for: .seconds(0.2)) // Wait for New Contact Popup disappeared.
+                    try? await Task.sleep(for: .seconds(0.5)) // Wait for New Contact Popup disappeared.
                     contactListViewModel.add(contact: contact, message: "New contact added.")
                 }
             }
