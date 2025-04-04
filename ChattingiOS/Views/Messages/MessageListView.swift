@@ -62,7 +62,7 @@ struct MessageListContentView: View {
             GeometryReader { proxy in
                 ScrollViewReader { scrollViewProxy in
                     List(messages) { message in
-                        MessageView(width: proxy.size.width * 0.7, message: message)
+                        MessageView(width: proxy.size.width, message: message)
                             .id(message.id)
                             .listRowSeparator(.hidden)
                             .onAppear {
@@ -120,6 +120,9 @@ struct MessageListContentView: View {
                 .padding(.horizontal, 18)
                 .fixedSize(horizontal: false, vertical: true)
             }
+        }
+        .onTapGesture {
+            textEditorFocused = false
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

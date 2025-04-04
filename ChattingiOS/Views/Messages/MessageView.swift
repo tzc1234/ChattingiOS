@@ -12,26 +12,8 @@ struct MessageView: View {
     let message: DisplayedMessage
     
     private var isMine: Bool { message.isMine }
-    
-    var body: some View {
-        ZStack {
-            VStack(alignment: isMine ? .trailing : .leading, spacing: 6) {
-                Text(message.text)
-                    .font(.callout)
-                    .fixedSize(horizontal: true, vertical: false)
-                
-                Text(message.date)
-                    .font(.system(size: 10))
-            }
-            .foregroundStyle(.white)
-            .padding(8)
-            .background(isMine ? .ctOrange : .gray, in: .rect(cornerRadii: cornerRadii))
-            .multilineTextAlignment(isMine ? .trailing : .leading)
-            .frame(width: width, alignment: isMine ? .trailing : .leading)
-        }
-        .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)
-    }
-    
+    private var bubbleWidth: CGFloat { width * 0.7 }
+    private var alignment: Alignment { isMine ? .trailing : .leading }
     private var cornerRadii: RectangleCornerRadii {
         RectangleCornerRadii(
             topLeading: 12,
@@ -39,6 +21,23 @@ struct MessageView: View {
             bottomTrailing: isMine ? 0 : 12,
             topTrailing: 12
         )
+    }
+    
+    var body: some View {
+        ZStack {
+            VStack(alignment: isMine ? .trailing : .leading, spacing: 6) {
+                Text(message.text)
+                    .font(.callout)
+                
+                Text(message.date)
+                    .font(.system(size: 10))
+            }
+            .foregroundStyle(.white)
+            .padding(8)
+            .background(isMine ? .ctOrange : .gray, in: .rect(cornerRadii: cornerRadii))
+            .frame(maxWidth: bubbleWidth, alignment: alignment)
+        }
+        .frame(maxWidth: .infinity, alignment: alignment)
     }
 }
 

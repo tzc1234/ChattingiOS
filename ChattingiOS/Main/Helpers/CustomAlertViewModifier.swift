@@ -7,14 +7,6 @@
 
 import SwiftUI
 
-final class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
-    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-        let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
-        config.delegateClass = SceneDelegate.self
-        return config
-    }
-}
-
 final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
     var window: UIWindow?
     

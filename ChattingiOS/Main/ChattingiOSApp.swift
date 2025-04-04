@@ -9,19 +9,24 @@ import SwiftUI
 
 @main
 struct ChattingiOSApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     
     private let dependencies = DependenciesContainer()
     private let flow: Flow
     
     init() {
         flow = Flow(dependencies: dependencies)
+        appDelegate.onReceiveDeviceToken = { [weak flow] in flow?.deviceToken = $0 }
+        
+        Task { [handler = dependencies.pushNotificationHandler] in
+            await handler.setupPushNotifications()
+        }
     }
     
     var body: some Scene {
         WindowGroup {
             flow.startView()
-                .environmentObject(delegate)
+                .environmentObject(appDelegate)
         }
     }
 }

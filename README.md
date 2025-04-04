@@ -12,6 +12,7 @@
 4. Async/await
 5. SwiftUI
 6. AsyncStream
+7. APNs
 
 ### Goals to achieve
 1. Learn webSocket

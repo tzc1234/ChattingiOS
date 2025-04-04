@@ -11,23 +11,16 @@ struct ContactListView<AlertContent: View>: View {
     @State private var alertState = AlertState()
     @State private var lastContact: Contact?
     
-    @StateObject private var viewModel: ContactListViewModel
-    @ViewBuilder private let alertContent: (Binding<AlertState>) -> AlertContent
-    private let rowTapped: (Contact) -> Void
-    
-    init(viewModel: ContactListViewModel,
-         alertContent: @escaping (Binding<AlertState>) -> AlertContent,
-         rowTapped: @escaping (Contact) -> Void) {
-        self._viewModel = StateObject(wrappedValue: viewModel)
-        self.alertContent = alertContent
-        self.rowTapped = rowTapped
-    }
+    @ObservedObject var viewModel: ContactListViewModel
+    @ViewBuilder let alertContent: (Binding<AlertState>) -> AlertContent
+    let rowTapped: (Contact) -> Void
     
     var body: some View {
         ContactListContentView(
             contacts: viewModel.contacts,
             lastContact: $lastContact,
             generalError: $viewModel.generalError,
+            message: $viewModel.message,
             isLoading: viewModel.isLoading,
             blockContact: viewModel.blockContact,
             unblockContact: viewModel.unblockContact,
@@ -62,6 +55,7 @@ struct ContactListContentView: View {
     let contacts: [Contact]
     @Binding var lastContact: Contact?
     @Binding var generalError: String?
+    @Binding var message: String?
     let isLoading: Bool
     let blockContact: (Int) -> Void
     let unblockContact: (Int) -> Void
@@ -69,6 +63,8 @@ struct ContactListContentView: View {
     let rowTapped: (Contact) -> Void
     
     @State private var isFullScreenCoverPresenting = false
+    @State private var messageDisplayed = ""
+    
     private let transaction = {
         var transaction = Transaction()
         transaction.disablesAnimations = true
@@ -76,27 +72,39 @@ struct ContactListContentView: View {
     }()
     
     var body: some View {
-        List(contacts) { contact in
-            ContactView(
-                responder: contact.responder,
-                unreadCount: contact.unreadMessageCount,
-                isBlocked: contact.blockedByUserID != nil,
-                lastMessageText: contact.lastMessage?.text
-            )
-            .background(.white.opacity(0.01))
-            .onTapGesture {
-                rowTapped(contact)
+        VStack(spacing: 0) {
+            if !messageDisplayed.isEmpty {
+                Text(messageDisplayed)
+                    .font(.subheadline)
+                    .foregroundStyle(.white)
+                    .padding(.vertical)
+                    .padding(.horizontal, 20)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.green, in: .rect)
             }
-            .onAppear {
-                if contacts.last == contact {
-                    lastContact = contact
+            
+            List(contacts) { contact in
+                ContactView(
+                    responder: contact.responder,
+                    unreadCount: contact.unreadMessageCount,
+                    isBlocked: contact.blockedByUserID != nil,
+                    lastMessageText: contact.lastMessage?.text
+                )
+                .background(.white.opacity(0.01))
+                .onTapGesture {
+                    rowTapped(contact)
+                }
+                .onAppear {
+                    if contacts.last == contact {
+                        lastContact = contact
+                    }
+                }
+                .swipeActions {
+                    swipeAction(contact: contact)
                 }
             }
-            .swipeActions {
-                swipeAction(contact: contact)
-            }
+            .listStyle(.plain)
         }
-        .listStyle(.plain)
         .navigationTitle("Contacts")
         .fullScreenCover(isPresented: $isFullScreenCoverPresenting) {
             LoadingView()
@@ -111,6 +119,10 @@ struct ContactListContentView: View {
             withTransaction(transaction) {
                isFullScreenCoverPresenting = newValue
             }
+        }
+        .onChange(of: message) { newValue in
+            withAnimation { messageDisplayed = newValue == nil ? "" : newValue! }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) { message = nil }
         }
         .alert("⚠️Oops!", isPresented: $generalError.toBool) {
             Button("Cancel", role: .cancel) {}
@@ -180,6 +192,7 @@ struct ContactListContentView: View {
             ],
             lastContact: .constant(nil),
             generalError: .constant(nil),
+            message: .constant("New contact added."),
             isLoading: false,
             blockContact: { _ in },
             unblockContact: { _ in },

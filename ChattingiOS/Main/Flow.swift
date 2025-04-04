@@ -13,29 +13,59 @@ final class Flow {
     private var currentUserVault: CurrentUserVault { dependencies.currentUserVault }
     private var navigationControl: NavigationControlViewModel { contentViewModel.navigationControl }
     
-    private weak var contactListViewModel: ContactListViewModel?
+    // Let Flow manage the lifetime of the ContactListViewModel instance. Since there's a weird behaviour,
+    // the ContactListView sometime will not update if let it manage its own ContactListViewModel.
+    private var contactListViewModel: ContactListViewModel?
+    
     private var newContactTask: Task<Void, Never>?
+    var deviceToken: String?
     
     private let dependencies: DependenciesContainer
     
     init(dependencies: DependenciesContainer) {
         self.dependencies = dependencies
         self.observeUserSignIn()
+        self.observeNewContactAddedNotification()
     }
     
     private func observeUserSignIn() {
         contentViewModel.isLoading = true
         
         Task {
-            await currentUserVault.observe { [contentViewModel] currentUser in
-                guard let user = currentUser?.user else { return }
+            await currentUserVault.observe { [unowned self] currentUser in
+                guard let user = currentUser?.user, await user != contentViewModel.user else { return }
                 
-                await contentViewModel.set(signInState: .signedIn(user))
+                await actionsAfterCurrentUserUpdated(user: user)
             }
             await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
             
             withAnimation { contentViewModel.isLoading = false }
         }
+    }
+    
+    private func actionsAfterCurrentUserUpdated(user: User) async {
+        // Orders matter!
+        await contentViewModel.set(signInState: .signedIn(user))
+        contactListViewModel = nil
+        await updateDeviceToken()
+    }
+    
+    private func updateDeviceToken() async {
+        guard let deviceToken else { return }
+        
+        try? await dependencies.updateDeviceToken.update(with: UpdateDeviceTokenParams(deviceToken: deviceToken))
+    }
+    
+    private func observeNewContactAddedNotification() {
+        dependencies.pushNotificationHandler
+            .onReceiveNewContactAddedNotification = { [unowned self] userID, contact in
+                let currentUserID = contentViewModel.user?.id
+                guard currentUserID == userID else { return }
+                
+                DispatchQueue.main.async {
+                    self.contactListViewModel?.add(contact: contact, message: "\(contact.responder.name) added you.")
+                }
+            }
     }
     
     func startView() -> some View {
@@ -97,13 +127,20 @@ final class Flow {
     }
     
     private func contactListView(currentUserID: Int) -> some View {
-        let viewModel = ContactListViewModel(
-            currentUserID: currentUserID,
-            getContacts: dependencies.getContacts,
-            blockContact: dependencies.blockContact,
-            unblockContact: dependencies.unblockContact
-        )
-        contactListViewModel = viewModel
+        let viewModel: ContactListViewModel = {
+            if let contactListViewModel {
+                return contactListViewModel
+            }
+            
+            let viewModel = ContactListViewModel(
+                currentUserID: currentUserID,
+                getContacts: dependencies.getContacts,
+                blockContact: dependencies.blockContact,
+                unblockContact: dependencies.unblockContact
+            )
+            contactListViewModel = viewModel
+            return viewModel
+        }()
         
         return ContactListView(
             viewModel: viewModel,
@@ -121,9 +158,8 @@ final class Flow {
         newContactTask = Task { [unowned self] in
             for await contact in viewModel.$contact.values {
                 if let contact, let contactListViewModel {
-                    contactListViewModel.add(contact: contact)
-                    try? await Task.sleep(for: .seconds(0.2)) // Wait for NewContactView disappeared
-                    navigationControl.reloadContent()
+                    try? await Task.sleep(for: .seconds(0.5)) // Wait for New Contact Popup disappeared.
+                    contactListViewModel.add(contact: contact, message: "New contact added.")
                 }
             }
         }

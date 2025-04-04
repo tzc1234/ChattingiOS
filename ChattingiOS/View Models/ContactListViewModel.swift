@@ -11,6 +11,7 @@ import Foundation
 final class ContactListViewModel: ObservableObject {
     @Published private(set) var contacts = [Contact]()
     @Published var generalError: String?
+    @Published var message: String?
     @Published private(set) var isLoading = false
     
     private var canLoadMore = true
@@ -53,8 +54,9 @@ final class ContactListViewModel: ObservableObject {
         }
     }
     
-    func add(contact: Contact) {
+    func add(contact: Contact, message: String? = nil) {
         contacts.insert(contact, at: 0)
+        self.message = message
     }
     
     func blockContact(contactID: Int) {

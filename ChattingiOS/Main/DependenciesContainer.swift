@@ -11,6 +11,7 @@ import Foundation
 final class DependenciesContainer {
     let currentUserVault = DefaultCurrentUserVault()
     let contentViewModel = ContentViewModel()
+    let pushNotificationHandler = PushNotificationsHandler()
     private let httpClient = URLSessionHTTPClient(session: .shared)
     
     private(set) lazy var userSignIn = UserSignIn(client: httpClient) {
@@ -47,6 +48,9 @@ final class DependenciesContainer {
     }
     private(set) lazy var unblockContact = DefaultUnblockContact(client: httpClient) { [accessToken] in
         UnblockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
+    }
+    private(set) lazy var updateDeviceToken = DefaultUpdateDeviceToken(client: httpClient) { [accessToken] in
+        try UpdateDeviceTokenEndpoint(accessToken: try await accessToken(), params: $0).request
     }
     
     private var accessToken: (@Sendable () async throws -> AccessToken) {
