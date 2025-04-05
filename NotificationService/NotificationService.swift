@@ -7,6 +7,7 @@
 
 import UserNotifications
 import Intents
+import UIKit
 
 final class NotificationService: UNNotificationServiceExtension {
     var contentHandler: ((UNNotificationContent) -> Void)?
@@ -22,51 +23,72 @@ final class NotificationService: UNNotificationServiceExtension {
               let contactInfo = userInfo["contact"] as? [String: Any],
               let contactID = contactInfo["id"] as? Int,
               let responderInfo = contactInfo["responder"] as? [String: Any],
-              let senderName = responderInfo["name"] as? String,
-              let avatarURLString = responderInfo["avatar_url"] as? String,
-              let avatarURL = URL(string: avatarURLString) else {
+              let senderName = responderInfo["name"] as? String else {
             return contentHandler(bestAttemptContent)
         }
         
-        downloadImage(from: avatarURL) { imageURL in
-            guard let imageURL, let imageData = try? Data(contentsOf: imageURL) else {
-                return contentHandler(bestAttemptContent)
-            }
-            
-            let senderHandle = INPersonHandle(value: senderName, type: .unknown)
-            let senderImage = INImage(imageData: imageData)
-            let sender = INPerson(
-                personHandle: senderHandle,
-                nameComponents: nil,
-                displayName: senderName,
-                image: senderImage,
-                contactIdentifier: nil,
-                customIdentifier: nil
-            )
-            
-            let intent = INSendMessageIntent(
-                recipients: nil,
-                outgoingMessageType: .outgoingMessageText,
-                content: bestAttemptContent.body,
-                speakableGroupName: nil,
-                conversationIdentifier: "contact-\(contactID)",
-                serviceName: nil,
-                sender: sender,
-                attachments: nil
-            )
-            intent.setImage(senderImage, forParameterNamed: \.sender)
-            
-            let interaction = INInteraction(intent: intent, response: nil)
-            interaction.direction = .incoming
-            interaction.donate { error in
-                guard error == nil else { return contentHandler(bestAttemptContent) }
-                
-                do {
-                    let updatedContent = try bestAttemptContent.updating(from: intent)
-                    contentHandler(updatedContent)
-                } catch {
-                    contentHandler(bestAttemptContent)
+        if let avatarURLString = responderInfo["avatar_url"] as? String, let avatarURL = URL(string: avatarURLString) {
+            downloadImage(from: avatarURL) { [weak self] imageURL in
+                guard let imageURL, let imageData = try? Data(contentsOf: imageURL) else {
+                    return contentHandler(bestAttemptContent)
                 }
+                
+                self?.updateContent(
+                    with: senderName,
+                    senderImage: INImage(imageData: imageData),
+                    conversationID: "contact-\(contactID)",
+                    content: bestAttemptContent,
+                    contentHandler: contentHandler
+                )
+            }
+        } else {
+            updateContent(
+                with: senderName,
+                senderImage: INImage(systemName: "person.circle"),
+                conversationID: "contact-\(contactID)",
+                content: bestAttemptContent,
+                contentHandler: contentHandler
+            )
+        }
+    }
+    
+    private func updateContent(with senderName: String,
+                               senderImage: INImage?,
+                               conversationID: String,
+                               content: UNMutableNotificationContent,
+                               contentHandler: @escaping (UNNotificationContent) -> Void) {
+        let senderHandle = INPersonHandle(value: senderName, type: .unknown)
+        let sender = INPerson(
+            personHandle: senderHandle,
+            nameComponents: nil,
+            displayName: content.title,
+            image: senderImage,
+            contactIdentifier: nil,
+            customIdentifier: nil
+        )
+        
+        let intent = INSendMessageIntent(
+            recipients: nil,
+            outgoingMessageType: .outgoingMessageText,
+            content: content.body,
+            speakableGroupName: nil,
+            conversationIdentifier: conversationID,
+            serviceName: nil,
+            sender: sender,
+            attachments: nil
+        )
+        intent.setImage(senderImage, forParameterNamed: \.sender)
+        
+        let interaction = INInteraction(intent: intent, response: nil)
+        interaction.direction = .incoming
+        interaction.donate { error in
+            guard error == nil else { return contentHandler(content) }
+            
+            do {
+                let updatedContent = try content.updating(from: intent)
+                contentHandler(updatedContent)
+            } catch {
+                contentHandler(content)
             }
         }
     }
@@ -87,5 +109,13 @@ final class NotificationService: UNNotificationServiceExtension {
         if let contentHandler, let bestAttemptContent {
             contentHandler(bestAttemptContent)
         }
+    }
+}
+
+private extension INImage {
+    convenience init?(systemName: String) {
+        guard let imageData = UIImage(systemName: systemName)?.pngData() else { return nil }
+        
+        self.init(imageData: imageData)
     }
 }
