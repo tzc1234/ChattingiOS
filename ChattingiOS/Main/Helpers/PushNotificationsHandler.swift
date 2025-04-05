@@ -20,7 +20,7 @@ final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificati
         switch authorizationStatus {
         case .notDetermined:
             do {
-                let granted = try await center.requestAuthorization(options: [.alert])
+                let granted = try await center.requestAuthorization(options: [.alert, .badge])
                 if granted {
                     UIApplication.shared.registerForRemoteNotifications()
                 } else {
