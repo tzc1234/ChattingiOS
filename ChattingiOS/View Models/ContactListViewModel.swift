@@ -54,7 +54,9 @@ final class ContactListViewModel: ObservableObject {
         }
     }
     
-    func add(contact: Contact, message: String? = nil) {
+    func addToTop(contact: Contact, message: String) {
+        guard contacts.first(where: { $0.id == contact.id }) == nil else { return }
+        
         contacts.insert(contact, at: 0)
         self.message = message
     }

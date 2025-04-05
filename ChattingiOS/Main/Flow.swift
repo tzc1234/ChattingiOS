@@ -35,7 +35,7 @@ final class Flow {
             await currentUserVault.observe { [unowned self] currentUser in
                 guard let user = currentUser?.user, await user != contentViewModel.user else { return }
                 
-                await actionsAfterCurrentUserUpdated(user: user)
+                await resetStateAfterCurrentUserUpdated(user: user)
             }
             await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
             
@@ -43,8 +43,8 @@ final class Flow {
         }
     }
     
-    private func actionsAfterCurrentUserUpdated(user: User) async {
-        // Orders matter!
+    private func resetStateAfterCurrentUserUpdated(user: User) async {
+        // Order does matter!
         await contentViewModel.set(signInState: .signedIn(user))
         contactListViewModel = nil
         await updateDeviceToken()
@@ -63,7 +63,10 @@ final class Flow {
                 guard currentUserID == userID else { return }
                 
                 DispatchQueue.main.async {
-                    self.contactListViewModel?.add(contact: contact, message: "\(contact.responder.name) added you.")
+                    self.contactListViewModel?.addToTop(
+                        contact: contact,
+                        message: "\(contact.responder.name) added you."
+                    )
                 }
             }
     }
@@ -159,7 +162,7 @@ final class Flow {
             for await contact in viewModel.$contact.values {
                 if let contact, let contactListViewModel {
                     try? await Task.sleep(for: .seconds(0.5)) // Wait for New Contact Popup disappeared.
-                    contactListViewModel.add(contact: contact, message: "New contact added.")
+                    contactListViewModel.addToTop(contact: contact, message: "New contact added.")
                 }
             }
         }
