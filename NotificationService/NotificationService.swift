@@ -28,14 +28,10 @@ final class NotificationService: UNNotificationServiceExtension {
         }
         
         if let avatarURLString = responderInfo["avatar_url"] as? String, let avatarURL = URL(string: avatarURLString) {
-            downloadImage(from: avatarURL) { [weak self] imageURL in
-                guard let imageURL, let imageData = try? Data(contentsOf: imageURL) else {
-                    return contentHandler(bestAttemptContent)
-                }
-                
+            downloadImage(from: avatarURL) { [weak self] senderImage in
                 self?.updateContent(
                     with: senderName,
-                    senderImage: INImage(imageData: imageData),
+                    senderImage: senderImage,
                     conversationID: "contact-\(contactID)",
                     content: bestAttemptContent,
                     contentHandler: contentHandler
@@ -93,14 +89,14 @@ final class NotificationService: UNNotificationServiceExtension {
         }
     }
     
-    private func downloadImage(from url: URL, completion: @escaping (URL?) -> Void) {
+    private func downloadImage(from url: URL, completion: @escaping (INImage?) -> Void) {
         // Supports background download.
         URLSession.shared.downloadTask(with: url) { tempURL, _, error in
-            guard let tempURL, error == nil else { return completion(nil) }
+            guard let tempURL, error == nil, let imageData = try? Data(contentsOf: tempURL) else {
+                return completion(nil)
+            }
             
-            let destinationURL = URL.temporaryDirectory.appending(component: url.lastPathComponent)
-            try? FileManager.default.moveItem(at: tempURL, to: destinationURL)
-            completion(destinationURL)
+            completion(INImage(imageData: imageData))
         }
         .resume()
     }
