@@ -6,8 +6,8 @@
 //
 
 import UserNotifications
-import Intents
 import UIKit
+import Intents
 
 final class NotificationService: UNNotificationServiceExtension {
     var contentHandler: ((UNNotificationContent) -> Void)?
@@ -27,12 +27,13 @@ final class NotificationService: UNNotificationServiceExtension {
             return contentHandler(bestAttemptContent)
         }
         
+        let conversationID = "contact-\(contactID)"
         if let avatarURLString = responderInfo["avatar_url"] as? String, let avatarURL = URL(string: avatarURLString) {
             downloadImage(from: avatarURL) { [weak self] senderImage in
                 self?.updateContent(
                     with: senderName,
                     senderImage: senderImage,
-                    conversationID: "contact-\(contactID)",
+                    conversationID: conversationID,
                     content: bestAttemptContent,
                     contentHandler: contentHandler
                 )
@@ -41,7 +42,7 @@ final class NotificationService: UNNotificationServiceExtension {
             updateContent(
                 with: senderName,
                 senderImage: INImage(systemName: "person.circle"),
-                conversationID: "contact-\(contactID)",
+                conversationID: conversationID,
                 content: bestAttemptContent,
                 contentHandler: contentHandler
             )
