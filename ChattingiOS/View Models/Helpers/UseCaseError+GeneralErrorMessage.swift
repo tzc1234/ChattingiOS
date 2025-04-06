@@ -10,18 +10,22 @@ import Foundation
 extension UseCaseError {
     func toGeneralErrorMessage() -> String? {
         switch self {
-        case let .server(reason, _):
-            reason
+        case let .server(reason, statusCode):
+            // When status code is 401, it means that token refreshing is failed in Decorator.
+            // The error should be already handled (go back to sign in), return nil to ignore it in Use Case scope.
+            if statusCode == 401 { return nil }
+            
+            return reason
         case .invalidData:
-            "Invalid data received."
+            return "Invalid data received."
         case .connectivity:
-            "Connection error occurred, please try it later."
+            return "Connection error occurred, please try it later."
         case .requestCreationFailed:
-            "Request creation error."
+            return "Request creation error."
         case .accessTokenNotFound:
-            nil
+            return nil
         case .saveCurrentUserFailed:
-            "Cannot save current user data."
+            return "Cannot save current user data."
         }
     }
 }

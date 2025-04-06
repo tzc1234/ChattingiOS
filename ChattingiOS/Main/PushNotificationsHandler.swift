@@ -20,7 +20,7 @@ final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificati
         switch authorizationStatus {
         case .notDetermined:
             do {
-                let granted = try await center.requestAuthorization(options: [.alert])
+                let granted = try await center.requestAuthorization(options: [.alert, .badge])
                 if granted {
                     UIApplication.shared.registerForRemoteNotifications()
                 } else {
@@ -53,7 +53,7 @@ final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificati
         case "new_contact_added":
             if let forUserID = userInfo["for_user_id"] as? Int,
                let contactInfo = userInfo["contact"] as? [AnyHashable: Any],
-               let contact = contactInfo.toModel() {
+               let contact = contactInfo.toContact() {
                 onReceiveNewContactAddedNotification?(forUserID, contact)
             }
         default: break
@@ -62,7 +62,7 @@ final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificati
 }
 
 private extension [AnyHashable: Any] {
-    func toModel() -> Contact? {
+    func toContact() -> Contact? {
         guard let data = try? JSONSerialization.data(withJSONObject: self) else { return nil }
         
         let decoder = JSONDecoder()

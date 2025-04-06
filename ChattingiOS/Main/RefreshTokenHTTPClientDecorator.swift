@@ -28,19 +28,23 @@ final class RefreshTokenHTTPClientDecorator: HTTPClient {
     }
     
     func send(_ request: URLRequest) async throws -> (data: Data, response: HTTPURLResponse) {
-        let result = try await decoratee.send(request)
-        guard isAccessTokenValid(result.response) else {
-            let newAccessToken = try await refreshToken()
-            var newRequest = request
-            newRequest.setValue(newAccessToken, forHTTPHeaderField: .authorizationHTTPHeaderField)
-            return try await decoratee.send(newRequest)
+        let originalResult = try await decoratee.send(request)
+        if isAccessTokenInvalid(originalResult.response) {
+            do {
+                let newAccessToken = try await refreshToken()
+                var newRequest = request
+                newRequest.setValue(newAccessToken, forHTTPHeaderField: .authorizationHTTPHeaderField)
+                return try await decoratee.send(newRequest)
+            } catch {
+                return originalResult
+            }
         }
         
-        return result
+        return originalResult
     }
     
-    private func isAccessTokenValid(_ response: HTTPURLResponse) -> Bool {
-        response.statusCode != 401
+    private func isAccessTokenInvalid(_ response: HTTPURLResponse) -> Bool {
+        response.statusCode == 401
     }
     
     private func refreshToken() async throws -> String {
