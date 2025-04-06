@@ -30,7 +30,7 @@ final class ContentViewModel: ObservableObject {
             await set(user: nil)
         case .tokenInvalid:
             await set(user: nil)
-            generalError = .pleaseSignInAgain
+            generalError = "Token invalid, please sign in again."
         }
     }
     
@@ -41,8 +41,4 @@ final class ContentViewModel: ObservableObject {
         withAnimation { self.user = user }
         try? await Task.sleep(for: .seconds(0.5))
     }
-}
-
-private extension String {
-    static var pleaseSignInAgain: String { "Token invalid, please sign in again." }
 }
