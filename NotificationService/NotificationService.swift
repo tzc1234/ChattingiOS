@@ -24,7 +24,7 @@ final class NotificationService: UNNotificationServiceExtension {
         }
         
         switch action {
-        case "new_contact_added":
+        case "new_contact_added", "message":
             guard let contactInfo = userInfo["contact"] as? [String: Any],
                   let contactID = contactInfo["id"] as? Int,
                   let responderInfo = contactInfo["responder"] as? [String: Any],
@@ -32,23 +32,11 @@ final class NotificationService: UNNotificationServiceExtension {
                 return contentHandler(bestAttemptContent)
             }
             
+            let prefix = action == "message" ? "message" : "contact"
             update(
                 with: senderName,
                 avatarURLString: responderInfo["avatar_url"] as? String,
-                conversationID: "contact-\(contactID)",
-                on: bestAttemptContent,
-                contentHandler: contentHandler
-            )
-        case "message":
-            guard let senderID = userInfo["sender_id"],
-                  let senderName = userInfo["sender_name"] as? String else {
-                return contentHandler(bestAttemptContent)
-            }
-            
-            update(
-                with: senderName,
-                avatarURLString: userInfo["avatar_url"] as? String,
-                conversationID: "message-\(senderID)",
+                conversationID: "\(prefix)-\(contactID)",
                 on: bestAttemptContent,
                 contentHandler: contentHandler
             )
