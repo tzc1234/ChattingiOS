@@ -26,6 +26,7 @@ final class Flow {
         self.dependencies = dependencies
         self.observeUserSignIn()
         self.observeNewContactAddedNotification()
+        self.observeMessageNotification()
     }
     
     private func observeUserSignIn() {
@@ -67,6 +68,17 @@ final class Flow {
                         contact: contact,
                         message: "\(contact.responder.name) added you."
                     )
+                }
+            }
+    }
+    
+    private func observeMessageNotification() {
+        dependencies.pushNotificationHandler
+            .onReceiveMessageNotification = { [unowned self] userID, contact in
+                guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
+                
+                DispatchQueue.main.async {
+                    self.showMessageListView(currentUserID: currentUserID, contact: contact)
                 }
             }
     }

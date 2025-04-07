@@ -11,6 +11,7 @@ import UIKit
 @MainActor
 final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificationCenterDelegate {
     var onReceiveNewContactAddedNotification: ((Int, Contact) -> Void)?
+    var onReceiveMessageNotification: ((Int, Contact) -> Void)?
     
     func setupPushNotifications() async {
         let center = UNUserNotificationCenter.current()
@@ -70,7 +71,7 @@ final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificati
         if let forUserID = userInfo["for_user_id"] as? Int,
            let contactInfo = userInfo["contact"] as? [AnyHashable: Any],
            let contact = contactInfo.toContact() {
-            print("contact: \(contact)")
+            onReceiveMessageNotification?(forUserID, contact)
         }
     }
 }
