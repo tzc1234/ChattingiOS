@@ -61,6 +61,16 @@ final class ContactListViewModel: ObservableObject {
         self.message = message
     }
     
+    func replaceTo(newContact: Contact) {
+        if let index = contacts.firstIndex(where: { $0.id == newContact.id }) {
+            guard contacts[index].lastUpdate < newContact.lastUpdate else { return }
+            
+            contacts[index] = newContact
+        } else {
+            addToTop(contact: newContact, message: "New contact added.")
+        }
+    }
+    
     func blockContact(contactID: Int) {
         guard let index = contacts.firstIndex(where: { $0.id == contactID }),
               contacts[index].blockedByUserID == nil else {

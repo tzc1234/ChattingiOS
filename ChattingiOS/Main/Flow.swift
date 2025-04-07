@@ -74,11 +74,18 @@ final class Flow {
     
     private func observeMessageNotification() {
         dependencies.pushNotificationHandler
-            .onReceiveMessageNotification = { [unowned self] userID, contact in
+            .onReceiveMessageNotification = { [unowned self] userID, contact, willPresent in
                 guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
                 
-                DispatchQueue.main.async {
-                    self.showMessageListView(currentUserID: currentUserID, contact: contact)
+                DispatchQueue.main.async { [unowned self] in
+                    if willPresent {
+                        contactListViewModel?.replaceTo(newContact: contact)
+                    } else {
+                        // Not on MessageListView.
+                        if navigationControl.path.count < 1 {
+                            showMessageListView(currentUserID: currentUserID, contact: contact)
+                        }
+                    }
                 }
             }
     }
