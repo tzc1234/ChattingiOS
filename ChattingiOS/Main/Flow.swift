@@ -26,6 +26,7 @@ final class Flow {
         self.dependencies = dependencies
         self.observeUserSignIn()
         self.observeNewContactAddedNotification()
+        self.observeMessageNotification()
     }
     
     private func observeUserSignIn() {
@@ -47,6 +48,7 @@ final class Flow {
         // Order does matter!
         await contentViewModel.set(signInState: .signedIn(user))
         contactListViewModel = nil
+        navigationControl.forceReloadContent()
         await updateDeviceToken()
     }
     
@@ -62,11 +64,25 @@ final class Flow {
                 let currentUserID = contentViewModel.user?.id
                 guard currentUserID == userID else { return }
                 
-                DispatchQueue.main.async {
-                    self.contactListViewModel?.addToTop(
-                        contact: contact,
-                        message: "\(contact.responder.name) added you."
-                    )
+                contactListViewModel?.addToTop(
+                    contact: contact,
+                    message: "\(contact.responder.name) added you."
+                )
+            }
+    }
+    
+    private func observeMessageNotification() {
+        dependencies.pushNotificationHandler
+            .onReceiveMessageNotification = { [unowned self] userID, contact, willPresent in
+                guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
+
+                if willPresent {
+                    contactListViewModel?.replaceTo(newContact: contact)
+                } else {
+                    // Not on MessageListView.
+                    if navigationControl.path.count < 1 {
+                        showMessageListView(currentUserID: currentUserID, contact: contact)
+                    }
                 }
             }
     }

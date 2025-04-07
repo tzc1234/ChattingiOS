@@ -6,8 +6,8 @@
 //
 
 import UserNotifications
-import Intents
 import UIKit
+import Intents
 
 final class NotificationService: UNNotificationServiceExtension {
     var contentHandler: ((UNNotificationContent) -> Void)?
@@ -18,41 +18,64 @@ final class NotificationService: UNNotificationServiceExtension {
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
         
         guard let bestAttemptContent else { return contentHandler(request.content) }
-        
         guard let userInfo = bestAttemptContent.userInfo as? [String: Any],
-              let contactInfo = userInfo["contact"] as? [String: Any],
-              let contactID = contactInfo["id"] as? Int,
-              let responderInfo = contactInfo["responder"] as? [String: Any],
-              let senderName = responderInfo["name"] as? String else {
+              let action = userInfo["action"] as? String else {
             return contentHandler(bestAttemptContent)
         }
         
-        if let avatarURLString = responderInfo["avatar_url"] as? String, let avatarURL = URL(string: avatarURLString) {
+        switch action {
+        case "new_contact_added", "message":
+            guard let contactInfo = userInfo["contact"] as? [String: Any],
+                  let contactID = contactInfo["id"] as? Int,
+                  let responderInfo = contactInfo["responder"] as? [String: Any],
+                  let senderName = responderInfo["name"] as? String else {
+                return contentHandler(bestAttemptContent)
+            }
+            
+            let prefix = action == "message" ? "message" : "contact"
+            update(
+                with: senderName,
+                avatarURLString: responderInfo["avatar_url"] as? String,
+                conversationID: "\(prefix)-\(contactID)",
+                on: bestAttemptContent,
+                contentHandler: contentHandler
+            )
+        default:
+            contentHandler(bestAttemptContent)
+        }
+    }
+    
+    private func update(with senderName: String,
+                        avatarURLString: String?,
+                        conversationID: String,
+                        on content: UNMutableNotificationContent,
+                        contentHandler: @escaping (UNNotificationContent) -> Void) {
+        if let avatarURLString, let avatarURL = URL(string: avatarURLString) {
             downloadImage(from: avatarURL) { [weak self] senderImage in
-                self?.updateContent(
+                self?.update(
                     with: senderName,
                     senderImage: senderImage,
-                    conversationID: "contact-\(contactID)",
-                    content: bestAttemptContent,
+                    conversationID: conversationID,
+                    on: content,
                     contentHandler: contentHandler
                 )
             }
         } else {
-            updateContent(
+            update(
                 with: senderName,
                 senderImage: INImage(systemName: "person.circle"),
-                conversationID: "contact-\(contactID)",
-                content: bestAttemptContent,
+                conversationID: conversationID,
+                on: content,
                 contentHandler: contentHandler
             )
         }
     }
     
-    private func updateContent(with senderName: String,
-                               senderImage: INImage?,
-                               conversationID: String,
-                               content: UNMutableNotificationContent,
-                               contentHandler: @escaping (UNNotificationContent) -> Void) {
+    private func update(with senderName: String,
+                        senderImage: INImage?,
+                        conversationID: String,
+                        on content: UNMutableNotificationContent,
+                        contentHandler: @escaping (UNNotificationContent) -> Void) {
         let senderHandle = INPersonHandle(value: senderName, type: .unknown)
         let sender = INPerson(
             personHandle: senderHandle,
