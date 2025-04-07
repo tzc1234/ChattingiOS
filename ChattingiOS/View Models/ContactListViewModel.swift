@@ -54,7 +54,7 @@ final class ContactListViewModel: ObservableObject {
         }
     }
     
-    func addToTop(contact: Contact, message: String) {
+    func addToTop(contact: Contact, message: String? = nil) {
         guard contacts.first(where: { $0.id == contact.id }) == nil else { return }
         
         contacts.insert(contact, at: 0)
@@ -65,9 +65,12 @@ final class ContactListViewModel: ObservableObject {
         if let index = contacts.firstIndex(where: { $0.id == newContact.id }) {
             guard contacts[index].lastUpdate < newContact.lastUpdate else { return }
             
-            contacts[index] = newContact
+            contacts.remove(at: index)
+            
+            let toBeInsertedIndex = contacts.firstIndex(where: { $0.lastUpdate < newContact.lastUpdate }) ?? contacts.endIndex
+            contacts.insert(newContact, at: toBeInsertedIndex)
         } else {
-            addToTop(contact: newContact, message: "New contact added.")
+            addToTop(contact: newContact, message: "\(newContact.responder.name) added you.")
         }
     }
     

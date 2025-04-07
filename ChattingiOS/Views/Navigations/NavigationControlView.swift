@@ -9,6 +9,7 @@ import SwiftUI
 
 final class NavigationControlViewModel: ObservableObject {
     @Published var path = NavigationPath()
+    @Published private(set) var contentID = UUID()
     
     func show(next: some Hashable) {
         path.append(next)
@@ -17,6 +18,10 @@ final class NavigationControlViewModel: ObservableObject {
     func popToRoot() {
         path = NavigationPath()
     }
+    
+    func forceReloadContent() {
+        contentID = UUID()
+    }
 }
 
 struct NavigationControlView<Content: View>: View {
@@ -24,6 +29,8 @@ struct NavigationControlView<Content: View>: View {
     let content: () -> Content?
     
     var body: some View {
-        NavigationStack(path: $viewModel.path, root: content)
+        NavigationStack(path: $viewModel.path) {
+            content()?.id(viewModel.contentID)
+        }
     }
 }
