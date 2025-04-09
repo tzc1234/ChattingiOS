@@ -8,10 +8,13 @@
 @preconcurrency import UserNotifications
 import UIKit
 
+typealias UserID = Int
+
 @MainActor
 final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificationCenterDelegate {
-    var onReceiveNewContactAddedNotification: ((Int, Contact) -> Void)?
-    var onReceiveMessageNotification: ((Int, Contact, Bool) -> Void)?
+    var onReceiveNewContactNotification: ((UserID, Contact) -> Void)?
+    var didReceiveMessageNotification: ((UserID, Contact) -> Void)?
+    var willPresentMessageNotification: ((UserID, Contact) -> Void)?
     
     func setupPushNotifications() async {
         let center = UNUserNotificationCenter.current()
@@ -40,8 +43,8 @@ final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificati
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
         let userInfo = response.notification.request.content.userInfo
         switch userInfo["action"] as? String {
-        case "new_contact_added": handleNewContactAddedNotification(userInfo: userInfo)
-        case "message": handleMessageNotification(userInfo: userInfo, willPresent: false)
+        case "new_contact_added": handleNewContactNotification(userInfo: userInfo)
+        case "message": handleDidReceiveMessageNotification(userInfo: userInfo)
         default: break
         }
     }
@@ -49,27 +52,39 @@ final class PushNotificationsHandler: NSObject, @preconcurrency UNUserNotificati
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
         let userInfo = notification.request.content.userInfo
         switch userInfo["action"] as? String {
-        case "new_contact_added": handleNewContactAddedNotification(userInfo: userInfo)
-        case "message": handleMessageNotification(userInfo: userInfo, willPresent: true)
+        case "new_contact_added": handleNewContactNotification(userInfo: userInfo)
+        case "message": handleWillPresentMessageNotification(userInfo: userInfo)
         default: break
         }
         return .init(rawValue: 0)
     }
     
-    private func handleNewContactAddedNotification(userInfo: [AnyHashable: Any]) {
-        if let forUserID = userInfo["for_user_id"] as? Int,
-           let contactInfo = userInfo["contact"] as? [AnyHashable: Any],
-           let contact = contactInfo.toContact() {
-            onReceiveNewContactAddedNotification?(forUserID, contact)
-        }
+    private func handleNewContactNotification(userInfo: [AnyHashable: Any]) {
+        guard let (forUserID, contact) = contact(from: userInfo) else { return }
+        
+        onReceiveNewContactNotification?(forUserID, contact)
     }
     
-    private func handleMessageNotification(userInfo: [AnyHashable: Any], willPresent: Bool) {
-        if let forUserID = userInfo["for_user_id"] as? Int,
-           let contactInfo = userInfo["contact"] as? [AnyHashable: Any],
-           let contact = contactInfo.toContact() {
-            onReceiveMessageNotification?(forUserID, contact, willPresent)
+    private func handleDidReceiveMessageNotification(userInfo: [AnyHashable: Any]) {
+        guard let (forUserID, contact) = contact(from: userInfo) else { return }
+        
+        didReceiveMessageNotification?(forUserID, contact)
+    }
+    
+    private func handleWillPresentMessageNotification(userInfo: [AnyHashable: Any]) {
+        guard let (forUserID, contact) = contact(from: userInfo) else { return }
+        
+        willPresentMessageNotification?(forUserID, contact)
+    }
+    
+    private func contact(from userInfo: [AnyHashable: Any]) -> (forUserID: Int, contact: Contact)? {
+        guard let forUserID = userInfo["for_user_id"] as? UserID,
+              let contactInfo = userInfo["contact"] as? [AnyHashable: Any],
+              let contact = contactInfo.toContact() else {
+            return nil
         }
+        
+        return (forUserID, contact)
     }
 }
 
