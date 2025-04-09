@@ -46,6 +46,7 @@ final class ContentViewModel: ObservableObject {
         switch signInState {
         case let .signedIn(user):
             await set(user: user)
+            selectedTab = .contacts
         case .userInitiatedSignOut:
             await set(user: nil)
         case .tokenInvalid:
