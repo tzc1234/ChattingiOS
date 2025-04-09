@@ -39,6 +39,5 @@ final class ContentViewModel: ObservableObject {
             navigationControl.popToRoot()
         }
         withAnimation { self.user = user }
-        try? await Task.sleep(for: .seconds(0.5))
     }
 }

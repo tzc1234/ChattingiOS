@@ -38,6 +38,7 @@ final class MessageListViewModel: ObservableObject {
     private var canLoadMore = false
     private var isLoadingMoreMessages = false
     private var messagesToBeReadIDs = Set<Int>()
+    private var messageStreamTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let contact: Contact
@@ -132,24 +133,48 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
+    func closeMessageChannel() {
+        messageStreamTask?.cancel()
+        messageStreamTask = nil
+    }
+    
+    func reestablishMessageChannel() {
+        isLoading = true
+        canLoadMore = true
+        
+        Task {
+            do {
+                try await establishMessageChannel()
+                try await loadMoreMessageUntilTheEnd()
+            } catch let error as UseCaseError {
+                initialError = error.toGeneralErrorMessage()
+            } catch let error as MessageChannelError {
+                initialError = error.toGeneralErrorMessage()
+            }
+            isLoading = false
+        }
+    }
+    
     private func establishMessageChannel() async throws(MessageChannelError) {
         let connection = try await messageChannel.establish(for: contactID)
         self.connection = connection
         
-        defer {
-            Task { try? await connection.close() }
-        }
-        
-        do {
-            for try await message in connection.messageStream {
-                messages.append(map(message: message))
-                
-                if listPositionMessageID == nil {
-                    listPositionMessageID = message.id
-                }
+        messageStreamTask = Task {
+            defer {
+                Task { try? await connection.close() }
             }
-        } catch {
-            print("Message channel error received: \(error)")
+            
+            do {
+                for try await message in connection.messageStream {
+                    messages.append(map(message: message))
+                    
+                    if listPositionMessageID == nil {
+                        listPositionMessageID = message.id
+                    }
+                }
+            } catch {
+                print("Message channel error received: \(error)")
+            }
         }
     }
     

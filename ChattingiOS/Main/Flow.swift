@@ -11,6 +11,7 @@ import SwiftUI
 final class Flow {
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
     private var currentUserVault: CurrentUserVault { dependencies.currentUserVault }
+    private var pushNotificationHandler: PushNotificationsHandler { dependencies.pushNotificationHandler }
     private var navigationControl: NavigationControlViewModel { contentViewModel.navigationControl }
     
     // Let Flow manage the lifetime of the ContactListViewModel instance. Since there's a weird behaviour,
@@ -26,7 +27,8 @@ final class Flow {
         self.dependencies = dependencies
         self.observeUserSignIn()
         self.observeNewContactAddedNotification()
-        self.observeMessageNotification()
+        self.observeDidReceiveMessageNotification()
+        self.observeWillPresentMessageNotification()
     }
     
     private func observeUserSignIn() {
@@ -59,32 +61,31 @@ final class Flow {
     }
     
     private func observeNewContactAddedNotification() {
-        dependencies.pushNotificationHandler
-            .onReceiveNewContactAddedNotification = { [unowned self] userID, contact in
-                let currentUserID = contentViewModel.user?.id
-                guard currentUserID == userID else { return }
-                
-                contactListViewModel?.addToTop(
-                    contact: contact,
-                    message: "\(contact.responder.name) added you."
-                )
-            }
+        pushNotificationHandler.onReceiveNewContactNotification = { [unowned self] userID, contact in
+            let currentUserID = contentViewModel.user?.id
+            guard currentUserID == userID else { return }
+            
+            contactListViewModel?.addToTop(contact: contact, message: "\(contact.responder.name) added you.")
+        }
     }
     
-    private func observeMessageNotification() {
-        dependencies.pushNotificationHandler
-            .onReceiveMessageNotification = { [unowned self] userID, contact, willPresent in
-                guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
-
-                if willPresent {
-                    contactListViewModel?.replaceTo(newContact: contact)
-                } else {
-                    // Not on MessageListView.
-                    if navigationControl.path.count < 1 {
-                        showMessageListView(currentUserID: currentUserID, contact: contact)
-                    }
-                }
+    private func observeDidReceiveMessageNotification() {
+        pushNotificationHandler.didReceiveMessageNotification = { [unowned self] userID, contact in
+            guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
+            
+            // Not on MessageListView.
+            if navigationControl.path.count < 1 {
+                showMessageListView(currentUserID: currentUserID, contact: contact)
             }
+        }
+    }
+    
+    private func observeWillPresentMessageNotification() {
+        pushNotificationHandler.willPresentMessageNotification = { [unowned self] userID, contact in
+            guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
+            
+            contactListViewModel?.replaceTo(newContact: contact)
+        }
     }
     
     func startView() -> some View {
