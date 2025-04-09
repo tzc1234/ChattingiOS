@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct MessageListView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    
     @ObservedObject var viewModel: MessageListViewModel
     
     var body: some View {
@@ -36,6 +38,16 @@ struct MessageListView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(viewModel.initialError ?? "")
+        }
+        .onDisappear {
+            viewModel.closeMessageChannel()
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                viewModel.reestablishMessageChannel()
+            } else if phase == .inactive {
+                viewModel.closeMessageChannel()
+            }
         }
     }
 }
