@@ -73,8 +73,8 @@ final class Flow {
         pushNotificationHandler.didReceiveMessageNotification = { [unowned self] userID, contact in
             guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
             
-            // Not on MessageListView.
-            if navigationControl.path.count < 1 {
+            // On contacts tab, not on MessageListView.
+            if contentViewModel.selectedTab == .contacts, navigationControl.path.count < 1 {
                 showMessageListView(currentUserID: currentUserID, contact: contact)
             }
         }
@@ -89,19 +89,21 @@ final class Flow {
     }
     
     func startView() -> some View {
-        ContentView(viewModel: contentViewModel) { currentUser in
-            TabView { [unowned self] in
+        ContentView(viewModel: contentViewModel) { [unowned self] currentUser in
+            TabView(selection: contentViewModel.selectedTabBinding) { [unowned self] in
                 NavigationControlView(viewModel: navigationControl) { [unowned self] in
                     contactListView(currentUserID: currentUser.id)
                 }
                 .tabItem {
-                    Label("Contacts", systemImage: "person.3")
+                    Label(TabItem.contacts.title, systemImage: TabItem.contacts.systemImage)
                 }
+                .tag(TabItem.contacts)
                 
                 profileView(user: currentUser)
                     .tabItem {
-                        Label("Profile", systemImage: "person")
+                        Label(TabItem.profile.title, systemImage: TabItem.profile.systemImage)
                     }
+                    .tag(TabItem.profile)
             }
             .tint(.ctOrange)
         } signInContent: { [unowned self] in

@@ -7,6 +7,25 @@
 
 import SwiftUI
 
+enum TabItem {
+    case contacts
+    case profile
+    
+    var title: String {
+        switch self {
+        case .contacts: "Contacts"
+        case .profile: "Profile"
+        }
+    }
+    
+    var systemImage: String {
+        switch self {
+        case .contacts: "person.3"
+        case .profile: "person"
+        }
+    }
+}
+
 @MainActor
 final class ContentViewModel: ObservableObject {
     enum SignInState {
@@ -21,6 +40,7 @@ final class ContentViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var generalError: String?
     @Published var showSheet = false
+    @Published var selectedTab: TabItem = .contacts
     
     func set(signInState: SignInState) async {
         switch signInState {
@@ -39,5 +59,15 @@ final class ContentViewModel: ObservableObject {
             navigationControl.popToRoot()
         }
         withAnimation { self.user = user }
+    }
+}
+
+extension ContentViewModel {
+    var selectedTabBinding: Binding<TabItem> {
+        .init {
+            self.selectedTab
+        } set: { newValue in
+            self.selectedTab = newValue
+        }
     }
 }
