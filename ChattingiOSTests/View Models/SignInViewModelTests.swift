@@ -56,6 +56,14 @@ final class SignInViewModelTests: XCTestCase {
         XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
     }
     
+    func test_signIn_signInSucceeds() async {
+        let (sut, _) = makeSUT()
+        
+        await sut.completeSignIn()
+        
+        XCTAssertTrue(sut.isSignInSuccess)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(email: String = "an@email.com",
