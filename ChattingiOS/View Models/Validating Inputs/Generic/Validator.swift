@@ -20,7 +20,7 @@ extension Validator where T == String {
     }
 }
 
-enum ValidatorResult {
+enum ValidatorResult: Equatable {
     case valid
     case invalid(String?)
 }
