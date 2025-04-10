@@ -41,7 +41,7 @@ final class SignInViewModelTests: XCTestCase {
         let password = "aPassword"
         let (sut, spy) = makeSUT(email: email, password: password)
         
-        await sut.completeSignIn()
+        await signInAndCompleteTask(on: sut)
         
         XCTAssertEqual(spy.loggedParams, [.init(email: email, password: password)])
         XCTAssertTrue(sut.canSignIn)
@@ -51,7 +51,7 @@ final class SignInViewModelTests: XCTestCase {
         let error = UseCaseError.connectivity
         let (sut, _) = makeSUT(error: error)
         
-        await sut.completeSignIn()
+        await signInAndCompleteTask(on: sut)
         
         XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
     }
@@ -59,7 +59,7 @@ final class SignInViewModelTests: XCTestCase {
     func test_signIn_signInSucceeds() async {
         let (sut, _) = makeSUT()
         
-        await sut.completeSignIn()
+        await signInAndCompleteTask(on: sut)
         
         XCTAssertTrue(sut.isSignInSuccess)
     }
@@ -78,6 +78,16 @@ final class SignInViewModelTests: XCTestCase {
         trackMemoryLeak(spy, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)
         return (sut, spy)
+    }
+    
+    private func signInAndCompleteTask(on sut: SignInViewModel,
+                                          file: StaticString = #filePath,
+                                          line: UInt = #line) async {
+        sut.signIn()
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.task?.value
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
     
     @MainActor
