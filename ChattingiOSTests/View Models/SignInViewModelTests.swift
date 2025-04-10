@@ -47,13 +47,23 @@ final class SignInViewModelTests: XCTestCase {
         XCTAssertTrue(sut.canSignIn)
     }
     
+    func test_signIn_deliversErrorOnUserSignInError() async {
+        let error = UseCaseError.connectivity
+        let (sut, _) = makeSUT(error: error)
+        
+        await sut.completeSignIn()
+        
+        XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(email: String = "an@email.com",
                          password: String = "aPassword",
+                         error: UseCaseError? = nil,
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: SignInViewModel, spy: UserSignInSpy) {
-        let spy = UserSignInSpy()
+        let spy = UserSignInSpy(error: error)
         let sut = SignInViewModel(userSignIn: spy.userSignIn)
         sut.emailInput = email
         sut.passwordInput = password
@@ -65,8 +75,16 @@ final class SignInViewModelTests: XCTestCase {
     @MainActor
     private final class UserSignInSpy {
         private(set) var loggedParams = [UserSignInParams]()
-        private(set) lazy var userSignIn: (UserSignInParams) async throws -> Void = { [weak self] params in
-            self?.loggedParams.append(params)
+        
+        private let error: UseCaseError?
+        
+        init(error: UseCaseError?) {
+            self.error = error
+        }
+        
+        func userSignIn(params: UserSignInParams) async throws {
+            if let error { throw error }
+            loggedParams.append(params)
         }
     }
 }
