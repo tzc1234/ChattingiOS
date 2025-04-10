@@ -12,51 +12,60 @@ final class ValidatedInputTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        resetErrorMessage()
+        resetValidatorStub()
     }
     
     override func tearDown() {
         super.tearDown()
         
-        resetErrorMessage()
+        resetValidatorStub()
     }
     
     func test_init_initialisesWithValueOnValidatorSuccess() {
         let validValue = "valid value"
-        let input = ValidatedInput<AlwaysSuccessValidator>(validValue)
+        ValidatorStub.results = [.valid, .valid, .valid]
+        let input = ValidatedInput<ValidatorStub>(validValue)
         
         XCTAssertEqual(input.value, validValue)
         XCTAssertTrue(input.isValid)
         XCTAssertNil(input.errorMessage)
     }
     
-    func test_init_initialisesWithErrorMessageOnValidatorFailure() {
-        let errorMessage = "Any error message."
-        AlwaysFailValidator.errorMessage = errorMessage
-        let input = ValidatedInput<AlwaysFailValidator>("any")
+    func test_init_initialisesWithErrorMessageOnOneValidatorFailure() {
+        let firstErrorMessage = "first error message."
+        ValidatorStub.results = [.valid, .invalid(firstErrorMessage), .invalid("last error message")]
+        let input = ValidatedInput<ValidatorStub>("any")
         
         XCTAssertNil(input.value)
         XCTAssertFalse(input.isValid)
-        XCTAssertEqual(input.errorMessage, errorMessage)
+        XCTAssertEqual(input.errorMessage, firstErrorMessage)
+    }
+    
+    func test_init_initialisesWithErrorMessageOnAllValidatorsFailure() {
+        let firstErrorMessage = "first error message."
+        ValidatorStub.results = [
+            .invalid(firstErrorMessage),
+            .invalid("second error message"),
+            .invalid("last error message")
+        ]
+        let input = ValidatedInput<ValidatorStub>("any")
+        
+        XCTAssertNil(input.value)
+        XCTAssertFalse(input.isValid)
+        XCTAssertEqual(input.errorMessage, firstErrorMessage)
     }
     
     // MARK: - Helpers
     
-    private func resetErrorMessage() {
-        AlwaysFailValidator.errorMessage = nil
+    private func resetValidatorStub() {
+        ValidatorStub.results = []
     }
     
-    private final class AlwaysSuccessValidator: Validator {
-        static var validators: [(String) -> ValidatorResult] {
-            [{ _ in return .valid }]
-        }
-    }
-    
-    private final class AlwaysFailValidator: Validator {
-        nonisolated(unsafe) static var errorMessage: String?
+    private final class ValidatorStub: Validator {
+        nonisolated(unsafe) static var results = [ValidatorResult]()
         
         static var validators: [(String) -> ValidatorResult] {
-            [{ _ in return .invalid(errorMessage) }]
+            results.map { result in { _ in return result } }
         }
     }
 }
