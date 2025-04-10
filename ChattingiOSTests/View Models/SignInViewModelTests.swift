@@ -16,24 +16,40 @@ final class SignInViewModelTests: XCTestCase {
         XCTAssertTrue(spy.loggedParams.isEmpty)
     }
 
-    func test_signIn_doesNotSigInWhenEmailIsEmpty() {
+    func test_signIn_doesNotSigInWhenEmailIsInvalid() {
         let (sut, spy) = makeSUT()
         
         sut.emailInput = ""
         sut.passwordInput = "anyPassword"
+        sut.signIn()
         
         XCTAssertTrue(spy.loggedParams.isEmpty)
         XCTAssertFalse(sut.canSignIn)
     }
     
-    func test_signIn_doesNotSigInWhenPasswordIsEmpty() {
+    func test_signIn_doesNotSigInWhenPasswordIsInvalid() {
         let (sut, spy) = makeSUT()
         
         sut.emailInput = "any@email.com"
         sut.passwordInput = ""
+        sut.signIn()
         
         XCTAssertTrue(spy.loggedParams.isEmpty)
         XCTAssertFalse(sut.canSignIn)
+    }
+    
+    func test_signIn_passesParamsToUserSignInSuccessfully() async {
+        let (sut, spy) = makeSUT()
+        let email = "an@email.com"
+        let password = "aPassword"
+        
+        sut.emailInput = email
+        sut.passwordInput = password
+        sut.signIn()
+        await sut.task?.value
+        
+        XCTAssertEqual(spy.loggedParams, [.init(email: email, password: password)])
+        XCTAssertTrue(sut.canSignIn)
     }
     
     // MARK: - Helpers

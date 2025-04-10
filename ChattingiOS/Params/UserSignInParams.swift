@@ -5,7 +5,7 @@
 //  Created by Tsz-Lung on 15/12/2024.
 //
 
-struct UserSignInParams {
+struct UserSignInParams: Equatable {
     let email: String
     let password: String
 }
