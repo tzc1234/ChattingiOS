@@ -26,4 +26,13 @@ final class ConfirmPasswordTests: XCTestCase {
         
         XCTAssertEqual(results, [.valid, .invalid("Password is not the same as confirm password.")])
     }
+    
+    func test_validators_succeedsWhenConfirmPasswordSameAsPassword() {
+        let password = "aPassword"
+        let sameConfirmPassword = "aPassword"
+        
+        let results = ConfirmPasswordValidator.validators.map { $0((sameConfirmPassword, password)) }
+        
+        XCTAssertEqual(results, [.valid, .valid])
+    }
 }
