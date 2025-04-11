@@ -11,12 +11,14 @@ enum PasswordValidator: Validator {
     static var validators: [(String) -> ValidatorResult] { [validateNotEmpty, validateCount] }
     
     private static func validateCount(_ password: String) -> ValidatorResult {
-        guard password.count >= 3 else {
-            return .invalid("Password should be 3 or more characters.")
+        guard password.count >= minCharacterCount else {
+            return .invalid("Password should be \(minCharacterCount) or more characters.")
         }
         
         return .valid
     }
+    
+    private static var minCharacterCount: Int { 3 }
 }
 
 typealias Password = ValidatedInput<PasswordValidator>
