@@ -17,4 +17,11 @@ final class EmailTests: XCTestCase {
         XCTAssertEqual(results, [.invalid(nil), .invalid("Email format is not correct.")])
     }
 
+    func test_validators_failsWhenEmailFormatInvalid() {
+        let invalidEmail = "invalidEmail"
+        
+        let results = EmailValidator.validators.map { $0(invalidEmail) }
+        
+        XCTAssertEqual(results, [.valid, .invalid("Email format is not correct.")])
+    }
 }
