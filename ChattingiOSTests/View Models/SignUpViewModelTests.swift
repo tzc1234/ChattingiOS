@@ -69,6 +69,29 @@ final class SignUpViewModelTests: XCTestCase {
         XCTAssertTrue(sut.canSignUp)
     }
     
+    func test_signUp_passesParamsWithAvatarToUserSignUpSuccessfully() async {
+        let name = "aName"
+        let email = "en@email.com"
+        let password = "aPassword"
+        let avatar = Data("avatar".utf8)
+        let (sut, spy) = makeSUT(name: name, email: email, password: password, confirmPassword: password, avatar: avatar)
+        
+        await signUpAndCompleteTask(on: sut)
+        
+        XCTAssertEqual(
+            spy.loggedParams,
+            [
+                .init(
+                    name: name,
+                    email: email,
+                    password: password,
+                    avatar: .init(data: avatar, fileType: "jpeg")
+                )
+            ]
+        )
+        XCTAssertTrue(sut.canSignUp)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(name: String = "aName",
