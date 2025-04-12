@@ -8,22 +8,11 @@
 import XCTest
 @testable import ChattingiOS
 
+@MainActor
 final class ValidatedInputTests: XCTestCase {
-    override func setUp() {
-        super.setUp()
-        
-        resetValidatorStub()
-    }
-    
-    override func tearDown() {
-        super.tearDown()
-        
-        resetValidatorStub()
-    }
-    
     func test_init_initialisesWithValueOnValidatorSuccess() {
         let validValue = "valid value"
-        ValidatorStub.results = [.valid, .valid, .valid]
+        ValidatorStub.create(with: [.valid, .valid, .valid])
         let input = ValidatedInput<ValidatorStub>(validValue)
         
         XCTAssertEqual(input.value, validValue)
@@ -33,7 +22,7 @@ final class ValidatedInputTests: XCTestCase {
     
     func test_init_initialisesWithErrorMessageOnOneValidatorFailure() {
         let firstErrorMessage = "first error message."
-        ValidatorStub.results = [.valid, .invalid(firstErrorMessage), .invalid("last error message")]
+        ValidatorStub.create(with: [.valid, .invalid(firstErrorMessage), .invalid("last error message")])
         let input = ValidatedInput<ValidatorStub>("any")
         
         XCTAssertNil(input.value)
@@ -43,11 +32,11 @@ final class ValidatedInputTests: XCTestCase {
     
     func test_init_initialisesWithErrorMessageOnAllValidatorsFailure() {
         let firstErrorMessage = "first error message."
-        ValidatorStub.results = [
+        ValidatorStub.create(with: [
             .invalid(firstErrorMessage),
             .invalid("second error message"),
             .invalid("last error message")
-        ]
+        ])
         let input = ValidatedInput<ValidatorStub>("any")
         
         XCTAssertNil(input.value)
@@ -57,15 +46,21 @@ final class ValidatedInputTests: XCTestCase {
     
     // MARK: - Helpers
     
-    private func resetValidatorStub() {
-        ValidatorStub.results = []
-    }
-    
-    private final class ValidatorStub: Validator {
-        nonisolated(unsafe) static var results = [ValidatorResult]()
+    @MainActor
+    private final class ValidatorStub: @preconcurrency Validator {
+        private init() {}
+        
+        private var results = [ValidatorResult]()
+        
+        private static var instance: ValidatorStub?
+        
+        static func create(with results: [ValidatorResult]) {
+            instance = ValidatorStub()
+            instance?.results = results
+        }
         
         static var validators: [(String) -> ValidatorResult] {
-            results.map { result in { _ in return result } }
+            instance?.results.map { result in { _ in return result } } ?? []
         }
     }
 }
