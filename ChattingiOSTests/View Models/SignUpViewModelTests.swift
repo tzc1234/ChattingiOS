@@ -36,6 +36,16 @@ final class SignUpViewModelTests: XCTestCase {
         XCTAssertFalse(sut.canSignUp)
     }
     
+    func test_signUp_doesNotSignUpWhenPasswordIsInvalid() async {
+        let invalidPassword = ""
+        let (sut, spy) = makeSUT(password: invalidPassword)
+        
+        await sut.completeSignUp()
+        
+        XCTAssertTrue(spy.loggedParams.isEmpty)
+        XCTAssertFalse(sut.canSignUp)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(name: String = "aName",
