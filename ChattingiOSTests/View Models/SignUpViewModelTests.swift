@@ -57,12 +57,25 @@ final class SignUpViewModelTests: XCTestCase {
         XCTAssertFalse(sut.canSignUp)
     }
     
+    func test_signUp_passesParamsToUserSignUpSuccessfully() async {
+        let name = "aName"
+        let email = "en@email.com"
+        let password = "aPassword"
+        let (sut, spy) = makeSUT(name: name, email: email, password: password, confirmPassword: password)
+        
+        await signUpAndCompleteTask(on: sut)
+        
+        XCTAssertEqual(spy.loggedParams, [.init(name: name, email: email, password: password, avatar: nil)])
+        XCTAssertTrue(sut.canSignUp)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(name: String = "aName",
                          email: String = "an@email.com",
                          password: String = "aPassword",
                          confirmPassword: String = "aPassword",
+                         avatar: Data? = nil,
                          error: UseCaseError? = nil,
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: SignUpViewModel, spy: UserSignUpSpy) {
@@ -72,9 +85,20 @@ final class SignUpViewModelTests: XCTestCase {
         sut.emailInput = email
         sut.passwordInput = password
         sut.confirmPasswordInput = confirmPassword
+        sut.avatarData = avatar
         trackMemoryLeak(spy, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)
         return (sut, spy)
+    }
+    
+    private func signUpAndCompleteTask(on sut: SignUpViewModel,
+                                       file: StaticString = #filePath,
+                                       line: UInt = #line) async {
+        sut.signUp()
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.task?.value
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
     
     @MainActor

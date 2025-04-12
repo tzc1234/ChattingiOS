@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct UserSignUpParams {
+struct UserSignUpParams: Equatable {
     let name: String
     let email: String
     let password: String
     let avatar: AvatarParams?
 }
 
-struct AvatarParams {
+struct AvatarParams: Equatable {
     let data: Data
     let fileType: String
 }
