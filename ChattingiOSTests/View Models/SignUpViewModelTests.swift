@@ -74,7 +74,13 @@ final class SignUpViewModelTests: XCTestCase {
         let email = "en@email.com"
         let password = "aPassword"
         let avatar = Data("avatar".utf8)
-        let (sut, spy) = makeSUT(name: name, email: email, password: password, confirmPassword: password, avatar: avatar)
+        let (sut, spy) = makeSUT(
+            name: name,
+            email: email,
+            password: password,
+            confirmPassword: password,
+            avatar: avatar
+        )
         
         await signUpAndCompleteTask(on: sut)
         
@@ -90,6 +96,15 @@ final class SignUpViewModelTests: XCTestCase {
             ]
         )
         XCTAssertTrue(sut.canSignUp)
+    }
+    
+    func test_signUp_deliversErrorMessageOnUserCaseError() async {
+        let error = UseCaseError.connectivity
+        let (sut, _) = makeSUT(error: error)
+        
+        await signUpAndCompleteTask(on: sut)
+        
+        XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
     }
     
     // MARK: - Helpers
