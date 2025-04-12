@@ -46,6 +46,17 @@ final class SignUpViewModelTests: XCTestCase {
         XCTAssertFalse(sut.canSignUp)
     }
     
+    func test_signUp_doesNotSignUpWhenConfirmPasswordIsDifferentFromPassword() async {
+        let password = "aPassword"
+        let confirmPassword = "anotherPassword"
+        let (sut, spy) = makeSUT(password: password, confirmPassword: confirmPassword)
+        
+        await sut.completeSignUp()
+        
+        XCTAssertTrue(spy.loggedParams.isEmpty)
+        XCTAssertFalse(sut.canSignUp)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(name: String = "aName",
@@ -83,7 +94,7 @@ final class SignUpViewModelTests: XCTestCase {
     }
 }
 
-extension SignUpViewModel {
+private extension SignUpViewModel {
     func completeSignUp() async {
         signUp()
         await task?.value
