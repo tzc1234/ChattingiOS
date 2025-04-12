@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 final class SignUpViewModel: ObservableObject {
     @Published var nameInput = ""
     @Published var emailInput = ""
@@ -30,7 +31,6 @@ final class SignUpViewModel: ObservableObject {
         self.userSignUp = userSignUp
     }
     
-    @MainActor
     func signUp() {
         guard let name = username.value, let email = email.value, let password = password.value, confirmPassword.isValid
         else {
