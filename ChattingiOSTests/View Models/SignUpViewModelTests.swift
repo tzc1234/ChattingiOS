@@ -57,9 +57,9 @@ final class SignUpViewModelTests: XCTestCase {
         XCTAssertFalse(sut.canSignUp)
     }
     
-    func test_signUp_passesParamsToUserSignUpSuccessfully() async {
+    func test_signUp_sendsParamsToUserSignUpSuccessfully() async {
         let name = "aName"
-        let email = "en@email.com"
+        let email = "an@email.com"
         let password = "aPassword"
         let (sut, spy) = makeSUT(name: name, email: email, password: password, confirmPassword: password)
         
@@ -69,9 +69,9 @@ final class SignUpViewModelTests: XCTestCase {
         XCTAssertTrue(sut.canSignUp)
     }
     
-    func test_signUp_passesParamsWithAvatarToUserSignUpSuccessfully() async {
+    func test_signUp_sendsParamsWithAvatarToUserSignUpSuccessfully() async {
         let name = "aName"
-        let email = "en@email.com"
+        let email = "an@email.com"
         let password = "aPassword"
         let avatarData = Data("avatar".utf8)
         let (sut, spy) = makeSUT(
@@ -98,7 +98,7 @@ final class SignUpViewModelTests: XCTestCase {
         XCTAssertTrue(sut.canSignUp)
     }
     
-    func test_signUp_deliversErrorMessageOnUserCaseError() async {
+    func test_signUp_deliversErrorMessageOnUseCaseError() async {
         let error = UseCaseError.connectivity
         let (sut, _) = makeSUT(error: error)
         

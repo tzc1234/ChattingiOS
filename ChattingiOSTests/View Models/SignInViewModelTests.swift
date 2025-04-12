@@ -36,7 +36,7 @@ final class SignInViewModelTests: XCTestCase {
         XCTAssertFalse(sut.canSignIn)
     }
     
-    func test_signIn_passesParamsToUserSignInSuccessfully() async {
+    func test_signIn_sendsParamsToUserSignInSuccessfully() async {
         let email = "an@email.com"
         let password = "aPassword"
         let (sut, spy) = makeSUT(email: email, password: password)
