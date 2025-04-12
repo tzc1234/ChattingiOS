@@ -73,13 +73,13 @@ final class SignUpViewModelTests: XCTestCase {
         let name = "aName"
         let email = "en@email.com"
         let password = "aPassword"
-        let avatar = Data("avatar".utf8)
+        let avatarData = Data("avatar".utf8)
         let (sut, spy) = makeSUT(
             name: name,
             email: email,
             password: password,
             confirmPassword: password,
-            avatar: avatar
+            avatarData: avatarData
         )
         
         await signUpAndCompleteTask(on: sut)
@@ -91,7 +91,7 @@ final class SignUpViewModelTests: XCTestCase {
                     name: name,
                     email: email,
                     password: password,
-                    avatar: .init(data: avatar, fileType: "jpeg")
+                    avatar: .init(data: avatarData, fileType: "jpeg")
                 )
             ]
         )
@@ -105,6 +105,16 @@ final class SignUpViewModelTests: XCTestCase {
         await signUpAndCompleteTask(on: sut)
         
         XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
+        XCTAssertFalse(sut.isSignUpSuccess)
+    }
+    
+    func test_signUp_succeeds() async {
+        let (sut, _) = makeSUT()
+        
+        await signUpAndCompleteTask(on: sut)
+        
+        XCTAssertNil(sut.generalError)
+        XCTAssertTrue(sut.isSignUpSuccess)
     }
     
     // MARK: - Helpers
@@ -113,7 +123,7 @@ final class SignUpViewModelTests: XCTestCase {
                          email: String = "an@email.com",
                          password: String = "aPassword",
                          confirmPassword: String = "aPassword",
-                         avatar: Data? = nil,
+                         avatarData: Data? = nil,
                          error: UseCaseError? = nil,
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: SignUpViewModel, spy: UserSignUpSpy) {
@@ -123,7 +133,7 @@ final class SignUpViewModelTests: XCTestCase {
         sut.emailInput = email
         sut.passwordInput = password
         sut.confirmPasswordInput = confirmPassword
-        sut.avatarData = avatar
+        sut.avatarData = avatarData
         trackMemoryLeak(spy, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)
         return (sut, spy)
