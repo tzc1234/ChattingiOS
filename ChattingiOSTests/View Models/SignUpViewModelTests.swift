@@ -16,6 +16,26 @@ final class SignUpViewModelTests: XCTestCase {
         XCTAssertTrue(spy.loggedParams.isEmpty)
     }
     
+    func test_signUp_doesNotSigUpWhenNameIsInvalid() async {
+        let invalidName = ""
+        let (sut, spy) = makeSUT(name: invalidName)
+        
+        await sut.completeSignUp()
+        
+        XCTAssertTrue(spy.loggedParams.isEmpty)
+        XCTAssertFalse(sut.canSignUp)
+    }
+    
+    func test_signUp_doesNotSigUpWhenEmailIsInvalid() async {
+        let invalidEmail = ""
+        let (sut, spy) = makeSUT(email: invalidEmail)
+        
+        await sut.completeSignUp()
+        
+        XCTAssertTrue(spy.loggedParams.isEmpty)
+        XCTAssertFalse(sut.canSignUp)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(name: String = "aName",
@@ -50,5 +70,12 @@ final class SignUpViewModelTests: XCTestCase {
             if let error { throw error }
             loggedParams.append(params)
         }
+    }
+}
+
+extension SignUpViewModel {
+    func completeSignUp() async {
+        signUp()
+        await task?.value
     }
 }
