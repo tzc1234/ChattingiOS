@@ -26,7 +26,7 @@ final class ContactListViewModelTests: XCTestCase {
     
     func test_loadContacts_deliversErrorMessageOnUseCaseError() async {
         let error = UseCaseError.connectivity
-        let (sut, _) = makeSUT(getContactsStub: .failure(error))
+        let (sut, _) = makeSUT(getContactsStubs: [.failure(error)])
         
         await sut.loadContacts()
         
@@ -35,7 +35,7 @@ final class ContactListViewModelTests: XCTestCase {
     
     func test_loadContacts_deliversEmptyContactsWhenReceivedNoContacts() async {
         let emptyContacts = [Contact]()
-        let (sut, _) = makeSUT(getContactsStub: .success(emptyContacts))
+        let (sut, _) = makeSUT(getContactsStubs: [.success(emptyContacts)])
         
         await sut.loadContacts()
         
@@ -45,10 +45,10 @@ final class ContactListViewModelTests: XCTestCase {
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
-                         getContactsStub: Result<[Contact], UseCaseError> = .success([]),
+                         getContactsStubs: [Result<[Contact], UseCaseError>] = [.success([])],
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: ContactListViewModel, spy: CollaboratorsSpy) {
-        let spy = CollaboratorsSpy(getContactsStub: getContactsStub)
+        let spy = CollaboratorsSpy(getContactsStubs: getContactsStubs)
         let sut = ContactListViewModel(
             currentUserID: currentUserID,
             getContacts: spy,
@@ -69,21 +69,15 @@ final class ContactListViewModelTests: XCTestCase {
         
         private(set) var messages = [Message]()
         
-        private let getContactsStub: Result<[Contact], UseCaseError>
+        private var getContactsStubs: [Result<[Contact], UseCaseError>]
         
-        init(getContactsStub: Result<[Contact], UseCaseError>) {
-            self.getContactsStub = getContactsStub
+        init(getContactsStubs: [Result<[Contact], UseCaseError>]) {
+            self.getContactsStubs = getContactsStubs
         }
         
         func get(with params: GetContactsParams) async throws(UseCaseError) -> [Contact] {
             messages.append(.get(with: params))
-            
-            switch getContactsStub {
-            case let .success(contacts):
-                return contacts
-            case let .failure(error):
-                throw error
-            }
+            return try getContactsStubs.removeFirst().get()
         }
         
         func block(for contactID: Int) async throws(UseCaseError) -> Contact {
