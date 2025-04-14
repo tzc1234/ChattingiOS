@@ -75,6 +75,16 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.contacts, contacts)
     }
     
+    func test_loadMoreContacts_ignoresWhenNoContactsReceivedOnPreviousLoadContacts() async {
+        let emptyContacts = [Contact]()
+        let (sut, _) = makeSUT(getContactsStubs: [.success(emptyContacts)])
+        
+        await sut.loadContacts()
+        sut.loadMoreContacts()
+        
+        XCTAssertEqual(sut.contacts, [])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
