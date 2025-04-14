@@ -80,9 +80,29 @@ final class ContactListViewModelTests: XCTestCase {
         let (sut, _) = makeSUT(getContactsStubs: [.success(emptyContacts)])
         
         await sut.loadContacts()
-        sut.loadMoreContacts()
+        await sut.completeLoadMoreContacts()
         
         XCTAssertEqual(sut.contacts, [])
+    }
+    
+    func test_loadMoreContacts_deliversSameContactsAndErrorMessageWhenReceivedUseCaseErrorOnLoadMoreContacts() async {
+        let contact = makeContact(id: 0)
+        let error = UseCaseError.connectivity
+        let stubs: [Result<[Contact], UseCaseError>] = [
+            .success([contact]),
+            .failure(error)
+        ]
+        let (sut, _) = makeSUT(getContactsStubs: stubs)
+        
+        await sut.loadContacts()
+        
+        XCTAssertNil(sut.generalError)
+        XCTAssertEqual(sut.contacts, [contact])
+        
+        await sut.completeLoadMoreContacts()
+        
+        XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
+        XCTAssertEqual(sut.contacts, [contact])
     }
     
     // MARK: - Helpers
@@ -157,5 +177,12 @@ final class ContactListViewModelTests: XCTestCase {
         func unblock(for contactID: Int) async throws(UseCaseError) -> Contact {
             fatalError()
         }
+    }
+}
+
+private extension ContactListViewModel {
+    func completeLoadMoreContacts() async {
+        loadMoreContacts()
+        await loadMoreTask?.value
     }
 }

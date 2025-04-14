@@ -15,6 +15,7 @@ final class ContactListViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     
     private var canLoadMore = true
+    private(set) var loadMoreTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let getContacts: GetContacts
@@ -41,7 +42,7 @@ final class ContactListViewModel: ObservableObject {
     func loadMoreContacts() {
         guard canLoadMore else { return }
         
-        Task {
+        loadMoreTask = Task {
             do throws(UseCaseError) {
                 let lastUpdate = contacts.last?.lastUpdate
                 let params = GetContactsParams(before: lastUpdate)
