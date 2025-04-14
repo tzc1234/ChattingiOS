@@ -105,6 +105,20 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.contacts, [contact])
     }
     
+    func test_loadMoreContacts_sendsParamsToGetContactsCorrectly() async {
+        let contact = makeContact(id: 0)
+        let stubs: [Result<[Contact], UseCaseError>] = [
+            .success([contact]),
+            .success([])
+        ]
+        let (sut, spy) = makeSUT(getContactsStubs: stubs)
+        
+        await sut.loadContacts()
+        await sut.completeLoadMoreContacts()
+        
+        XCTAssertEqual(spy.messages, [.get(with: .init(before: nil)), .get(with: .init(before: contact.lastUpdate))])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
