@@ -149,6 +149,28 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.contacts, [contact0, contact1, contact2])
     }
     
+    func test_loadMoreContacts_ignoresNewLoadMoreContactsWhenNoContactsReceivedAnyMore() async {
+        let contact = makeContact(id: 0)
+        let stubs: [Result<[Contact], UseCaseError>] = [
+            .success([contact]),
+            .success([])
+        ]
+        let (sut, spy) = makeSUT(getContactsStubs: stubs)
+        
+        await sut.loadContacts()
+        await sut.completeLoadMoreContacts()
+        
+        XCTAssertEqual(spy.messages, [.get(with: .init(before: nil)), .get(with: .init(before: contact.lastUpdate))])
+        
+        await sut.completeLoadMoreContacts()
+        
+        XCTAssertEqual(
+            spy.messages,
+            [.get(with: .init(before: nil)), .get(with: .init(before: contact.lastUpdate))],
+            "Ignore new request from load more contacts."
+        )
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
