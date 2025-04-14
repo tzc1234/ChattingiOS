@@ -16,12 +16,22 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertTrue(spy.messages.isEmpty)
     }
     
+    func test_loadContacts_deliversErrorMessageOnUseCaseError() async {
+        let error = UseCaseError.connectivity
+        let (sut, _) = makeSUT(getContactsError: error)
+        
+        await sut.loadContacts()
+        
+        XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
+                         getContactsError: UseCaseError? = nil,
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: ContactListViewModel, spy: CollaboratorsSpy) {
-        let spy = CollaboratorsSpy()
+        let spy = CollaboratorsSpy(getContactsError: getContactsError)
         let sut = ContactListViewModel(
             currentUserID: currentUserID,
             getContacts: spy,
@@ -42,8 +52,15 @@ final class ContactListViewModelTests: XCTestCase {
         
         private(set) var messages = [Message]()
         
+        private let getContactsError: UseCaseError?
+        
+        init(getContactsError: UseCaseError?) {
+            self.getContactsError = getContactsError
+        }
+        
         func get(with params: GetContactsParams) async throws(UseCaseError) -> [Contact] {
-            fatalError()
+            if let getContactsError { throw getContactsError }
+            return []
         }
         
         func block(for contactID: Int) async throws(UseCaseError) -> Contact {
