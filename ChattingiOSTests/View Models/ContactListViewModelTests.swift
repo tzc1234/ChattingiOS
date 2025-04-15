@@ -226,6 +226,20 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.message, "\(newContact.responder.name) added you.")
     }
     
+    func test_replaceTo_replacesContactWhenToBeReplacedContactIsOlderThanContactToReplace() async {
+        let contact0 = makeContact(id: 0, lastUpdate: .now)
+        let contact1 = makeContact(id: 1, lastUpdate: .now)
+        let toBeReplacedContact = makeContact(id: 99, lastUpdate: .distantPast)
+        let contactToReplace = makeContact(id: 99, lastUpdate: .distantFuture)
+        let (sut, _) = makeSUT(getContactsStubs: [.success([contact0, toBeReplacedContact, contact1])])
+        
+        await sut.loadContacts()
+        sut.replaceTo(newContact: contactToReplace)
+        
+        XCTAssertEqual(sut.contacts, [contactToReplace, contact0, contact1])
+        XCTAssertNil(sut.message)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
