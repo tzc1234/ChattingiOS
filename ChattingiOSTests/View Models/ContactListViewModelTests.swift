@@ -171,6 +171,22 @@ final class ContactListViewModelTests: XCTestCase {
         )
     }
     
+    func test_addToTop_ignoresWhenContactAlreadyExisted() async {
+        let alreadyExistedContact = makeContact(id: 99)
+        let contacts = [makeContact(id: 0), makeContact(id: 1), alreadyExistedContact]
+        let (sut, _) = makeSUT(getContactsStubs: [.success(contacts)])
+        
+        await sut.loadContacts()
+        
+        XCTAssertEqual(sut.contacts, contacts)
+        XCTAssertNil(sut.message)
+        
+        sut.addToTop(contact: alreadyExistedContact, message: "any message")
+        
+        XCTAssertEqual(sut.contacts, contacts)
+        XCTAssertNil(sut.message)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
