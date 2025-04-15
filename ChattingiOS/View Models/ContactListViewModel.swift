@@ -68,7 +68,7 @@ final class ContactListViewModel: ObservableObject {
             
             contacts.remove(at: index)
             
-            let toBeInsertedIndex = contacts.firstIndex(where: { $0.lastUpdate < newContact.lastUpdate }) ?? contacts.endIndex
+            let toBeInsertedIndex = contacts.firstIndex { $0.lastUpdate < newContact.lastUpdate } ?? contacts.endIndex
             contacts.insert(newContact, at: toBeInsertedIndex)
         } else {
             addToTop(contact: newContact, message: "\(newContact.responder.name) added you.")

@@ -240,6 +240,20 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertNil(sut.message)
     }
     
+    func test_replaceTo_replacesContactAndAppendsToTheEndDependsOnTheLastUpdate() async {
+        let now = Date.now
+        let contact0 = makeContact(id: 0, lastUpdate: .distantFuture)
+        let contact1 = makeContact(id: 1, lastUpdate: now)
+        let toBeReplacedContact = makeContact(id: 99, lastUpdate: .distantPast)
+        let contactToReplace = makeContact(id: 99, lastUpdate: now - 1)
+        let (sut, _) = makeSUT(getContactsStubs: [.success([contact0, toBeReplacedContact, contact1])])
+        
+        await sut.loadContacts()
+        sut.replaceTo(newContact: contactToReplace)
+        
+        XCTAssertEqual(sut.contacts, [contact0, contact1, contactToReplace])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
