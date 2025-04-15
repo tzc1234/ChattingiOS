@@ -187,6 +187,19 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertNil(sut.message)
     }
     
+    func test_addToTop_insertsNewContactToTopSuccessfully() async {
+        let contacts = [makeContact(id: 0), makeContact(id: 1)]
+        let (sut, _) = makeSUT(getContactsStubs: [.success(contacts)])
+        let newContact = makeContact(id: 2)
+        let message = "a message"
+        
+        await sut.loadContacts()
+        sut.addToTop(contact: newContact, message: message)
+        
+        XCTAssertEqual(sut.contacts, [newContact] + contacts)
+        XCTAssertEqual(sut.message, message)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
