@@ -214,6 +214,18 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.contacts, [toBeReplacedContact])
     }
     
+    func test_replaceTo_insertsToTopWhenContactIsNew() async {
+        let contact0 = makeContact(id: 0)
+        let newContact = makeContact(id: 1)
+        let (sut, _) = makeSUT(getContactsStubs: [.success([contact0])])
+        
+        await sut.loadContacts()
+        sut.replaceTo(newContact: newContact)
+        
+        XCTAssertEqual(sut.contacts, [newContact, contact0])
+        XCTAssertEqual(sut.message, "\(newContact.responder.name) added you.")
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
