@@ -294,6 +294,23 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
     }
     
+    func test_blockContact_blocksContactSuccessfully() async {
+        let contactID = 99
+        let toBeBlockedContact = makeContact(id: contactID, blockedByUserID: nil)
+        let blockedContact = makeContact(id: contactID, blockedByUserID: 0)
+        let contact0 = makeContact(id: 0)
+        let contact1 = makeContact(id: 1)
+        let (sut, _) = makeSUT(
+            getContactsStubs: [.success([contact0, toBeBlockedContact, contact1])],
+            blockContactStubs: [.success(blockedContact)]
+        )
+        
+        await sut.loadContacts()
+        await sut.completeBlockContact(contactID: contactID)
+        
+        XCTAssertEqual(sut.contacts, [contact0, blockedContact, contact1])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
