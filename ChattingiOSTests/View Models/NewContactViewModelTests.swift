@@ -31,7 +31,7 @@ final class NewContactViewModelTests: XCTestCase {
         let email = "valid@email.com"
         
         sut.emailInput = email
-        await sut.completeAddNewContact()
+        await addContactWithTaskCompletion(on: sut)
         
         XCTAssertEqual(spy.loggedEmails, [email])
         XCTAssertTrue(sut.canSubmit)
@@ -103,12 +103,5 @@ final class NewContactViewModelTests: XCTestCase {
             loggedEmails.append(responderEmail)
             return try stubs.removeFirst().get()
         }
-    }
-}
-
-private extension NewContactViewModel {
-    func completeAddNewContact() async {
-        addNewContact()
-        await task?.value
     }
 }
