@@ -390,6 +390,13 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.contacts, [contact0, unblockedContact, contact1])
     }
     
+    func test_canUnblock_returnsFalseWhenCurrentUserIDIsDifferentFromUserID() {
+        let (sut, _) = makeSUT(currentUserID: 99)
+        let differentUserID = 0
+        
+        XCTAssertFalse(sut.canUnblock(blockedBy: differentUserID))
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
