@@ -265,6 +265,17 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(spy.messages, [.get(with: .init(before: nil))])
     }
     
+    func test_blockContact_ignoresWhenContactIsAlreadyBlocked() async {
+        let alreadyBlockedContactID = 0
+        let contact = makeContact(id: alreadyBlockedContactID, blockedByUserID: 0)
+        let (sut, spy) = makeSUT(getContactsStubs: [.success([contact])])
+        
+        await sut.loadContacts()
+        sut.blockContact(contactID: alreadyBlockedContactID)
+        
+        XCTAssertEqual(spy.messages, [.get(with: .init(before: nil))])
+    }
+    
     func test_blockContact_sendsContactIDToCollaboratorCorrectly() async {
         let contactID = 0
         let contact = makeContact(id: contactID)
