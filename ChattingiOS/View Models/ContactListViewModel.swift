@@ -17,6 +17,7 @@ final class ContactListViewModel: ObservableObject {
     private var canLoadMore = true
     private(set) var loadMoreTask: Task<Void, Never>?
     private(set) var blockContactTask: Task<Void, Never>?
+    private(set) var unblockContactTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let getContacts: GetContacts
@@ -102,7 +103,7 @@ final class ContactListViewModel: ObservableObject {
         }
         
         isLoading = true
-        Task {
+        unblockContactTask = Task {
             do throws(UseCaseError) {
                 let unblockedContact = try await unblockContact.unblock(for: contactID)
                 contacts[index] = unblockedContact
