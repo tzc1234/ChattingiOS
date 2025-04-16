@@ -355,6 +355,24 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(spy.messages, [.get(with: .init(before: nil)), .unblock(for: contactID)])
     }
     
+    func test_unblockContact_deliversErrorMessageOnUseCaseError() async {
+        let contactID = 0
+        let contact = makeContact(id: contactID, blockedByUserID: 0)
+        let error = UseCaseError.connectivity
+        let (sut, _) = makeSUT(
+            getContactsStubs: [.success([contact])],
+            unblockContactStubs: [.failure(error)]
+        )
+        
+        await sut.loadContacts()
+        
+        XCTAssertNil(sut.generalError)
+        
+        await sut.completeUnblockContact(contactID: contactID)
+        
+        XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
