@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 final class NewContactViewModel: ObservableObject {
     @Published var emailInput = ""
     @Published private var generalError: String?
@@ -25,7 +26,6 @@ final class NewContactViewModel: ObservableObject {
         self.newContact = newContact
     }
     
-    @MainActor
     func addNewContact() {
         guard let email = email.value else { return }
         
