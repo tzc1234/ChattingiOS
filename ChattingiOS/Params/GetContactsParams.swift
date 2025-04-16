@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct GetContactsParams {
+struct GetContactsParams: Equatable {
     let before: Date?
     let limit: UInt?
     

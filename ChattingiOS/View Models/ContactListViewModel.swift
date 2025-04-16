@@ -15,6 +15,9 @@ final class ContactListViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     
     private var canLoadMore = true
+    private(set) var loadMoreTask: Task<Void, Never>?
+    private(set) var blockContactTask: Task<Void, Never>?
+    private(set) var unblockContactTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let getContacts: GetContacts
@@ -41,7 +44,7 @@ final class ContactListViewModel: ObservableObject {
     func loadMoreContacts() {
         guard canLoadMore else { return }
         
-        Task {
+        loadMoreTask = Task {
             do throws(UseCaseError) {
                 let lastUpdate = contacts.last?.lastUpdate
                 let params = GetContactsParams(before: lastUpdate)
@@ -67,7 +70,7 @@ final class ContactListViewModel: ObservableObject {
             
             contacts.remove(at: index)
             
-            let toBeInsertedIndex = contacts.firstIndex(where: { $0.lastUpdate < newContact.lastUpdate }) ?? contacts.endIndex
+            let toBeInsertedIndex = contacts.firstIndex { $0.lastUpdate < newContact.lastUpdate } ?? contacts.endIndex
             contacts.insert(newContact, at: toBeInsertedIndex)
         } else {
             addToTop(contact: newContact, message: "\(newContact.responder.name) added you.")
@@ -81,7 +84,7 @@ final class ContactListViewModel: ObservableObject {
         }
         
         isLoading = true
-        Task {
+        blockContactTask = Task {
             do throws(UseCaseError) {
                 let blockedContact = try await blockContact.block(for: contactID)
                 contacts[index] = blockedContact
@@ -100,7 +103,7 @@ final class ContactListViewModel: ObservableObject {
         }
         
         isLoading = true
-        Task {
+        unblockContactTask = Task {
             do throws(UseCaseError) {
                 let unblockedContact = try await unblockContact.unblock(for: contactID)
                 contacts[index] = unblockedContact
