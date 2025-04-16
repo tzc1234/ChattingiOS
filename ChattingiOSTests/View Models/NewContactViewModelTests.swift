@@ -16,6 +16,15 @@ final class NewContactViewModelTests: XCTestCase {
         XCTAssertTrue(spy.loggedEmails.isEmpty)
     }
     
+    func test_addContact_ignoresWhenInvalidEmail() {
+        let (sut, spy) = makeSUT()
+        
+        sut.emailInput = "invalid email"
+        sut.addNewContact()
+        
+        XCTAssertTrue(spy.loggedEmails.isEmpty)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(file: StaticString = #filePath,
