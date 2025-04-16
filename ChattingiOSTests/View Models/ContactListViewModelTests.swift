@@ -322,6 +322,17 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.contacts, [contact0, blockedContact, contact1])
     }
     
+    func test_unblockContact_ignoresWhenContactNotExisted() async {
+        let contact = makeContact(id: 0)
+        let (sut, spy) = makeSUT(getContactsStubs: [.success([contact])])
+        let notExistedContactID = 1
+        
+        await sut.loadContacts()
+        sut.unblockContact(contactID: notExistedContactID)
+        
+        XCTAssertEqual(spy.messages, [.get(with: .init(before: nil))])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
