@@ -373,6 +373,23 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
     }
     
+    func test_unblockContact_unblocksContactSuccessfully() async {
+        let contactID = 99
+        let toBeUnblockedContact = makeContact(id: contactID, blockedByUserID: 0)
+        let unblockedContact = makeContact(id: contactID, blockedByUserID: nil)
+        let contact0 = makeContact(id: 0)
+        let contact1 = makeContact(id: 1)
+        let (sut, _) = makeSUT(
+            getContactsStubs: [.success([contact0, toBeUnblockedContact, contact1])],
+            unblockContactStubs: [.success(unblockedContact)]
+        )
+        
+        await sut.loadContacts()
+        await sut.completeUnblockContact(contactID: contactID)
+        
+        XCTAssertEqual(sut.contacts, [contact0, unblockedContact, contact1])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
