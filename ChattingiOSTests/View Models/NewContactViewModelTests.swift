@@ -25,6 +25,16 @@ final class NewContactViewModelTests: XCTestCase {
         XCTAssertTrue(spy.loggedEmails.isEmpty)
     }
     
+    func test_addContact_sendsEmailToNewContactCorrectly() async {
+        let (sut, spy) = makeSUT()
+        let email = "valid@email.com"
+        
+        sut.emailInput = email
+        await sut.completeAddNewContact()
+        
+        XCTAssertEqual(spy.loggedEmails, [email])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(file: StaticString = #filePath,
@@ -41,7 +51,15 @@ final class NewContactViewModelTests: XCTestCase {
         private(set) var loggedEmails = [String]()
         
         func add(by responderEmail: String) async throws(UseCaseError) -> Contact {
-            fatalError()
+            loggedEmails.append(responderEmail)
+            throw .connectivity
         }
+    }
+}
+
+private extension NewContactViewModel {
+    func completeAddNewContact() async {
+        addNewContact()
+        await task?.value
     }
 }
