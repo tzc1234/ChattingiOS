@@ -300,7 +300,7 @@ final class ContactListViewModelTests: XCTestCase {
         
         XCTAssertNil(sut.generalError)
         
-        await sut.completeBlockContact(contactID: contactID)
+        await blockContactWithTaskCompletion(on: sut, contactID: contactID)
         
         XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
     }
@@ -317,7 +317,7 @@ final class ContactListViewModelTests: XCTestCase {
         )
         
         await sut.loadContacts()
-        await sut.completeBlockContact(contactID: contactID)
+        await blockContactWithTaskCompletion(on: sut, contactID: contactID)
         
         XCTAssertEqual(sut.contacts, [contact0, blockedContact, contact1])
     }
@@ -368,7 +368,7 @@ final class ContactListViewModelTests: XCTestCase {
         
         XCTAssertNil(sut.generalError)
         
-        await sut.completeUnblockContact(contactID: contactID)
+        await unblockContactWithTaskCompletion(on: sut, contactID: contactID)
         
         XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
     }
@@ -385,7 +385,7 @@ final class ContactListViewModelTests: XCTestCase {
         )
         
         await sut.loadContacts()
-        await sut.completeUnblockContact(contactID: contactID)
+        await unblockContactWithTaskCompletion(on: sut, contactID: contactID)
         
         XCTAssertEqual(sut.contacts, [contact0, unblockedContact, contact1])
     }
@@ -452,6 +452,32 @@ final class ContactListViewModelTests: XCTestCase {
                              isRead: Bool = false,
                              createdAt: Date = .now) -> Message {
         Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt)
+    }
+    
+    private func blockContactWithTaskCompletion(on sut: ContactListViewModel,
+                                                contactID: Int,
+                                                file: StaticString = #filePath,
+                                                line: UInt = #line) async {
+        sut.blockContact(contactID: contactID)
+        
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.blockContactTask?.value
+        
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
+    }
+    
+    private func unblockContactWithTaskCompletion(on sut: ContactListViewModel,
+                                                  contactID: Int,
+                                                  file: StaticString = #filePath,
+                                                  line: UInt = #line) async {
+        sut.unblockContact(contactID: contactID)
+        
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.unblockContactTask?.value
+        
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
     
     @MainActor
