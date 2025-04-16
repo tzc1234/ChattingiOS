@@ -45,9 +45,22 @@ final class NewContactViewModelTests: XCTestCase {
         
         XCTAssertNil(sut.error)
         
-        await sut.completeAddNewContact()
+        await addContactWithTaskCompletion(on: sut)
         
         XCTAssertEqual(sut.error, error.toGeneralErrorMessage())
+    }
+    
+    func test_addContact_addsNewContactSuccessfully() async {
+        let contact = makeContact(lastMessage: makeMessage())
+        let (sut, _) = makeSUT(stubs: [.success(contact)])
+        
+        sut.emailInput = anyEmail
+        
+        XCTAssertNil(sut.contact)
+        
+        await addContactWithTaskCompletion(on: sut)
+        
+        XCTAssertEqual(sut.contact, contact)
     }
     
     // MARK: - Helpers
@@ -63,6 +76,18 @@ final class NewContactViewModelTests: XCTestCase {
     }
     
     private var anyEmail: String { "any@email.com" }
+    
+    private func addContactWithTaskCompletion(on sut: NewContactViewModel,
+                                              file: StaticString = #filePath,
+                                              line: UInt = #line) async {
+        sut.addNewContact()
+        
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.task?.value
+        
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
+    }
     
     @MainActor
     private final class NewContactSpy: NewContact {
