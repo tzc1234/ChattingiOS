@@ -23,6 +23,7 @@ final class NewContactViewModelTests: XCTestCase {
         sut.addNewContact()
         
         XCTAssertTrue(spy.loggedEmails.isEmpty)
+        XCTAssertFalse(sut.canSubmit)
     }
     
     func test_addContact_sendsEmailToNewContactCorrectly() async {
@@ -33,6 +34,7 @@ final class NewContactViewModelTests: XCTestCase {
         await sut.completeAddNewContact()
         
         XCTAssertEqual(spy.loggedEmails, [email])
+        XCTAssertTrue(sut.canSubmit)
     }
     
     func test_addContact_deliversErrorMessageOnUseCaseError() async {
