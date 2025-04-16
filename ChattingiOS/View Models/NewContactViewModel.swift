@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 final class NewContactViewModel: ObservableObject {
     @Published var emailInput = ""
     @Published private var generalError: String?
@@ -15,9 +16,9 @@ final class NewContactViewModel: ObservableObject {
     
     var canSubmit: Bool { email.isValid }
     var email: Email { Email(emailInput) }
-    var error: String? {
-        email.errorMessage ?? generalError
-    }
+    var error: String? { email.errorMessage ?? generalError }
+    
+    private(set) var task: Task<Void, Never>?
     
     private let newContact: NewContact
     
@@ -25,12 +26,11 @@ final class NewContactViewModel: ObservableObject {
         self.newContact = newContact
     }
     
-    @MainActor
     func addNewContact() {
         guard let email = email.value else { return }
         
         isLoading = true
-        Task {
+        task = Task {
             do throws(UseCaseError) {
                 contact = try await newContact.add(by: email)
             } catch {
