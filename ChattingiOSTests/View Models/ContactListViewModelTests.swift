@@ -265,13 +265,25 @@ final class ContactListViewModelTests: XCTestCase {
         XCTAssertEqual(spy.messages, [.get(with: .init(before: nil))])
     }
     
+    func test_blockContact_sendsContactIDToCollaboratorCorrectly() async {
+        let contactID = 0
+        let contact = makeContact(id: contactID)
+        let (sut, spy) = makeSUT(getContactsStubs: [.success([contact])])
+        
+        await sut.loadContacts()
+        await sut.completeBlockContact(contactID: contactID)
+        
+        XCTAssertEqual(spy.messages, [.get(with: .init(before: nil)), .block(for: contactID)])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
                          getContactsStubs: [Result<[Contact], UseCaseError>] = [.success([])],
+                         blockContactStubs: [Result<Contact, UseCaseError>] = [.failure(.connectivity)],
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: ContactListViewModel, spy: CollaboratorsSpy) {
-        let spy = CollaboratorsSpy(getContactsStubs: getContactsStubs)
+        let spy = CollaboratorsSpy(getContactsStubs: getContactsStubs, blockContactStubs: blockContactStubs)
         let sut = ContactListViewModel(
             currentUserID: currentUserID,
             getContacts: spy,
@@ -320,9 +332,12 @@ final class ContactListViewModelTests: XCTestCase {
         private(set) var messages = [Message]()
         
         private var getContactsStubs: [Result<[Contact], UseCaseError>]
+        private var blockContactStubs: [Result<Contact, UseCaseError>]
         
-        init(getContactsStubs: [Result<[Contact], UseCaseError>]) {
+        init(getContactsStubs: [Result<[Contact], UseCaseError>],
+             blockContactStubs: [Result<Contact, UseCaseError>]) {
             self.getContactsStubs = getContactsStubs
+            self.blockContactStubs = blockContactStubs
         }
         
         func get(with params: GetContactsParams) async throws(UseCaseError) -> [Contact] {
@@ -331,7 +346,8 @@ final class ContactListViewModelTests: XCTestCase {
         }
         
         func block(for contactID: Int) async throws(UseCaseError) -> Contact {
-            fatalError()
+            messages.append(.block(for: contactID))
+            return try blockContactStubs.removeFirst().get()
         }
         
         func unblock(for contactID: Int) async throws(UseCaseError) -> Contact {
@@ -344,5 +360,10 @@ private extension ContactListViewModel {
     func completeLoadMoreContacts() async {
         loadMoreContacts()
         await loadMoreTask?.value
+    }
+    
+    func completeBlockContact(contactID: Int) async {
+        blockContact(contactID: contactID)
+        await blockContactTask?.value
     }
 }
