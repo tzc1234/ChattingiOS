@@ -35,24 +35,46 @@ final class NewContactViewModelTests: XCTestCase {
         XCTAssertEqual(spy.loggedEmails, [email])
     }
     
+    func test_addContact_deliversErrorMessageOnUseCaseError() async {
+        let error = UseCaseError.connectivity
+        let (sut, _) = makeSUT(stubs: [.failure(error)])
+        
+        sut.emailInput = anyEmail
+        
+        XCTAssertNil(sut.error)
+        
+        await sut.completeAddNewContact()
+        
+        XCTAssertEqual(sut.error, error.toGeneralErrorMessage())
+    }
+    
     // MARK: - Helpers
     
-    private func makeSUT(file: StaticString = #filePath,
+    private func makeSUT(stubs: [Result<Contact, UseCaseError>] = [.failure(.connectivity)],
+                         file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: NewContactViewModel, spy: NewContactSpy) {
-        let spy = NewContactSpy()
+        let spy = NewContactSpy(stubs: stubs)
         let sut = NewContactViewModel(newContact: spy)
         trackMemoryLeak(spy, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)
         return (sut, spy)
     }
     
+    private var anyEmail: String { "any@email.com" }
+    
     @MainActor
     private final class NewContactSpy: NewContact {
         private(set) var loggedEmails = [String]()
         
+        private var stubs: [Result<Contact, UseCaseError>]
+        
+        init(stubs: [Result<Contact, UseCaseError>]) {
+            self.stubs = stubs
+        }
+        
         func add(by responderEmail: String) async throws(UseCaseError) -> Contact {
             loggedEmails.append(responderEmail)
-            throw .connectivity
+            return try stubs.removeFirst().get()
         }
     }
 }
