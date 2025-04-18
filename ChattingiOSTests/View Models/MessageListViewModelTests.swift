@@ -56,6 +56,25 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertTrue(sut.messages.isEmpty)
     }
     
+    func test_loadMessages_deliversMessagesWhenReceivedMessages() async throws {
+        let currentUserID = 0
+        let messages = [
+            makeMessage(id: 0, text: "text 0", currentUserID: 0, isRead: true),
+            makeMessage(id: 1, text: "text 1", currentUserID: 1, isRead: true),
+            makeMessage(id: 2, text: "text 2", currentUserID: 1, isRead: false),
+        ]
+        let (sut, _) = makeSUT(currentUserID: currentUserID, getMessagesStubs: [.success(messages.map(\.model))])
+        
+        XCTAssertTrue(sut.messages.isEmpty)
+        XCTAssertNil(sut.listPositionMessageID)
+        
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        
+        XCTAssertEqual(sut.messages, messages.map(\.display))
+        let firstUnreadMessageID = try XCTUnwrap(messages.map(\.display).first(where: \.isUnread)?.id)
+        XCTAssertEqual(sut.listPositionMessageID, firstUnreadMessageID)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
@@ -79,6 +98,23 @@ final class MessageListViewModelTests: XCTestCase {
     private func loadMessagesAndEstablishMessageChannel(on sut: MessageListViewModel) async {
         await sut.loadMessagesAndEstablishMessageChannel()
         await sut.messageStreamTask?.value
+    }
+    
+    private func makeMessage(id: Int = 99,
+                             text: String = "text",
+                             currentUserID: Int = 99,
+                             senderID: Int = 99,
+                             isRead: Bool = false,
+                             createdAt: Date = .now) -> (model: Message, display: DisplayedMessage) {
+        let model = Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt)
+        let display = DisplayedMessage(
+            id: id,
+            text: text,
+            isMine: senderID == currentUserID,
+            isRead: senderID == currentUserID || isRead,
+            date: createdAt.formatted()
+        )
+        return (model, display)
     }
     
     @MainActor
