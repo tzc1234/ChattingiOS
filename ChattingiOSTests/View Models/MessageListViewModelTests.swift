@@ -16,6 +16,16 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertTrue(spy.events.isEmpty)
     }
     
+    func test_init_deliversContactInfoCorrectly() {
+        let avatarURL = URL(string: "http://avatar-url.com")!
+        let contact = makeContact(responderName: "a name", avatarURL: avatarURL.absoluteString, blockedByUserID: 0)
+        let (sut, _) = makeSUT(contact: contact)
+        
+        XCTAssertEqual(sut.username, contact.responder.name)
+        XCTAssertEqual(sut.avatarURL, avatarURL)
+        XCTAssertEqual(sut.isBlocked, contact.blockedByUserID != nil)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
