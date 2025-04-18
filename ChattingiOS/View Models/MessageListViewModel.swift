@@ -38,7 +38,7 @@ final class MessageListViewModel: ObservableObject {
     private var canLoadMore = false
     private var isLoadingMoreMessages = false
     private var messagesToBeReadIDs = Set<Int>()
-    private var messageStreamTask: Task<Void, Never>?
+    private(set) var messageStreamTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let contact: Contact

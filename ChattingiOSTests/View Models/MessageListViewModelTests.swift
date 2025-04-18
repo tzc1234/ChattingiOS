@@ -26,6 +26,16 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.isBlocked, contact.blockedByUserID != nil)
     }
     
+    func test_loadMessagesAndEstablishMessageChannel_sendsParamsToCollaboratorsCorrectly() async {
+        let contactID = 0
+        let contact = makeContact(id: contactID)
+        let (sut, spy) = makeSUT(contact: contact)
+        
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        
+        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID)), .establish(for: contactID)])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
@@ -45,6 +55,11 @@ final class MessageListViewModelTests: XCTestCase {
         return (sut, spy)
     }
     
+    private func loadMessagesAndEstablishMessageChannel(on sut: MessageListViewModel) async {
+        await sut.loadMessagesAndEstablishMessageChannel()
+        await sut.messageStreamTask?.value
+    }
+    
     @MainActor
     private final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessages {
         enum Event: Equatable {
@@ -55,12 +70,30 @@ final class MessageListViewModelTests: XCTestCase {
         
         private(set) var events = [Event]()
         
-        func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
-            fatalError()
+        private struct MessageChannelConnectionSpy: MessageChannelConnection {
+            var messageStream: AsyncThrowingStream<Message, Error> {
+                AsyncThrowingStream { continuation in
+                    continuation.finish()
+                }
+            }
+            
+            func send(text: String) async throws {
+                
+            }
+            
+            func close() async throws {
+                
+            }
         }
         
-        func establish(for contactID: Int) async throws(MessageChannelError) -> any MessageChannelConnection {
-            fatalError()
+        func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
+            events.append(.get(with: params))
+            return []
+        }
+        
+        func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
+            events.append(.establish(for: contactID))
+            return MessageChannelConnectionSpy()
         }
         
         func read(with params: ReadMessagesParams) async throws(UseCaseError) {
