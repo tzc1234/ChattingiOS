@@ -47,6 +47,15 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
     
+    func test_loadMessages_deliversEmptyMessagesWhenReceivedNoMessages() async {
+        let emptyMessages = [Message]()
+        let (sut, _) = makeSUT(getMessagesStubs: [.success(emptyMessages)])
+        
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        
+        XCTAssertTrue(sut.messages.isEmpty)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
