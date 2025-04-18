@@ -86,7 +86,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
     
-    func test_establishMessageChannel_deliversMessagesWhenReceivedMessagesFromMessageChannelConnection() async throws {
+    func test_messageChannelConnection_deliversMessagesWhenReceivedMessagesFromMessageChannelConnection() async throws {
         let currentUserID = 0
         let messages = [
             makeMessage(id: 0, text: "text 0", currentUserID: 0, isRead: true),
@@ -98,12 +98,33 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertTrue(sut.messages.isEmpty)
         XCTAssertNil(sut.listPositionMessageID)
+        XCTAssertEqual(connection.closeCallCount, 0)
         
         await loadMessagesAndEstablishMessageChannel(on: sut)
         
         XCTAssertEqual(sut.messages, messages.map(\.display))
         let firstReceivedMessageID = try XCTUnwrap(messages.map(\.display).first?.id)
         XCTAssertEqual(sut.listPositionMessageID, firstReceivedMessageID)
+        XCTAssertEqual(connection.closeCallCount, 1)
+    }
+    
+    func test_messageChannelConnection_stopsDeliveringMessagesOnError() async {
+        let currentUserID = 0
+        let messageBeforeError = makeMessage(id: 0, text: "text 0", currentUserID: 0)
+        let messageAfterError = makeMessage(id: 1, text: "text 1", currentUserID: 1)
+        let connection = MessageChannelConnectionSpy(stubs: [
+            .success(messageBeforeError.model),
+            .failure(anyNSError()),
+            .success(messageAfterError.model)
+        ])
+        let (sut, _) = makeSUT(currentUserID: currentUserID, messageChannelStubs: [.success(connection)])
+        
+        XCTAssertEqual(connection.closeCallCount, 0)
+        
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        
+        XCTAssertEqual(sut.messages, [messageBeforeError.display])
+        XCTAssertEqual(connection.closeCallCount, 1)
     }
     
     // MARK: - Helpers
@@ -184,14 +205,17 @@ final class MessageListViewModelTests: XCTestCase {
         }
     }
     
+    @MainActor
     private final class MessageChannelConnectionSpy: MessageChannelConnection {
+        private(set) var closeCallCount = 0
+        
         private let stubs: [Result<Message, Error>]
         
         init(stubs: [Result<Message, Error>]) {
             self.stubs = stubs
         }
         
-        var messageStream: AsyncThrowingStream<Message, Error> {
+        nonisolated var messageStream: AsyncThrowingStream<Message, Error> {
             AsyncThrowingStream { continuation in
                 stubs.forEach { stub in
                     switch stub {
@@ -210,7 +234,7 @@ final class MessageListViewModelTests: XCTestCase {
         }
         
         func close() async throws {
-            
+            closeCallCount += 1
         }
     }
 }
