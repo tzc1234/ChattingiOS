@@ -77,7 +77,7 @@ final class MessageListViewModelTests: XCTestCase {
     
     func test_establishMessageChannel_deliversInitialErrorOnMessageChannelError() async {
         let error = MessageChannelError.notFound
-        let (sut, _) = makeSUT(messageChannelStubs: [.failure(error)])
+        let (sut, _) = makeSUT(establishChannelStubs: [.failure(error)])
         
         XCTAssertNil(sut.initialError)
         
@@ -93,38 +93,45 @@ final class MessageListViewModelTests: XCTestCase {
             makeMessage(id: 1, text: "text 1", currentUserID: 1, isRead: true),
             makeMessage(id: 2, text: "text 2", currentUserID: 1, isRead: false)
         ]
-        let connection = MessageChannelConnectionSpy(stubs: messages.map { .success($0.model) })
-        let (sut, _) = makeSUT(currentUserID: currentUserID, messageChannelStubs: [.success(connection)])
+        let (sut, spy) = makeSUT(
+            currentUserID: currentUserID,
+            establishChannelStubs: [.success(())],
+            connectionMessageStubs: messages.map { .success($0.model) }
+        )
         
         XCTAssertTrue(sut.messages.isEmpty)
         XCTAssertNil(sut.listPositionMessageID)
-        XCTAssertEqual(connection.closeCallCount, 0)
+        XCTAssertEqual(spy.closeCallCount, 0)
         
         await loadMessagesAndEstablishMessageChannel(on: sut)
         
         XCTAssertEqual(sut.messages, messages.map(\.display))
         let firstReceivedMessageID = try XCTUnwrap(messages.map(\.display).first?.id)
         XCTAssertEqual(sut.listPositionMessageID, firstReceivedMessageID)
-        XCTAssertEqual(connection.closeCallCount, 1)
+        XCTAssertEqual(spy.closeCallCount, 1)
     }
     
     func test_messageChannelConnection_stopsDeliveringMessagesOnError() async {
         let currentUserID = 0
         let messageBeforeError = makeMessage(id: 0, text: "text 0", currentUserID: 0)
         let messageAfterError = makeMessage(id: 1, text: "text 1", currentUserID: 1)
-        let connection = MessageChannelConnectionSpy(stubs: [
-            .success(messageBeforeError.model),
-            .failure(anyNSError()),
-            .success(messageAfterError.model)
-        ])
-        let (sut, _) = makeSUT(currentUserID: currentUserID, messageChannelStubs: [.success(connection)])
+        let (sut, spy) = makeSUT(
+            currentUserID: currentUserID,
+            establishChannelStubs: [.success(())],
+            connectionMessageStubs: [
+                .success(messageBeforeError.model),
+                .failure(anyNSError()),
+                .success(messageAfterError.model)
+            ]
+        )
         
-        XCTAssertEqual(connection.closeCallCount, 0)
+        XCTAssertEqual(spy.closeCallCount, 0)
         
         await loadMessagesAndEstablishMessageChannel(on: sut)
         
         XCTAssertEqual(sut.messages, [messageBeforeError.display])
-        XCTAssertEqual(connection.closeCallCount, 1)
+        XCTAssertEqual(spy.closeCallCount, 1)
+    }
     }
     
     // MARK: - Helpers
@@ -132,11 +139,15 @@ final class MessageListViewModelTests: XCTestCase {
     private func makeSUT(currentUserID: Int = 99,
                          contact: Contact = makeContact(),
                          getMessagesStubs: [Result<[Message], UseCaseError>] = [.success([])],
-                         messageChannelStubs: [Result<MessageChannelConnection, MessageChannelError>]
-                            = [.success(MessageChannelConnectionSpy(stubs: []))],
+                         establishChannelStubs: [Result<Void, MessageChannelError>] = [.success(())],
+                         connectionMessageStubs: [Result<Message, Error>] = [],
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: MessageListViewModel, spy: CollaboratorsSpy) {
-        let spy = CollaboratorsSpy(getMessagesStubs: getMessagesStubs, messageChannelStubs: messageChannelStubs)
+        let spy = CollaboratorsSpy(
+            getMessagesStubs: getMessagesStubs,
+            establishChannelStubs: establishChannelStubs,
+            connectionMessageStubs: connectionMessageStubs
+        )
         let sut = MessageListViewModel(
             currentUserID: currentUserID,
             contact: contact,
@@ -172,7 +183,7 @@ final class MessageListViewModelTests: XCTestCase {
     }
     
     @MainActor
-    private final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessages {
+    private final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessages, MessageChannelConnection {
         enum Event: Equatable {
             case get(with: GetMessagesParams)
             case establish(for: Int)
@@ -182,42 +193,45 @@ final class MessageListViewModelTests: XCTestCase {
         private(set) var events = [Event]()
         
         private var getMessagesStubs: [Result<[Message], UseCaseError>]
-        private var messageChannelStubs: [Result<MessageChannelConnection, MessageChannelError>]
+        private var establishChannelStubs: [Result<Void, MessageChannelError>]
+        private let connectionMessageStubs: [Result<Message, Error>]
         
         init(getMessagesStubs: [Result<[Message], UseCaseError>],
-             messageChannelStubs: [Result<MessageChannelConnection, MessageChannelError>]) {
+             establishChannelStubs: [Result<Void, MessageChannelError>],
+             connectionMessageStubs: [Result<Message, Error>]) {
             self.getMessagesStubs = getMessagesStubs
-            self.messageChannelStubs = messageChannelStubs
+            self.establishChannelStubs = establishChannelStubs
+            self.connectionMessageStubs = connectionMessageStubs
         }
+        
+        // MARK: - GetMessages
         
         func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
             events.append(.get(with: params))
             return try getMessagesStubs.removeFirst().get()
         }
         
+        // MARK: - MessageChannel
+        
         func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
             events.append(.establish(for: contactID))
-            return try messageChannelStubs.removeFirst().get()
+            try establishChannelStubs.removeFirst().get()
+            return self
         }
+        
+        // MARK: - ReadMessages
         
         func read(with params: ReadMessagesParams) async throws(UseCaseError) {
-            fatalError()
+            
         }
-    }
-    
-    @MainActor
-    private final class MessageChannelConnectionSpy: MessageChannelConnection {
+        
+        // MARK: - MessageChannelConnection
+        
         private(set) var closeCallCount = 0
-        
-        private let stubs: [Result<Message, Error>]
-        
-        init(stubs: [Result<Message, Error>]) {
-            self.stubs = stubs
-        }
         
         nonisolated var messageStream: AsyncThrowingStream<Message, Error> {
             AsyncThrowingStream { continuation in
-                stubs.forEach { stub in
+                connectionMessageStubs.forEach { stub in
                     switch stub {
                     case let .success(message):
                         continuation.yield(message)
