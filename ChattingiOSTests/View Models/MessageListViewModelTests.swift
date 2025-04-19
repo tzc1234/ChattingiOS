@@ -154,6 +154,28 @@ final class MessageListViewModelTests: XCTestCase {
         )
     }
     
+    func test_loadPreviousMessages_sendsParamsToCollaboratorsCorrectly() async throws {
+        let contactID = 0
+        let messages = [makeMessage(id: 0).model, makeMessage(id: 1).model]
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
+            getMessagesStubs: [
+                .success(messages),
+                .success([])
+            ]
+        )
+        
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await loadPreviousMessages(on: sut)
+        
+        let firstMessageID = try XCTUnwrap(messages.first?.id)
+        XCTAssertEqual(spy.events, [
+            .get(with: .init(contactID: contactID)),
+            .establish(for: contactID),
+            .get(with: .init(contactID: contactID, messageID: .before(firstMessageID)))
+        ])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
@@ -183,6 +205,19 @@ final class MessageListViewModelTests: XCTestCase {
     private func loadMessagesAndEstablishMessageChannel(on sut: MessageListViewModel) async {
         await sut.loadMessagesAndEstablishMessageChannel()
         await sut.messageStreamTask?.value
+        try? await Task.sleep(for: .seconds(0.1))
+    }
+    
+    private func loadPreviousMessages(on sut: MessageListViewModel,
+                                      file: StaticString = #filePath,
+                                      line: UInt = #line) async {
+        sut.loadPreviousMessages()
+        
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.loadPreviousMessagesTask?.value
+        
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
     
     private func makeMessage(id: Int = 99,

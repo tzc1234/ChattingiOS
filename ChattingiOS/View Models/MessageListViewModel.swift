@@ -38,7 +38,9 @@ final class MessageListViewModel: ObservableObject {
     private var canLoadMore = false
     private var isLoadingMoreMessages = false
     private var messagesToBeReadIDs = Set<Int>()
+    
     private(set) var messageStreamTask: Task<Void, Never>?
+    private(set) var loadPreviousMessagesTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let contact: Contact
@@ -92,7 +94,7 @@ final class MessageListViewModel: ObservableObject {
         guard canLoadPrevious else { return }
         
         isLoading = true
-        Task {
+        loadPreviousMessagesTask = Task {
             do throws(UseCaseError) {
                 try await _loadPreviousMessages()
             } catch {
