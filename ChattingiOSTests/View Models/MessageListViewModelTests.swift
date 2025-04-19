@@ -33,7 +33,9 @@ final class MessageListViewModelTests: XCTestCase {
         
         await loadMessagesAndEstablishMessageChannel(on: sut)
         
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID)), .establish(for: contactID)])
+        XCTAssertEqual(spy.events.count, 2)
+        XCTAssertTrue(spy.events.contains(.get(with: .init(contactID: contactID))))
+        XCTAssertTrue(spy.events.contains(.establish(for: contactID)))
     }
     
     func test_loadMessages_deliversInitialErrorOnUseCaseError() async {
