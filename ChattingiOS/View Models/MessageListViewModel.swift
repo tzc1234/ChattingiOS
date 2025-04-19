@@ -40,7 +40,7 @@ final class MessageListViewModel: ObservableObject {
     private var messagesToBeReadIDs = Set<Int>()
     
     private(set) var messageStreamTask: Task<Void, Never>?
-    private(set) var loadPreviousMessagesTask: Task<Void, Never>?
+    private(set) var loadPreviousMessagesTasks: [Task<Void, Never>] = []
     
     private let currentUserID: Int
     private let contact: Contact
@@ -94,14 +94,14 @@ final class MessageListViewModel: ObservableObject {
         guard canLoadPrevious else { return }
         
         isLoading = true
-        loadPreviousMessagesTask = Task {
+        loadPreviousMessagesTasks.append(Task {
             do throws(UseCaseError) {
                 try await _loadPreviousMessages()
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
             isLoading = false
-        }
+        })
     }
     
     private func _loadPreviousMessages() async throws(UseCaseError) {

@@ -140,23 +140,19 @@ final class MessageListViewModelTests: XCTestCase {
             contact: makeContact(id: contactID),
             getMessagesStubs: [.success(emptyMessagesLoadedBefore)]
         )
+        await finishInitialLoad(on: sut, spy: spy)
         
-        await loadMessagesAndEstablishMessageChannel(on: sut)
-        
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID)), .establish(for: contactID)])
+        XCTAssertTrue(spy.events.isEmpty)
         
         sut.loadPreviousMessages()
         
-        XCTAssertEqual(
-            spy.events,
-            [.get(with: .init(contactID: contactID)), .establish(for: contactID)],
-            "No new events, ignores loadPreviousMessage."
-        )
+        XCTAssertTrue(spy.events.isEmpty)
     }
     
     func test_loadPreviousMessages_sendsParamsToCollaboratorsCorrectly() async throws {
         let contactID = 0
         let messages = [makeMessage(id: 0).model, makeMessage(id: 1).model]
+        let firstMessageID = try XCTUnwrap(messages.first?.id)
         let (sut, spy) = makeSUT(
             contact: makeContact(id: contactID),
             getMessagesStubs: [
@@ -164,16 +160,33 @@ final class MessageListViewModelTests: XCTestCase {
                 .success([])
             ]
         )
+        await finishInitialLoad(on: sut, spy: spy)
         
-        await loadMessagesAndEstablishMessageChannel(on: sut)
         await loadPreviousMessages(on: sut)
         
-        let firstMessageID = try XCTUnwrap(messages.first?.id)
-        XCTAssertEqual(spy.events, [
-            .get(with: .init(contactID: contactID)),
-            .establish(for: contactID),
-            .get(with: .init(contactID: contactID, messageID: .before(firstMessageID)))
-        ])
+        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .before(firstMessageID)))])
+    }
+    
+    func test_loadPreviousMessages_ignoresWhenFirstLoadPreviousMessagesNotYetFinished() async {
+        let contactID = 0
+        let firstMessageID = 0
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
+            getMessagesStubs: [
+                .success([makeMessage(id: firstMessageID).model]),
+                .success([makeMessage(id: 1).model])
+            ],
+            getMessagesDelayInSeconds: [0, 0.1]
+        )
+        await finishInitialLoad(on: sut, spy: spy)
+        
+        async let loadPreviousMessages0: Void = sut.loadPreviousMessages()
+        async let loadPreviousMessages1: Void = sut.loadPreviousMessages()
+        await loadPreviousMessages0
+        await loadPreviousMessages1
+        await sut.completeAllLoadPreviousMessagesTasks()
+        
+        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .before(firstMessageID)))])
     }
     
     // MARK: - Helpers
@@ -181,12 +194,14 @@ final class MessageListViewModelTests: XCTestCase {
     private func makeSUT(currentUserID: Int = 99,
                          contact: Contact = makeContact(),
                          getMessagesStubs: [Result<[Message], UseCaseError>] = [.success([])],
+                         getMessagesDelayInSeconds: [Double] = [],
                          establishChannelStubs: [Result<Void, MessageChannelError>] = [.success(())],
                          connectionMessageStubs: [Result<Message, Error>] = [],
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: MessageListViewModel, spy: CollaboratorsSpy) {
         let spy = CollaboratorsSpy(
             getMessagesStubs: getMessagesStubs,
+            getMessagesDelayInSeconds: getMessagesDelayInSeconds,
             establishChannelStubs: establishChannelStubs,
             connectionMessageStubs: connectionMessageStubs
         )
@@ -202,10 +217,14 @@ final class MessageListViewModelTests: XCTestCase {
         return (sut, spy)
     }
     
+    private func finishInitialLoad(on sut: MessageListViewModel, spy: CollaboratorsSpy) async {
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        spy.resetEvents()
+    }
+    
     private func loadMessagesAndEstablishMessageChannel(on sut: MessageListViewModel) async {
         await sut.loadMessagesAndEstablishMessageChannel()
         await sut.messageStreamTask?.value
-        try? await Task.sleep(for: .seconds(0.1))
     }
     
     private func loadPreviousMessages(on sut: MessageListViewModel,
@@ -215,7 +234,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertTrue(sut.isLoading, file: file, line: line)
         
-        await sut.loadPreviousMessagesTask?.value
+        await sut.completeAllLoadPreviousMessagesTasks()
         
         XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
@@ -236,74 +255,92 @@ final class MessageListViewModelTests: XCTestCase {
         )
         return (model, display)
     }
+}
+
+private extension MessageListViewModel {
+    func completeAllLoadPreviousMessagesTasks() async {
+        for task in loadPreviousMessagesTasks {
+            await task.value
+        }
+    }
+}
+
+@MainActor
+fileprivate final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessages, MessageChannelConnection {
+    enum Event: Equatable {
+        case get(with: GetMessagesParams)
+        case establish(for: Int)
+        case read(with: ReadMessagesParams)
+    }
     
-    @MainActor
-    private final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessages, MessageChannelConnection {
-        enum Event: Equatable {
-            case get(with: GetMessagesParams)
-            case establish(for: Int)
-            case read(with: ReadMessagesParams)
+    private(set) var events = [Event]()
+    
+    private var getMessagesStubs: [Result<[Message], UseCaseError>]
+    private var getMessagesDelayInSeconds: [Double]
+    private var establishChannelStubs: [Result<Void, MessageChannelError>]
+    private let connectionMessageStubs: [Result<Message, Error>]
+    
+    init(getMessagesStubs: [Result<[Message], UseCaseError>],
+         getMessagesDelayInSeconds: [Double],
+         establishChannelStubs: [Result<Void, MessageChannelError>],
+         connectionMessageStubs: [Result<Message, Error>]) {
+        self.getMessagesStubs = getMessagesStubs
+        self.establishChannelStubs = establishChannelStubs
+        self.connectionMessageStubs = connectionMessageStubs
+        self.getMessagesDelayInSeconds = getMessagesDelayInSeconds
+    }
+    
+    func resetEvents() {
+        events.removeAll()
+    }
+    
+    // MARK: - GetMessages
+    
+    func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
+        events.append(.get(with: params))
+        if !getMessagesDelayInSeconds.isEmpty {
+            try? await Task.sleep(for: .seconds(getMessagesDelayInSeconds.removeFirst()))
         }
+        return try getMessagesStubs.removeFirst().get()
+    }
+    
+    // MARK: - MessageChannel
+    
+    func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
+        events.append(.establish(for: contactID))
+        try establishChannelStubs.removeFirst().get()
+        return self
+    }
+    
+    // MARK: - ReadMessages
+    
+    func read(with params: ReadMessagesParams) async throws(UseCaseError) {
         
-        private(set) var events = [Event]()
-        
-        private var getMessagesStubs: [Result<[Message], UseCaseError>]
-        private var establishChannelStubs: [Result<Void, MessageChannelError>]
-        private let connectionMessageStubs: [Result<Message, Error>]
-        
-        init(getMessagesStubs: [Result<[Message], UseCaseError>],
-             establishChannelStubs: [Result<Void, MessageChannelError>],
-             connectionMessageStubs: [Result<Message, Error>]) {
-            self.getMessagesStubs = getMessagesStubs
-            self.establishChannelStubs = establishChannelStubs
-            self.connectionMessageStubs = connectionMessageStubs
-        }
-        
-        // MARK: - GetMessages
-        
-        func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
-            events.append(.get(with: params))
-            return try getMessagesStubs.removeFirst().get()
-        }
-        
-        // MARK: - MessageChannel
-        
-        func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
-            events.append(.establish(for: contactID))
-            try establishChannelStubs.removeFirst().get()
-            return self
-        }
-        
-        // MARK: - ReadMessages
-        
-        func read(with params: ReadMessagesParams) async throws(UseCaseError) {
-            
-        }
-        
-        // MARK: - MessageChannelConnection
-        
-        private(set) var closeCallCount = 0
-        
-        nonisolated var messageStream: AsyncThrowingStream<Message, Error> {
-            AsyncThrowingStream { continuation in
-                connectionMessageStubs.forEach { stub in
-                    switch stub {
-                    case let .success(message):
-                        continuation.yield(message)
-                    case let .failure(error):
-                        continuation.finish(throwing: error)
-                    }
+    }
+    
+    // MARK: - MessageChannelConnection
+    
+    private(set) var closeCallCount = 0
+    
+    nonisolated var messageStream: AsyncThrowingStream<Message, Error> {
+        AsyncThrowingStream { continuation in
+            connectionMessageStubs.forEach { stub in
+                switch stub {
+                case let .success(message):
+                    continuation.yield(message)
+                case let .failure(error):
+                    continuation.finish(throwing: error)
                 }
-                continuation.finish()
             }
+            continuation.finish()
         }
+    }
+    
+    func send(text: String) async throws {
         
-        func send(text: String) async throws {
-            
-        }
-        
-        func close() async throws {
-            closeCallCount += 1
-        }
+    }
+    
+    func close() async throws {
+        closeCallCount += 1
     }
 }
