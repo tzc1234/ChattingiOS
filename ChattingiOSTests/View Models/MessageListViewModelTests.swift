@@ -132,6 +132,26 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.messages, [messageBeforeError.display])
         XCTAssertEqual(spy.closeCallCount, 1)
     }
+    
+    func test_loadPreviousMessages_ignoresWhenEmptyMessagesLoadedBefore() async {
+        let contactID = 0
+        let emptyMessagesLoadedBefore = [Message]()
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
+            getMessagesStubs: [.success(emptyMessagesLoadedBefore)]
+        )
+        
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        
+        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID)), .establish(for: contactID)])
+        
+        sut.loadPreviousMessages()
+        
+        XCTAssertEqual(
+            spy.events,
+            [.get(with: .init(contactID: contactID)), .establish(for: contactID)],
+            "No new events, ignores loadPreviousMessage."
+        )
     }
     
     // MARK: - Helpers
