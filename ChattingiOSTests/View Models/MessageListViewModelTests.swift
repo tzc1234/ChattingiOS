@@ -45,6 +45,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertNil(sut.initialError)
         
         await loadMessagesAndEstablishMessageChannel(on: sut)
+        try? await Task.sleep(for: .seconds(0.05))
         
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
@@ -246,6 +247,24 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertTrue(spy.events.isEmpty)
     }
     
+    func test_loadMoreMessages_sendsParamsToCollaboratorsCorrectly() async throws {
+        let contactID = 0
+        let messages = [makeMessage(id: 0).model, makeMessage(id: 1).model]
+        let lastMessageID = try XCTUnwrap(messages.last?.id)
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
+            getMessagesStubs: [
+                .success(messages),
+                .success([])
+            ]
+        )
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        await loadMoreMessages(on: sut)
+        
+        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .after(lastMessageID)))])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
@@ -296,6 +315,18 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
     
+    private func loadMoreMessages(on sut: MessageListViewModel,
+                                  file: StaticString = #filePath,
+                                  line: UInt = #line) async {
+        sut.loadMoreMessages()
+        
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.completeAllLoadMoreMessagesTasks()
+        
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
+    }
+    
     private func makeMessage(id: Int = 99,
                              text: String = "text",
                              currentUserID: Int = 99,
@@ -317,6 +348,12 @@ final class MessageListViewModelTests: XCTestCase {
 private extension MessageListViewModel {
     func completeAllLoadPreviousMessagesTasks() async {
         for task in loadPreviousMessagesTasks {
+            await task.value
+        }
+    }
+    
+    func completeAllLoadMoreMessagesTasks() async {
+        for task in loadMoreMessagesTasks {
             await task.value
         }
     }

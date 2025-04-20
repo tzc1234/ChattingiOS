@@ -41,6 +41,7 @@ final class MessageListViewModel: ObservableObject {
     
     private(set) var messageStreamTask: Task<Void, Never>?
     private(set) var loadPreviousMessagesTasks: [Task<Void, Never>] = []
+    private(set) var loadMoreMessagesTasks: [Task<Void, Never>] = []
     
     private let currentUserID: Int
     private let contact: Contact
@@ -125,14 +126,14 @@ final class MessageListViewModel: ObservableObject {
         guard canLoadMore else { return }
         
         isLoading = true
-        Task {
+        loadMoreMessagesTasks.append(Task {
             do throws(UseCaseError) {
                 try await _loadMoreMessages()
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
             isLoading = false
-        }
+        })
     }
     
     func closeMessageChannel() {
