@@ -136,12 +136,8 @@ final class MessageListViewModelTests: XCTestCase {
     }
     
     func test_loadPreviousMessages_ignoresWhenEmptyMessagesLoadedBefore() async {
-        let contactID = 0
         let emptyMessagesLoadedBefore = [Message]()
-        let (sut, spy) = makeSUT(
-            contact: makeContact(id: contactID),
-            getMessagesStubs: [.success(emptyMessagesLoadedBefore)]
-        )
+        let (sut, spy) = makeSUT(getMessagesStubs: [.success(emptyMessagesLoadedBefore)])
         await finishInitialLoad(on: sut, resetEventsOn: spy)
         
         XCTAssertTrue(spy.events.isEmpty)
@@ -236,6 +232,18 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertEqual(sut.messages, (previousMessages + initialMessages).map(\.display))
         XCTAssertEqual(sut.listPositionMessageID, initialMessages[0].display.id)
+    }
+    
+    func test_loadMoreMessages_ignoresWhenEmptyMessagesLoadedBefore() async {
+        let emptyMessagesLoadedBefore = [Message]()
+        let (sut, spy) = makeSUT(getMessagesStubs: [.success(emptyMessagesLoadedBefore)])
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        XCTAssertTrue(spy.events.isEmpty)
+        
+        sut.loadMoreMessages()
+        
+        XCTAssertTrue(spy.events.isEmpty)
     }
     
     // MARK: - Helpers
