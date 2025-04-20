@@ -317,6 +317,22 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.messages, initialMessages.map(\.display))
     }
     
+    func test_loadMoreMessages_deliversUpdatedMessagesAfterMoreMessagesLoaded() async {
+        let initialMessages = [makeMessage(id: 0, text: "initial")]
+        let moreMessages = [makeMessage(id: 1, text: "more 1"), makeMessage(id: 2, text: "more 2")]
+        let (sut, _) = makeSUT(
+            getMessagesStubs: [
+                .success(initialMessages.map(\.model)),
+                .success(moreMessages.map(\.model))
+            ]
+        )
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        
+        await loadMoreMessages(on: sut)
+        
+        XCTAssertEqual(sut.messages, (initialMessages + moreMessages).map(\.display))
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
