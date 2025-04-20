@@ -269,6 +269,28 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertTrue(spy.events.isEmpty)
     }
     
+    func test_loadMoreMessages_ignoresWhenNoMoreMessagesLoadedBefore() async {
+        let contactID = 0
+        let messageID = 0
+        let noMoreMessagesLoadedBefore = [Message]()
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
+            getMessagesStubs: [
+                .success([makeMessage(id: messageID).model]),
+                .success(noMoreMessagesLoadedBefore)
+            ]
+        )
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        await loadMoreMessages(on: sut)
+        
+        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .after(messageID)))])
+        
+        sut.loadMoreMessages()
+        
+        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .after(messageID)))])
+    }
+    
     func test_loadMoreMessages_sendsParamsToCollaboratorsCorrectly() async throws {
         let contactID = 0
         let messages = [makeMessage(id: 0).model, makeMessage(id: 1).model]
