@@ -191,6 +191,21 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .before(firstMessageID)))])
     }
     
+    func test_loadPreviousMessages_deliversErrorMessageOnUseCaseError() async {
+        let error = UseCaseError.connectivity
+        let (sut, _) = makeSUT(
+            getMessagesStubs: [
+                .success([makeMessage().model]),
+                .failure(error)
+            ]
+        )
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        
+        await loadPreviousMessages(on: sut)
+        
+        XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
