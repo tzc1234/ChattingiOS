@@ -142,7 +142,7 @@ final class MessageListViewModelTests: XCTestCase {
             contact: makeContact(id: contactID),
             getMessagesStubs: [.success(emptyMessagesLoadedBefore)]
         )
-        await finishInitialLoad(on: sut, spy: spy)
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
         
         XCTAssertTrue(spy.events.isEmpty)
         
@@ -162,7 +162,7 @@ final class MessageListViewModelTests: XCTestCase {
                 .success([])
             ]
         )
-        await finishInitialLoad(on: sut, spy: spy)
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
         
         await loadPreviousMessages(on: sut)
         
@@ -180,7 +180,7 @@ final class MessageListViewModelTests: XCTestCase {
             ],
             getMessagesDelayInSeconds: [0, 0.1]
         )
-        await finishInitialLoad(on: sut, spy: spy)
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
         
         async let loadPreviousMessages0: Void = sut.loadPreviousMessages()
         async let loadPreviousMessages1: Void = sut.loadPreviousMessages()
@@ -249,7 +249,7 @@ final class MessageListViewModelTests: XCTestCase {
         return (sut, spy)
     }
     
-    private func finishInitialLoad(on sut: MessageListViewModel, spy: CollaboratorsSpy) async {
+    private func finishInitialLoad(on sut: MessageListViewModel, resetEventsOn spy: CollaboratorsSpy) async {
         await loadMessagesAndEstablishMessageChannel(on: sut)
         spy.resetEvents()
     }
