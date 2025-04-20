@@ -221,6 +221,23 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.messages, initialMessages.map(\.display))
     }
     
+    func test_loadPreviousMessages_deliversUpdatedMessagesAfterPreviousMessagesLoaded() async {
+        let initialMessages = [makeMessage(id: 2, text: "initial")]
+        let previousMessages = [makeMessage(id: 0, text: "previous 0"), makeMessage(id: 1, text: "previous 1")]
+        let (sut, _) = makeSUT(
+            getMessagesStubs: [
+                .success(initialMessages.map(\.model)),
+                .success(previousMessages.map(\.model))
+            ]
+        )
+        await loadMessagesAndEstablishMessageChannel(on: sut)
+        
+        await loadPreviousMessages(on: sut)
+        
+        XCTAssertEqual(sut.messages, (previousMessages + initialMessages).map(\.display))
+        XCTAssertEqual(sut.listPositionMessageID, initialMessages[0].display.id)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
