@@ -405,6 +405,19 @@ final class MessageListViewModelTests: XCTestCase {
         ])
     }
     
+    func test_reestablishMessageChannel_deliverInitialErrorOnUseCaseError() async {
+        let error = UseCaseError.connectivity
+        let (sut, spy) = makeSUT(
+            getMessagesStubs: [.success([makeMessage().model]), .failure(error)],
+            establishChannelStubs: [.success(()), .success(())]
+        )
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        await reestablishMessageChannel(on: sut)
+        
+        XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
