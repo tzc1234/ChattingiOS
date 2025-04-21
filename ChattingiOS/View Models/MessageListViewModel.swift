@@ -44,6 +44,7 @@ final class MessageListViewModel: ObservableObject {
     private(set) var loadMoreMessagesTasks: [Task<Void, Never>] = []
     private(set) var reestablishMessageChannelTask: Task<Void, Never>?
     private(set) var sendMessageTask: Task<Void, Never>?
+    private(set) var readMessagesTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let contact: Contact
@@ -235,7 +236,7 @@ final class MessageListViewModel: ObservableObject {
     func readMessages(until messageID: Int) {
         messagesToBeReadIDs.insert(messageID)
         
-        Task {
+        readMessagesTask = Task {
             try? await Task.sleep(for: .seconds(0.3)) // Debounce
             
             guard let maxMessageID = messagesToBeReadIDs.max() else { return }

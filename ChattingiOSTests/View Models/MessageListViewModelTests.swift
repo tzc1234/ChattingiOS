@@ -526,6 +526,28 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.generalError, "Cannot send the message, please try it again later.")
     }
     
+    func test_readMessages_sendsTheMaxMessageIDToCollaborator() async {
+        let contactID = 0
+        let maxMessageID = 2
+        let messages = [
+            makeMessage(id: maxMessageID, isRead: false),
+            makeMessage(id: 1, isRead: false),
+            makeMessage(id: 0, isRead: false)
+        ]
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
+            getMessagesStubs: [.success(messages.map(\.model))]
+        )
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        sut.readMessages(until: 0)
+        sut.readMessages(until: 1)
+        sut.readMessages(until: maxMessageID)
+        await sut.readMessagesTask?.value
+        
+        XCTAssertEqual(spy.events, [.read(with: .init(contactID: contactID, untilMessageID: maxMessageID))])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
@@ -710,7 +732,7 @@ fileprivate final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessa
     // MARK: - ReadMessages
     
     func read(with params: ReadMessagesParams) async throws(UseCaseError) {
-        
+        events.append(.read(with: params))
     }
     
     // MARK: - MessageChannelConnection
