@@ -460,6 +460,16 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.messages, (initialMessages + moreMessages).map(\.display))
     }
     
+    func test_sendMessage_ignoresWhenEmptyInputMessage() async {
+        let (sut, spy) = makeSUT()
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        sut.inputMessage = ""
+        sut.sendMessage()
+        
+        XCTAssertTrue(spy.textsSent.isEmpty)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
@@ -623,6 +633,7 @@ fileprivate final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessa
     
     // MARK: - MessageChannelConnection
     
+    private(set) var textsSent = [String]()
     private(set) var closeCallCount = 0
     
     nonisolated var messageStream: AsyncThrowingStream<Message, Error> {
@@ -640,7 +651,7 @@ fileprivate final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessa
     }
     
     func send(text: String) async throws {
-        
+        textsSent.append(text)
     }
     
     func close() async throws {
