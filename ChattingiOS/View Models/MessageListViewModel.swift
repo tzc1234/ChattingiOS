@@ -42,6 +42,7 @@ final class MessageListViewModel: ObservableObject {
     private(set) var messageStreamTask: Task<Void, Never>?
     private(set) var loadPreviousMessagesTasks: [Task<Void, Never>] = []
     private(set) var loadMoreMessagesTasks: [Task<Void, Never>] = []
+    private(set) var reestablishMessageChannelTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let contact: Contact
@@ -145,14 +146,16 @@ final class MessageListViewModel: ObservableObject {
         isLoading = true
         canLoadMore = true
         
-        Task {
+        reestablishMessageChannelTask = Task {
             do {
                 try await establishMessageChannel()
-                try await loadMoreMessageUntilTheEnd()
+                try await _loadMoreMessages()
             } catch let error as UseCaseError {
                 initialError = error.toGeneralErrorMessage()
             } catch let error as MessageChannelError {
                 initialError = error.toGeneralErrorMessage()
+            } catch {
+                print("This is required to silence error. Should never come here.")
             }
             isLoading = false
         }

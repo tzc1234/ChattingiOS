@@ -387,6 +387,24 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertNil(sut.messageStreamTask)
     }
     
+    func test_reestablishMessageChannel_establishesConnectionSuccessfully() async {
+        let contactID = 0
+        let messageID = 0
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
+            getMessagesStubs: [.success([makeMessage(id: messageID).model]), .success([])],
+            establishChannelStubs: [.success(()), .success(())]
+        )
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        await reestablishMessageChannel(on: sut)
+        
+        XCTAssertEqual(spy.events, [
+            .establish(for: contactID),
+            .get(with: .init(contactID: contactID, messageID: .after(messageID)))
+        ])
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
@@ -447,6 +465,20 @@ final class MessageListViewModelTests: XCTestCase {
         await sut.completeAllLoadMoreMessagesTasks()
         
         XCTAssertFalse(sut.isLoading, file: file, line: line)
+    }
+    
+    private func reestablishMessageChannel(on sut: MessageListViewModel,
+                                           file: StaticString = #filePath,
+                                           line: UInt = #line) async {
+        sut.reestablishMessageChannel()
+        
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.reestablishMessageChannelTask?.value
+        
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
+        
+        await sut.messageStreamTask?.value
     }
     
     private func makeMessage(id: Int = 99,
