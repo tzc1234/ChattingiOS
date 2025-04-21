@@ -377,6 +377,16 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.messages, (initialMessages + moreMessages).map(\.display))
     }
     
+    func test_closeMessageChannel_closesConnectionSuccessfully() async {
+        let (sut, spy) = makeSUT()
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        sut.closeMessageChannel()
+        
+        XCTAssertEqual(spy.closeCallCount, 1)
+        XCTAssertNil(sut.messageStreamTask)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
