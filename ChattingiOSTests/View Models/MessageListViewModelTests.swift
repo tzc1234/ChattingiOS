@@ -530,14 +530,21 @@ final class MessageListViewModelTests: XCTestCase {
         return (sut, spy)
     }
     
-    private func finishInitialLoad(on sut: MessageListViewModel, resetEventsOn spy: CollaboratorsSpy) async {
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+    private func finishInitialLoad(on sut: MessageListViewModel,
+                                   resetEventsOn spy: CollaboratorsSpy,
+                                   file: StaticString = #filePath,
+                                   line: UInt = #line) async {
+        await loadMessagesAndEstablishMessageChannel(on: sut, file: file, line: line)
         spy.resetEvents()
     }
     
-    private func loadMessagesAndEstablishMessageChannel(on sut: MessageListViewModel) async {
+    private func loadMessagesAndEstablishMessageChannel(on sut: MessageListViewModel,
+                                                        file: StaticString = #filePath,
+                                                        line: UInt = #line) async {
         await sut.loadMessagesAndEstablishMessageChannel()
         await sut.messageStreamTask?.value
+        
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
     
     private func loadPreviousMessages(on sut: MessageListViewModel,
