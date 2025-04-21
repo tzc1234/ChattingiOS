@@ -517,6 +517,15 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
     }
     
+    func test_sendMessage_deliversGeneralErrorOnOtherError() async {
+        let (sut, spy) = makeSUT(sendMessageError: anyNSError())
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        await sendMessage(on: sut, message: "any")
+        
+        XCTAssertEqual(sut.generalError, "Cannot send the message, please try it again later.")
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
@@ -525,13 +534,15 @@ final class MessageListViewModelTests: XCTestCase {
                          getMessagesDelayInSeconds: [Double] = [],
                          establishChannelStubs: [Result<Void, MessageChannelError>] = [.success(())],
                          connectionMessageStubs: [Result<Message, Error>] = [],
+                         sendMessageError: Error? = nil,
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: MessageListViewModel, spy: CollaboratorsSpy) {
         let spy = CollaboratorsSpy(
             getMessagesStubs: getMessagesStubs,
             getMessagesDelayInSeconds: getMessagesDelayInSeconds,
             establishChannelStubs: establishChannelStubs,
-            connectionMessageStubs: connectionMessageStubs
+            connectionMessageStubs: connectionMessageStubs,
+            sendMessageError: sendMessageError
         )
         let sut = MessageListViewModel(
             currentUserID: currentUserID,
@@ -660,15 +671,18 @@ fileprivate final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessa
     private var getMessagesDelayInSeconds: [Double]
     private var establishChannelStubs: [Result<Void, MessageChannelError>]
     private let connectionMessageStubs: [Result<Message, Error>]
+    private let sendMessageError: Error?
     
     init(getMessagesStubs: [Result<[Message], UseCaseError>],
          getMessagesDelayInSeconds: [Double],
          establishChannelStubs: [Result<Void, MessageChannelError>],
-         connectionMessageStubs: [Result<Message, Error>]) {
+         connectionMessageStubs: [Result<Message, Error>],
+         sendMessageError: Error?) {
         self.getMessagesStubs = getMessagesStubs
         self.establishChannelStubs = establishChannelStubs
         self.connectionMessageStubs = connectionMessageStubs
         self.getMessagesDelayInSeconds = getMessagesDelayInSeconds
+        self.sendMessageError = sendMessageError
     }
     
     func resetEvents() {
@@ -720,6 +734,7 @@ fileprivate final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessa
     
     func send(text: String) async throws {
         textsSent.append(text)
+        if let sendMessageError { throw sendMessageError }
     }
     
     func close() async throws {
