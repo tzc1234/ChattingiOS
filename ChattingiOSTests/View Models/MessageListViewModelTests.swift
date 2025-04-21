@@ -431,6 +431,21 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
     
+    func test_reestablishMessageChannel_deliversSameMessagesWhenNoMoreMessagesLoaded() async {
+        let initialMessages = [makeMessage(id: 0)]
+        let (sut, spy) = makeSUT(
+            getMessagesStubs: [.success(initialMessages.map(\.model)), .success([])],
+            establishChannelStubs: [.success(()), .success(())]
+        )
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        XCTAssertEqual(sut.messages, initialMessages.map(\.display))
+        
+        await reestablishMessageChannel(on: sut)
+        
+        XCTAssertEqual(sut.messages, initialMessages.map(\.display))
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
