@@ -418,6 +418,19 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
     
+    func test_reestablishMessageChannel_deliversInitialErrorOnMessageChannelError() async {
+        let error = MessageChannelError.notFound
+        let (sut, spy) = makeSUT(
+            getMessagesStubs: [.success([makeMessage().model]), .success([])],
+            establishChannelStubs: [.success(()), .failure(error)]
+        )
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        await reestablishMessageChannel(on: sut)
+        
+        XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
