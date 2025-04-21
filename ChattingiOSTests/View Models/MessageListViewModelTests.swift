@@ -491,6 +491,17 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.messages, (initialMessages + moreMessages0 + moreMessages1).map(\.display))
     }
     
+    func test_sendMessage_sendsMessageSuccessfully() async {
+        let (sut, spy) = makeSUT()
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        let messageSent = "message sent"
+        await sendMessage(on: sut, message: messageSent)
+        
+        XCTAssertEqual(spy.textsSent, [messageSent])
+        XCTAssertTrue(sut.inputMessage.isEmpty)
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
