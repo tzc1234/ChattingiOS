@@ -5,8 +5,8 @@
 //  Created by Tsz-Lung on 18/12/2024.
 //
 
-struct GetMessagesParams {
-    enum MessageID {
+struct GetMessagesParams: Equatable {
+    enum MessageID: Equatable {
         case before(Int)
         case after(Int)
     }

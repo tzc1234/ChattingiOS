@@ -38,7 +38,13 @@ final class MessageListViewModel: ObservableObject {
     private var canLoadMore = false
     private var isLoadingMoreMessages = false
     private var messagesToBeReadIDs = Set<Int>()
-    private var messageStreamTask: Task<Void, Never>?
+    
+    private(set) var messageStreamTask: Task<Void, Never>?
+    private(set) var loadPreviousMessagesTasks: [Task<Void, Never>] = []
+    private(set) var loadMoreMessagesTasks: [Task<Void, Never>] = []
+    private(set) var reestablishMessageChannelTask: Task<Void, Never>?
+    private(set) var sendMessageTask: Task<Void, Never>?
+    private(set) var readMessagesTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let contact: Contact
@@ -92,14 +98,14 @@ final class MessageListViewModel: ObservableObject {
         guard canLoadPrevious else { return }
         
         isLoading = true
-        Task {
+        loadPreviousMessagesTasks.append(Task {
             do throws(UseCaseError) {
                 try await _loadPreviousMessages()
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
             isLoading = false
-        }
+        })
     }
     
     private func _loadPreviousMessages() async throws(UseCaseError) {
@@ -123,14 +129,14 @@ final class MessageListViewModel: ObservableObject {
         guard canLoadMore else { return }
         
         isLoading = true
-        Task {
+        loadMoreMessagesTasks.append(Task {
             do throws(UseCaseError) {
                 try await _loadMoreMessages()
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
             isLoading = false
-        }
+        })
     }
     
     func closeMessageChannel() {
@@ -142,14 +148,16 @@ final class MessageListViewModel: ObservableObject {
         isLoading = true
         canLoadMore = true
         
-        Task {
+        reestablishMessageChannelTask = Task {
             do {
                 try await establishMessageChannel()
-                try await loadMoreMessageUntilTheEnd()
+                try await _loadMoreMessages()
             } catch let error as UseCaseError {
                 initialError = error.toGeneralErrorMessage()
             } catch let error as MessageChannelError {
                 initialError = error.toGeneralErrorMessage()
+            } catch {
+                print("This is required to silence error. Should never come here.")
             }
             isLoading = false
         }
@@ -182,7 +190,7 @@ final class MessageListViewModel: ObservableObject {
         guard !inputMessage.isEmpty else { return }
         
         isLoading = true
-        Task {
+        sendMessageTask = Task {
             do {
                 try await loadMoreMessageUntilTheEnd()
                 
@@ -228,7 +236,7 @@ final class MessageListViewModel: ObservableObject {
     func readMessages(until messageID: Int) {
         messagesToBeReadIDs.insert(messageID)
         
-        Task {
+        readMessagesTask = Task {
             try? await Task.sleep(for: .seconds(0.3)) // Debounce
             
             guard let maxMessageID = messagesToBeReadIDs.max() else { return }
