@@ -502,6 +502,21 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertTrue(sut.inputMessage.isEmpty)
     }
     
+    func test_sendMessage_deliversGeneralErrorOnUseCaseError() async {
+        let error = UseCaseError.connectivity
+        let (sut, spy) = makeSUT(
+            getMessagesStubs: [
+                .success([makeMessage().model]),
+                .failure(error)
+            ]
+        )
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        await sendMessage(on: sut, message: "any")
+        
+        XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
