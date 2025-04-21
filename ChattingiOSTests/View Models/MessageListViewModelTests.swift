@@ -558,8 +558,8 @@ final class MessageListViewModelTests: XCTestCase {
                          connectionMessageStubs: [Result<Message, Error>] = [],
                          sendMessageError: Error? = nil,
                          file: StaticString = #filePath,
-                         line: UInt = #line) -> (sut: MessageListViewModel, spy: CollaboratorsSpy) {
-        let spy = CollaboratorsSpy(
+                         line: UInt = #line) -> (sut: MessageListViewModel, spy: MessageListViewModelCollaboratorsSpy) {
+        let spy = MessageListViewModelCollaboratorsSpy(
             getMessagesStubs: getMessagesStubs,
             getMessagesDelayInSeconds: getMessagesDelayInSeconds,
             establishChannelStubs: establishChannelStubs,
@@ -579,7 +579,7 @@ final class MessageListViewModelTests: XCTestCase {
     }
     
     private func finishInitialLoad(on sut: MessageListViewModel,
-                                   resetEventsOn spy: CollaboratorsSpy,
+                                   resetEventsOn spy: MessageListViewModelCollaboratorsSpy,
                                    file: StaticString = #filePath,
                                    line: UInt = #line) async {
         await loadMessagesAndEstablishMessageChannel(on: sut, file: file, line: line)
@@ -676,90 +676,5 @@ private extension MessageListViewModel {
         for task in loadMoreMessagesTasks {
             await task.value
         }
-    }
-}
-
-@MainActor
-fileprivate final class CollaboratorsSpy: GetMessages, MessageChannel, ReadMessages, MessageChannelConnection {
-    enum Event: Equatable {
-        case get(with: GetMessagesParams)
-        case establish(for: Int)
-        case read(with: ReadMessagesParams)
-    }
-    
-    private(set) var events = [Event]()
-    
-    private var getMessagesStubs: [Result<[Message], UseCaseError>]
-    private var getMessagesDelayInSeconds: [Double]
-    private var establishChannelStubs: [Result<Void, MessageChannelError>]
-    private let connectionMessageStubs: [Result<Message, Error>]
-    private let sendMessageError: Error?
-    
-    init(getMessagesStubs: [Result<[Message], UseCaseError>],
-         getMessagesDelayInSeconds: [Double],
-         establishChannelStubs: [Result<Void, MessageChannelError>],
-         connectionMessageStubs: [Result<Message, Error>],
-         sendMessageError: Error?) {
-        self.getMessagesStubs = getMessagesStubs
-        self.establishChannelStubs = establishChannelStubs
-        self.connectionMessageStubs = connectionMessageStubs
-        self.getMessagesDelayInSeconds = getMessagesDelayInSeconds
-        self.sendMessageError = sendMessageError
-    }
-    
-    func resetEvents() {
-        events.removeAll()
-    }
-    
-    // MARK: - GetMessages
-    
-    func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
-        events.append(.get(with: params))
-        if !getMessagesDelayInSeconds.isEmpty {
-            try? await Task.sleep(for: .seconds(getMessagesDelayInSeconds.removeFirst()))
-        }
-        return try getMessagesStubs.removeFirst().get()
-    }
-    
-    // MARK: - MessageChannel
-    
-    func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
-        events.append(.establish(for: contactID))
-        try establishChannelStubs.removeFirst().get()
-        return self
-    }
-    
-    // MARK: - ReadMessages
-    
-    func read(with params: ReadMessagesParams) async throws(UseCaseError) {
-        events.append(.read(with: params))
-    }
-    
-    // MARK: - MessageChannelConnection
-    
-    private(set) var textsSent = [String]()
-    private(set) var closeCallCount = 0
-    
-    nonisolated var messageStream: AsyncThrowingStream<Message, Error> {
-        AsyncThrowingStream { continuation in
-            connectionMessageStubs.forEach { stub in
-                switch stub {
-                case let .success(message):
-                    continuation.yield(message)
-                case let .failure(error):
-                    continuation.finish(throwing: error)
-                }
-            }
-            continuation.finish()
-        }
-    }
-    
-    func send(text: String) async throws {
-        textsSent.append(text)
-        if let sendMessageError { throw sendMessageError }
-    }
-    
-    func close() async throws {
-        closeCallCount += 1
     }
 }
