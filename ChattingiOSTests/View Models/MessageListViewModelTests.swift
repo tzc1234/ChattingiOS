@@ -470,6 +470,27 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertTrue(spy.textsSent.isEmpty)
     }
     
+    func test_sendMessage_loadsAllNewMessages() async {
+        let initialMessages = [makeMessage(id: 0)]
+        let moreMessages0 = [makeMessage(id: 1)]
+        let moreMessages1 = [makeMessage(id: 2)]
+        let (sut, spy) = makeSUT(
+            getMessagesStubs: [
+                .success(initialMessages.map(\.model)),
+                .success(moreMessages0.map(\.model)),
+                .success(moreMessages1.map(\.model)),
+                .success([]),
+            ]
+        )
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
+        
+        XCTAssertEqual(sut.messages, initialMessages.map(\.display))
+        
+        await sendMessage(on: sut, message: "any")
+        
+        XCTAssertEqual(sut.messages, (initialMessages + moreMessages0 + moreMessages1).map(\.display))
+    }
+    
     // MARK: - Helpers
     
     private func makeSUT(currentUserID: Int = 99,
@@ -544,6 +565,20 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isLoading, file: file, line: line)
         
         await sut.messageStreamTask?.value
+    }
+    
+    private func sendMessage(on sut: MessageListViewModel,
+                             message: String,
+                             file: StaticString = #filePath,
+                             line: UInt = #line) async {
+        sut.inputMessage = message
+        sut.sendMessage()
+        
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.sendMessageTask?.value
+        
+        XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
     
     private func makeMessage(id: Int = 99,
