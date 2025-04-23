@@ -34,7 +34,7 @@ final class MessageListViewModelTests: XCTestCase {
         await loadMessagesAndEstablishMessageChannel(on: sut)
         
         XCTAssertEqual(spy.events.count, 2)
-        XCTAssertTrue(spy.events.contains(.get(with: .init(contactID: contactID))))
+        XCTAssertTrue(spy.events.contains(.get(with: contactID)))
         XCTAssertTrue(spy.events.contains(.establish(for: contactID)))
     }
     
@@ -163,11 +163,11 @@ final class MessageListViewModelTests: XCTestCase {
         
         await loadPreviousMessages(on: sut)
         
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .before(firstMessageID)))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, .before(firstMessageID))])
         
         sut.loadPreviousMessages()
         
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .before(firstMessageID)))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, .before(firstMessageID))])
     }
     
     func test_loadPreviousMessages_sendsParamsToCollaboratorsCorrectly() async throws {
@@ -185,7 +185,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         await loadPreviousMessages(on: sut)
         
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .before(firstMessageID)))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, .before(firstMessageID))])
     }
     
     func test_loadPreviousMessages_ignoresWhenFirstLoadPreviousMessagesNotYetFinished() async {
@@ -207,7 +207,7 @@ final class MessageListViewModelTests: XCTestCase {
         await loadPreviousMessages1
         await sut.completeAllLoadPreviousMessagesTasks()
         
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .before(firstMessageID)))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, .before(firstMessageID))])
     }
     
     func test_loadPreviousMessages_deliversErrorMessageOnUseCaseError() async {
@@ -284,11 +284,11 @@ final class MessageListViewModelTests: XCTestCase {
         
         await loadMoreMessages(on: sut)
         
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .after(messageID)))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, .after(messageID))])
         
         sut.loadMoreMessages()
         
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .after(messageID)))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, .after(messageID))])
     }
     
     func test_loadMoreMessages_sendsParamsToCollaboratorsCorrectly() async throws {
@@ -306,7 +306,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         await loadMoreMessages(on: sut)
         
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .after(lastMessageID)))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, .after(lastMessageID))])
     }
     
     func test_loadMoreMessages_ignoresWhenFirstLoadMoreMessagesNotYetFinished() async {
@@ -328,7 +328,7 @@ final class MessageListViewModelTests: XCTestCase {
         await loadMoreMessages1
         await sut.completeAllLoadMoreMessagesTasks()
         
-        XCTAssertEqual(spy.events, [.get(with: .init(contactID: contactID, messageID: .after(messageID)))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, .after(messageID))])
     }
     
     func test_loadMoreMessages_deliversErrorMessageOnUseCaseError() async {
@@ -403,7 +403,7 @@ final class MessageListViewModelTests: XCTestCase {
         await reestablishMessageChannel(on: sut)
         
         XCTAssertEqual(spy.events, [
-            .get(with: .init(contactID: contactID, messageID: .after(messageID))),
+            .get(with: contactID, .after(messageID)),
             .establish(for: contactID)
         ])
     }
@@ -554,7 +554,7 @@ final class MessageListViewModelTests: XCTestCase {
         sut.readMessages(until: maxMessageID)
         await sut.readMessagesTask?.value
         
-        XCTAssertEqual(spy.events, [.read(with: .init(contactID: contactID, untilMessageID: maxMessageID))])
+        XCTAssertEqual(spy.events, [.read(with: contactID, until: maxMessageID)])
     }
     
     // MARK: - Helpers

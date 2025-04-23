@@ -10,9 +10,9 @@
 @MainActor
 final class MessageListViewModelCollaboratorsSpy {
     enum Event: Equatable {
-        case get(with: GetMessagesParams)
+        case get(with: Int, GetMessagesParams.MessageID? = nil)
         case establish(for: Int)
-        case read(with: ReadMessagesParams)
+        case read(with: Int, until: Int)
     }
     
     private(set) var events = [Event]()
@@ -44,7 +44,7 @@ final class MessageListViewModelCollaboratorsSpy {
 
 extension MessageListViewModelCollaboratorsSpy: GetMessages {
     func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
-        events.append(.get(with: params))
+        events.append(.get(with: params.contactID, params.messageID))
         if !getMessagesDelayInSeconds.isEmpty {
             try? await Task.sleep(for: .seconds(getMessagesDelayInSeconds.removeFirst()))
         }
@@ -62,7 +62,7 @@ extension MessageListViewModelCollaboratorsSpy: MessageChannel {
 
 extension MessageListViewModelCollaboratorsSpy: ReadMessages {
     func read(with params: ReadMessagesParams) async throws(UseCaseError) {
-        events.append(.read(with: params))
+        events.append(.read(with: params.contactID, until: params.untilMessageID))
     }
 }
 
