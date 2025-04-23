@@ -7,16 +7,6 @@
 
 import Foundation
 
-struct DisplayedMessage: Identifiable, Equatable {
-    let id: Int
-    let text: String
-    let isMine: Bool
-    let isRead: Bool
-    let date: String
-    
-    var isUnread: Bool { !isRead }
-}
-
 @MainActor
 final class MessageListViewModel: ObservableObject {
     @Published private(set) var messages = [DisplayedMessage]()
