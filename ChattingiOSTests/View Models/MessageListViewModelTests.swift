@@ -45,7 +45,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertNil(sut.initialError)
         
         await loadMessagesAndEstablishMessageChannel(on: sut)
-        try? await Task.sleep(for: .seconds(0.05))
+        try? await Task.sleep(for: .seconds(0.01))
         
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
@@ -69,13 +69,13 @@ final class MessageListViewModelTests: XCTestCase {
         let (sut, _) = makeSUT(currentUserID: currentUserID, getMessagesStubs: [.success(messages.map(\.model))])
         
         XCTAssertTrue(sut.messages.isEmpty)
-        XCTAssertNil(sut.listPositionMessageID)
+        XCTAssertNil(sut.messageIDForListPosition)
         
         await loadMessagesAndEstablishMessageChannel(on: sut)
         
         XCTAssertEqual(sut.messages, messages.map(\.display))
         let firstUnreadMessageID = try XCTUnwrap(messages.map(\.display).first(where: \.isUnread)?.id)
-        XCTAssertEqual(sut.listPositionMessageID, firstUnreadMessageID)
+        XCTAssertEqual(sut.messageIDForListPosition, firstUnreadMessageID)
     }
     
     func test_establishMessageChannel_deliversInitialErrorOnMessageChannelError() async {
@@ -103,14 +103,14 @@ final class MessageListViewModelTests: XCTestCase {
         )
         
         XCTAssertTrue(sut.messages.isEmpty)
-        XCTAssertNil(sut.listPositionMessageID)
+        XCTAssertNil(sut.messageIDForListPosition)
         XCTAssertEqual(spy.closeCallCount, 0)
         
         await loadMessagesAndEstablishMessageChannel(on: sut)
         
         XCTAssertEqual(sut.messages, messages.map(\.display))
         let firstReceivedMessageID = try XCTUnwrap(messages.map(\.display).first?.id)
-        XCTAssertEqual(sut.listPositionMessageID, firstReceivedMessageID)
+        XCTAssertEqual(sut.messageIDForListPosition, firstReceivedMessageID)
         XCTAssertEqual(spy.closeCallCount, 1)
     }
     
@@ -254,7 +254,7 @@ final class MessageListViewModelTests: XCTestCase {
         await loadPreviousMessages(on: sut)
         
         XCTAssertEqual(sut.messages, (previousMessages + initialMessages).map(\.display))
-        XCTAssertEqual(sut.listPositionMessageID, initialMessages[0].display.id)
+        XCTAssertEqual(sut.messageIDForListPosition, initialMessages[0].display.id)
     }
     
     func test_loadMoreMessages_ignoresWhenEmptyMessagesLoadedBefore() async {
@@ -631,6 +631,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isLoading, file: file, line: line)
         
         await sut.messageStreamTask?.value
+        try? await Task.sleep(for: .seconds(0.001))
     }
     
     private func sendMessage(on sut: MessageListViewModel,

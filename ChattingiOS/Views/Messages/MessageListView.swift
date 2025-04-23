@@ -21,7 +21,7 @@ struct MessageListView: View {
             isBlocked: viewModel.isBlocked,
             generalError: $viewModel.generalError,
             inputMessage: $viewModel.inputMessage,
-            listPositionMessageID: $viewModel.listPositionMessageID,
+            listPositionMessageID: $viewModel.messageIDForListPosition,
             sendMessage: viewModel.sendMessage,
             loadPreviousMessages: viewModel.loadPreviousMessages,
             loadMoreMessages: viewModel.loadMoreMessages,

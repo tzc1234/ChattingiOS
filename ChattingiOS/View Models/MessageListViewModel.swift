@@ -14,13 +14,13 @@ final class MessageListViewModel: ObservableObject {
     @Published var initialError: String?
     @Published var inputMessage = ""
     @Published private(set) var isLoading = false
-    @Published var listPositionMessageID: Int?
+    @Published var messageIDForListPosition: Int?
     
     private var contactID: Int { contact.id }
     var username: String { contact.responder.name }
     var avatarURL: URL? { contact.responder.avatarURL.map(URL.init) ?? nil }
     var isBlocked: Bool { contact.blockedByUserID != nil }
-    private var initialListPositionMessageID: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
+    private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
     
     private var connection: MessageChannelConnection?
     private var canLoadPrevious = false
@@ -82,7 +82,7 @@ final class MessageListViewModel: ObservableObject {
         canLoadMore = !messages.isEmpty
         self.messages = messages.map { $0.toDisplayedModel(currentUserID: currentUserID) }
         
-        listPositionMessageID = initialListPositionMessageID
+        messageIDForListPosition = messageIDForInitialListPosition
     }
     
     func loadPreviousMessages() {
@@ -111,7 +111,7 @@ final class MessageListViewModel: ObservableObject {
         
         if !previousMessages.isEmpty {
             messages.insert(contentsOf: previousMessages, at: 0)
-            listPositionMessageID = firstMessageID
+            messageIDForListPosition = firstMessageID
         }
         
         isLoadingPreviousMessages = false
@@ -160,16 +160,14 @@ final class MessageListViewModel: ObservableObject {
         self.connection = connection
         
         messageStreamTask = Task {
-            defer {
-                Task { try? await connection.close() }
-            }
+            defer { Task { try? await connection.close() } }
             
             do {
                 for try await message in connection.messageStream {
                     messages.append(message.toDisplayedModel(currentUserID: currentUserID))
                     
-                    if listPositionMessageID == nil {
-                        listPositionMessageID = message.id
+                    if messageIDForListPosition == nil {
+                        messageIDForListPosition = message.id
                     }
                 }
             } catch {
