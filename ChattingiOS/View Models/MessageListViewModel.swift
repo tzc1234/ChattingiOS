@@ -142,8 +142,8 @@ final class MessageListViewModel: ObservableObject {
         
         reestablishMessageChannelTask = Task {
             do {
+                try await loadMoreMessageUntilTheEnd()
                 try await establishMessageChannel()
-                try await _loadMoreMessages()
             } catch let error as UseCaseError {
                 initialError = error.toGeneralErrorMessage()
             } catch let error as MessageChannelError {
@@ -196,9 +196,7 @@ final class MessageListViewModel: ObservableObject {
     }
     
     private func loadMoreMessageUntilTheEnd() async throws(UseCaseError) {
-        while canLoadMore {
-            try await _loadMoreMessages()
-        }
+        while canLoadMore { try await _loadMoreMessages() }
     }
     
     private func _loadMoreMessages() async throws(UseCaseError) {

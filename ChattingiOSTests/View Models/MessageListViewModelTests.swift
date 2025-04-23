@@ -392,7 +392,10 @@ final class MessageListViewModelTests: XCTestCase {
         let messageID = 0
         let (sut, spy) = makeSUT(
             contact: makeContact(id: contactID),
-            getMessagesStubs: [.success([makeMessage(id: messageID).model]), .success([])],
+            getMessagesStubs: [
+                .success([makeMessage(id: messageID).model]),
+                .success([])
+            ],
             establishChannelStubs: [.success(()), .success(())]
         )
         await finishInitialLoad(on: sut, resetEventsOn: spy)
@@ -400,8 +403,8 @@ final class MessageListViewModelTests: XCTestCase {
         await reestablishMessageChannel(on: sut)
         
         XCTAssertEqual(spy.events, [
-            .establish(for: contactID),
-            .get(with: .init(contactID: contactID, messageID: .after(messageID)))
+            .get(with: .init(contactID: contactID, messageID: .after(messageID))),
+            .establish(for: contactID)
         ])
     }
     
@@ -449,15 +452,21 @@ final class MessageListViewModelTests: XCTestCase {
     func test_reestablishMessageChannel_deliversUpdatedMessagesAfterMoreMessagesLoaded() async {
         let initialMessages = [makeMessage(id: 0)]
         let moreMessages = [makeMessage(id: 1)]
+        let andMoreMessages = [makeMessage(id: 2)]
         let (sut, spy) = makeSUT(
-            getMessagesStubs: [.success(initialMessages.map(\.model)), .success(moreMessages.map(\.model))],
+            getMessagesStubs: [
+                .success(initialMessages.map(\.model)),
+                .success(moreMessages.map(\.model)),
+                .success(andMoreMessages.map(\.model)),
+                .success([])
+            ],
             establishChannelStubs: [.success(()), .success(())]
         )
         await finishInitialLoad(on: sut, resetEventsOn: spy)
         
         await reestablishMessageChannel(on: sut)
         
-        XCTAssertEqual(sut.messages, (initialMessages + moreMessages).map(\.display))
+        XCTAssertEqual(sut.messages, (initialMessages + moreMessages + andMoreMessages).map(\.display))
     }
     
     func test_sendMessage_ignoresWhenEmptyInputMessage() async {
