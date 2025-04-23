@@ -18,6 +18,7 @@ final class NewContactViewModel: ObservableObject {
     var email: Email { Email(emailInput) }
     var error: String? { email.errorMessage ?? generalError }
     
+    // Expose for testing.
     private(set) var task: Task<Void, Never>?
     
     private let newContact: NewContact

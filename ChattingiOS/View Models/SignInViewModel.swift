@@ -19,6 +19,7 @@ final class SignInViewModel: ObservableObject {
     var email: Email { Email(emailInput) }
     var password: Password { Password(passwordInput) }
     
+    // Expose for testing.
     private(set) var task: Task<Void, Never>?
     
     // Using typed throws in closure will cash in iOS17, this should be a bug!

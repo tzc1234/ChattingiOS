@@ -7,16 +7,6 @@
 
 import Foundation
 
-struct DisplayedMessage: Identifiable, Equatable {
-    let id: Int
-    let text: String
-    let isMine: Bool
-    let isRead: Bool
-    let date: String
-    
-    var isUnread: Bool { !isRead }
-}
-
 @MainActor
 final class MessageListViewModel: ObservableObject {
     @Published private(set) var messages = [DisplayedMessage]()
@@ -24,13 +14,13 @@ final class MessageListViewModel: ObservableObject {
     @Published var initialError: String?
     @Published var inputMessage = ""
     @Published private(set) var isLoading = false
-    @Published var listPositionMessageID: Int?
+    @Published var messageIDForListPosition: Int?
     
     private var contactID: Int { contact.id }
     var username: String { contact.responder.name }
     var avatarURL: URL? { contact.responder.avatarURL.map(URL.init) ?? nil }
     var isBlocked: Bool { contact.blockedByUserID != nil }
-    private var initialListPositionMessageID: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
+    private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
     
     private var connection: MessageChannelConnection?
     private var canLoadPrevious = false
@@ -39,6 +29,7 @@ final class MessageListViewModel: ObservableObject {
     private var isLoadingMoreMessages = false
     private var messagesToBeReadIDs = Set<Int>()
     
+    // Expose for testing.
     private(set) var messageStreamTask: Task<Void, Never>?
     private(set) var loadPreviousMessagesTasks: [Task<Void, Never>] = []
     private(set) var loadMoreMessagesTasks: [Task<Void, Never>] = []
@@ -89,9 +80,9 @@ final class MessageListViewModel: ObservableObject {
         let messages = try await getMessages.get(with: param)
         canLoadPrevious = !messages.isEmpty
         canLoadMore = !messages.isEmpty
-        self.messages = messages.map(map(message:))
+        self.messages = messages.map { $0.toDisplayedModel(currentUserID: currentUserID) }
         
-        listPositionMessageID = initialListPositionMessageID
+        messageIDForListPosition = messageIDForInitialListPosition
     }
     
     func loadPreviousMessages() {
@@ -114,12 +105,13 @@ final class MessageListViewModel: ObservableObject {
         isLoadingPreviousMessages = true
         
         let param = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
-        let previousMessages = try await getMessages.get(with: param).map(map(message:))
+        let previousMessages = try await getMessages.get(with: param)
+            .map { $0.toDisplayedModel(currentUserID: currentUserID) }
         canLoadPrevious = !previousMessages.isEmpty
         
         if !previousMessages.isEmpty {
             messages.insert(contentsOf: previousMessages, at: 0)
-            listPositionMessageID = firstMessageID
+            messageIDForListPosition = firstMessageID
         }
         
         isLoadingPreviousMessages = false
@@ -150,8 +142,8 @@ final class MessageListViewModel: ObservableObject {
         
         reestablishMessageChannelTask = Task {
             do {
+                try await loadMoreMessageUntilTheEnd()
                 try await establishMessageChannel()
-                try await _loadMoreMessages()
             } catch let error as UseCaseError {
                 initialError = error.toGeneralErrorMessage()
             } catch let error as MessageChannelError {
@@ -168,16 +160,14 @@ final class MessageListViewModel: ObservableObject {
         self.connection = connection
         
         messageStreamTask = Task {
-            defer {
-                Task { try? await connection.close() }
-            }
+            defer { Task { try? await connection.close() } }
             
             do {
                 for try await message in connection.messageStream {
-                    messages.append(map(message: message))
+                    messages.append(message.toDisplayedModel(currentUserID: currentUserID))
                     
-                    if listPositionMessageID == nil {
-                        listPositionMessageID = message.id
+                    if messageIDForListPosition == nil {
+                        messageIDForListPosition = message.id
                     }
                 }
             } catch {
@@ -206,9 +196,7 @@ final class MessageListViewModel: ObservableObject {
     }
     
     private func loadMoreMessageUntilTheEnd() async throws(UseCaseError) {
-        while canLoadMore {
-            try await _loadMoreMessages()
-        }
+        while canLoadMore { try await _loadMoreMessages() }
     }
     
     private func _loadMoreMessages() async throws(UseCaseError) {
@@ -219,18 +207,8 @@ final class MessageListViewModel: ObservableObject {
         let param = GetMessagesParams(contactID: contactID, messageID: messageID)
         let moreMessages = try await getMessages.get(with: param)
         canLoadMore = !moreMessages.isEmpty
-        messages += moreMessages.map(map(message:))
+        messages += moreMessages.map { $0.toDisplayedModel(currentUserID: currentUserID) }
         isLoadingMoreMessages = false
-    }
-    
-    private func map(message: Message) -> DisplayedMessage {
-        DisplayedMessage(
-            id: message.id,
-            text: message.text,
-            isMine: message.senderID == currentUserID,
-            isRead: message.senderID == currentUserID || message.isRead,
-            date: message.createdAt.formatted()
-        )
     }
     
     func readMessages(until messageID: Int) {
@@ -245,5 +223,17 @@ final class MessageListViewModel: ObservableObject {
             let param = ReadMessagesParams(contactID: contactID, untilMessageID: maxMessageID)
             try? await readMessages.read(with: param)
         }
+    }
+}
+
+private extension Message {
+    func toDisplayedModel(currentUserID: Int) -> DisplayedMessage {
+        DisplayedMessage(
+            id: id,
+            text: text,
+            isMine: senderID == currentUserID,
+            isRead: senderID == currentUserID || isRead,
+            date: createdAt.formatted()
+        )
     }
 }

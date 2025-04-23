@@ -15,6 +15,8 @@ final class ContactListViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     
     private var canLoadMore = true
+    
+    // Expose for testing.
     private(set) var loadMoreTask: Task<Void, Never>?
     private(set) var blockContactTask: Task<Void, Never>?
     private(set) var unblockContactTask: Task<Void, Never>?
