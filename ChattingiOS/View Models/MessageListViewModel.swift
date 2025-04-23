@@ -39,6 +39,7 @@ final class MessageListViewModel: ObservableObject {
     private var isLoadingMoreMessages = false
     private var messagesToBeReadIDs = Set<Int>()
     
+    // Expose for testing.
     private(set) var messageStreamTask: Task<Void, Never>?
     private(set) var loadPreviousMessagesTasks: [Task<Void, Never>] = []
     private(set) var loadMoreMessagesTasks: [Task<Void, Never>] = []
