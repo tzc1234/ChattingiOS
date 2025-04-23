@@ -28,8 +28,7 @@ final class MessageListViewModelTests: XCTestCase {
     
     func test_loadMessagesAndEstablishMessageChannel_sendsParamsToCollaboratorsCorrectly() async {
         let contactID = 0
-        let contact = makeContact(id: contactID)
-        let (sut, spy) = makeSUT(contact: contact)
+        let (sut, spy) = makeSUT(contact: makeContact(id: contactID))
         
         await loadMessagesAndEstablishMessageChannel(on: sut)
         
@@ -62,9 +61,9 @@ final class MessageListViewModelTests: XCTestCase {
     func test_loadMessages_deliversMessagesWhenReceivedMessages() async throws {
         let currentUserID = 0
         let messages = [
-            makeMessage(id: 0, text: "text 0", currentUserID: 0, isRead: true),
-            makeMessage(id: 1, text: "text 1", currentUserID: 1, isRead: true),
-            makeMessage(id: 2, text: "text 2", currentUserID: 1, isRead: false)
+            makeMessage(id: 0, text: "text 0", belongsToUserID: currentUserID, isRead: true),
+            makeMessage(id: 1, text: "text 1", belongsToUserID: 1, isRead: true),
+            makeMessage(id: 2, text: "text 2", belongsToUserID: 1, isRead: false)
         ]
         let (sut, _) = makeSUT(currentUserID: currentUserID, getMessagesStubs: [.success(messages.models)])
         
@@ -92,9 +91,9 @@ final class MessageListViewModelTests: XCTestCase {
     func test_messageChannelConnection_deliversMessagesWhenReceivedMessagesFromMessageChannelConnection() async {
         let currentUserID = 0
         let messages = [
-            makeMessage(id: 0, text: "text 0", currentUserID: 0, isRead: true),
-            makeMessage(id: 1, text: "text 1", currentUserID: 1, isRead: true),
-            makeMessage(id: 2, text: "text 2", currentUserID: 1, isRead: false)
+            makeMessage(id: 0, text: "text 0", belongsToUserID: currentUserID, isRead: true),
+            makeMessage(id: 1, text: "text 1", belongsToUserID: 1, isRead: true),
+            makeMessage(id: 2, text: "text 2", belongsToUserID: 1, isRead: false)
         ]
         let (sut, spy) = makeSUT(
             currentUserID: currentUserID,
@@ -116,8 +115,8 @@ final class MessageListViewModelTests: XCTestCase {
     
     func test_messageChannelConnection_stopsDeliveringMessagesOnError() async {
         let currentUserID = 0
-        let messageBeforeError = makeMessage(id: 0, text: "text 0", currentUserID: 0)
-        let messageAfterError = makeMessage(id: 1, text: "text 1", currentUserID: 1)
+        let messageBeforeError = makeMessage(id: 0, text: "text 0", belongsToUserID: currentUserID)
+        let messageAfterError = makeMessage(id: 1, text: "text 1", belongsToUserID: 1)
         let (sut, spy) = makeSUT(
             currentUserID: currentUserID,
             establishChannelStubs: [.success(())],
@@ -218,7 +217,7 @@ final class MessageListViewModelTests: XCTestCase {
                 .failure(error)
             ]
         )
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await finishInitialLoad(on: sut)
         
         await loadPreviousMessages(on: sut)
         
@@ -233,7 +232,7 @@ final class MessageListViewModelTests: XCTestCase {
                 .success([])
             ]
         )
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await finishInitialLoad(on: sut)
         
         await loadPreviousMessages(on: sut)
         
@@ -249,7 +248,7 @@ final class MessageListViewModelTests: XCTestCase {
                 .success(previousMessages.models)
             ]
         )
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await finishInitialLoad(on: sut)
         
         await loadPreviousMessages(on: sut)
         
@@ -339,7 +338,7 @@ final class MessageListViewModelTests: XCTestCase {
                 .failure(error)
             ]
         )
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await finishInitialLoad(on: sut)
         
         await loadMoreMessages(on: sut)
         
@@ -354,7 +353,7 @@ final class MessageListViewModelTests: XCTestCase {
                 .success([])
             ]
         )
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await finishInitialLoad(on: sut)
         
         await loadMoreMessages(on: sut)
         
@@ -370,7 +369,7 @@ final class MessageListViewModelTests: XCTestCase {
                 .success(moreMessages.models)
             ]
         )
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await finishInitialLoad(on: sut)
         
         await loadMoreMessages(on: sut)
         
@@ -552,7 +551,7 @@ final class MessageListViewModelTests: XCTestCase {
         sut.readMessages(until: 0)
         sut.readMessages(until: 1)
         sut.readMessages(until: maxMessageID)
-        await sut.readMessagesTask?.value
+        await sut.completeReadMessagesTask()
         
         XCTAssertEqual(spy.events, [.read(with: contactID, until: maxMessageID)])
     }
@@ -600,10 +599,9 @@ final class MessageListViewModelTests: XCTestCase {
                                                         line: UInt = #line) async {
         await sut.loadMessagesAndEstablishMessageChannel()
         await sut.messageStreamTask?.value
+        try? await Task.sleep(for: .seconds(0.001))
         
         XCTAssertFalse(sut.isLoading, file: file, line: line)
-        
-        try? await Task.sleep(for: .seconds(0.001))
     }
     
     private func loadPreviousMessages(on sut: MessageListViewModel,
@@ -642,6 +640,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertFalse(sut.isLoading, file: file, line: line)
         
         await sut.messageStreamTask?.value
+        try? await Task.sleep(for: .seconds(0.001))
     }
     
     private func sendMessage(on sut: MessageListViewModel,
@@ -660,7 +659,7 @@ final class MessageListViewModelTests: XCTestCase {
     
     private func makeMessage(id: Int = 99,
                              text: String = "text",
-                             currentUserID: Int = 99,
+                             belongsToUserID: Int = 99,
                              senderID: Int = 99,
                              isRead: Bool = false,
                              createdAt: Date = .now) -> MessagePair {
@@ -668,8 +667,8 @@ final class MessageListViewModelTests: XCTestCase {
         let display = DisplayedMessage(
             id: id,
             text: text,
-            isMine: senderID == currentUserID,
-            isRead: senderID == currentUserID || isRead,
+            isMine: senderID == belongsToUserID,
+            isRead: senderID == belongsToUserID || isRead,
             date: createdAt.formatted()
         )
         return MessagePair(model: model, display: display)
@@ -687,6 +686,11 @@ private extension MessageListViewModel {
         for task in loadMoreMessagesTasks {
             await task.value
         }
+    }
+    
+    func completeReadMessagesTask() async {
+        await readMessagesTask?.value
+        try? await Task.sleep(for: .seconds(0.001))
     }
 }
 
