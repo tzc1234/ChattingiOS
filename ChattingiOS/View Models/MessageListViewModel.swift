@@ -80,7 +80,7 @@ final class MessageListViewModel: ObservableObject {
         let messages = try await getMessages.get(with: param)
         canLoadPrevious = !messages.isEmpty
         canLoadMore = !messages.isEmpty
-        self.messages = messages.map(map(message:))
+        self.messages = messages.map { $0.toDisplayedModel(currentUserID: currentUserID) }
         
         listPositionMessageID = initialListPositionMessageID
     }
@@ -105,7 +105,8 @@ final class MessageListViewModel: ObservableObject {
         isLoadingPreviousMessages = true
         
         let param = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
-        let previousMessages = try await getMessages.get(with: param).map(map(message:))
+        let previousMessages = try await getMessages.get(with: param)
+            .map { $0.toDisplayedModel(currentUserID: currentUserID) }
         canLoadPrevious = !previousMessages.isEmpty
         
         if !previousMessages.isEmpty {
@@ -165,7 +166,7 @@ final class MessageListViewModel: ObservableObject {
             
             do {
                 for try await message in connection.messageStream {
-                    messages.append(map(message: message))
+                    messages.append(message.toDisplayedModel(currentUserID: currentUserID))
                     
                     if listPositionMessageID == nil {
                         listPositionMessageID = message.id
@@ -210,18 +211,8 @@ final class MessageListViewModel: ObservableObject {
         let param = GetMessagesParams(contactID: contactID, messageID: messageID)
         let moreMessages = try await getMessages.get(with: param)
         canLoadMore = !moreMessages.isEmpty
-        messages += moreMessages.map(map(message:))
+        messages += moreMessages.map { $0.toDisplayedModel(currentUserID: currentUserID) }
         isLoadingMoreMessages = false
-    }
-    
-    private func map(message: Message) -> DisplayedMessage {
-        DisplayedMessage(
-            id: message.id,
-            text: message.text,
-            isMine: message.senderID == currentUserID,
-            isRead: message.senderID == currentUserID || message.isRead,
-            date: message.createdAt.formatted()
-        )
     }
     
     func readMessages(until messageID: Int) {
@@ -236,5 +227,17 @@ final class MessageListViewModel: ObservableObject {
             let param = ReadMessagesParams(contactID: contactID, untilMessageID: maxMessageID)
             try? await readMessages.read(with: param)
         }
+    }
+}
+
+private extension Message {
+    func toDisplayedModel(currentUserID: Int) -> DisplayedMessage {
+        DisplayedMessage(
+            id: id,
+            text: text,
+            isMine: senderID == currentUserID,
+            isRead: senderID == currentUserID || isRead,
+            date: createdAt.formatted()
+        )
     }
 }
