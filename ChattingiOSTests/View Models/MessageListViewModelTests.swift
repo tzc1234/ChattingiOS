@@ -61,9 +61,9 @@ final class MessageListViewModelTests: XCTestCase {
     func test_loadMessages_deliversMessagesWhenReceivedMessages() async throws {
         let currentUserID = 0
         let messages = [
-            makeMessage(id: 0, text: "text 0", belongsToUserID: currentUserID, isRead: true),
-            makeMessage(id: 1, text: "text 1", belongsToUserID: 1, isRead: true),
-            makeMessage(id: 2, text: "text 2", belongsToUserID: 1, isRead: false)
+            makeMessage(id: 0, text: "text 0", senderID: currentUserID, currentUserID: currentUserID, isRead: true),
+            makeMessage(id: 1, text: "text 1", senderID: 1, currentUserID: currentUserID, isRead: true),
+            makeMessage(id: 2, text: "text 2", senderID: 1, currentUserID: currentUserID, isRead: false)
         ]
         let (sut, _) = makeSUT(currentUserID: currentUserID, getMessagesStubs: [.success(messages.models)])
         
@@ -91,9 +91,9 @@ final class MessageListViewModelTests: XCTestCase {
     func test_messageChannelConnection_deliversMessagesWhenReceivedMessagesFromMessageChannelConnection() async {
         let currentUserID = 0
         let messages = [
-            makeMessage(id: 0, text: "text 0", belongsToUserID: currentUserID, isRead: true),
-            makeMessage(id: 1, text: "text 1", belongsToUserID: 1, isRead: true),
-            makeMessage(id: 2, text: "text 2", belongsToUserID: 1, isRead: false)
+            makeMessage(id: 0, text: "text 0", senderID: currentUserID, currentUserID: currentUserID, isRead: true),
+            makeMessage(id: 1, text: "text 1", senderID: 1, currentUserID: currentUserID, isRead: true),
+            makeMessage(id: 2, text: "text 2", senderID: 1, currentUserID: currentUserID, isRead: false)
         ]
         let (sut, spy) = makeSUT(
             currentUserID: currentUserID,
@@ -115,8 +115,13 @@ final class MessageListViewModelTests: XCTestCase {
     
     func test_messageChannelConnection_stopsDeliveringMessagesOnError() async {
         let currentUserID = 0
-        let messageBeforeError = makeMessage(id: 0, text: "text 0", belongsToUserID: currentUserID)
-        let messageAfterError = makeMessage(id: 1, text: "text 1", belongsToUserID: 1)
+        let messageBeforeError = makeMessage(
+            id: 0,
+            text: "text 0",
+            senderID: currentUserID,
+            currentUserID: currentUserID
+        )
+        let messageAfterError = makeMessage(id: 1, text: "text 1", senderID: 1, currentUserID: 1)
         let (sut, spy) = makeSUT(
             currentUserID: currentUserID,
             establishChannelStubs: [.success(())],
@@ -659,16 +664,16 @@ final class MessageListViewModelTests: XCTestCase {
     
     private func makeMessage(id: Int = 99,
                              text: String = "text",
-                             belongsToUserID: Int = 99,
                              senderID: Int = 99,
+                             currentUserID: Int = 99,
                              isRead: Bool = false,
                              createdAt: Date = .now) -> MessagePair {
         let model = Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt)
         let display = DisplayedMessage(
             id: id,
             text: text,
-            isMine: senderID == belongsToUserID,
-            isRead: senderID == belongsToUserID || isRead,
+            isMine: senderID == currentUserID,
+            isRead: senderID == currentUserID || isRead,
             date: createdAt.formatted()
         )
         return MessagePair(model: model, display: display)

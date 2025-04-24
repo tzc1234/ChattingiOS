@@ -80,7 +80,7 @@ final class MessageListViewModel: ObservableObject {
         let messages = try await getMessages.get(with: param)
         canLoadPrevious = !messages.isEmpty
         canLoadMore = !messages.isEmpty
-        self.messages = messages.map { $0.toDisplayedModel(currentUserID: currentUserID) }
+        self.messages = messages.toDisplayedModels(currentUserID: currentUserID)
         
         messageIDForListPosition = messageIDForInitialListPosition
     }
@@ -105,8 +105,7 @@ final class MessageListViewModel: ObservableObject {
         isLoadingPreviousMessages = true
         
         let param = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
-        let previousMessages = try await getMessages.get(with: param)
-            .map { $0.toDisplayedModel(currentUserID: currentUserID) }
+        let previousMessages = try await getMessages.get(with: param).toDisplayedModels(currentUserID: currentUserID)
         canLoadPrevious = !previousMessages.isEmpty
         
         if !previousMessages.isEmpty {
@@ -207,7 +206,7 @@ final class MessageListViewModel: ObservableObject {
         let param = GetMessagesParams(contactID: contactID, messageID: messageID)
         let moreMessages = try await getMessages.get(with: param)
         canLoadMore = !moreMessages.isEmpty
-        messages += moreMessages.map { $0.toDisplayedModel(currentUserID: currentUserID) }
+        messages += moreMessages.toDisplayedModels(currentUserID: currentUserID)
         isLoadingMoreMessages = false
     }
     
@@ -235,5 +234,11 @@ private extension Message {
             isRead: senderID == currentUserID || isRead,
             date: createdAt.formatted()
         )
+    }
+}
+
+private extension [Message] {
+    func toDisplayedModels(currentUserID: Int) -> [DisplayedMessage] {
+        map { $0.toDisplayedModel(currentUserID: currentUserID) }
     }
 }
