@@ -38,7 +38,7 @@ final class ReadMessagesEndpointTests: XCTestCase {
         guard let data else { return XCTFail("Body should not be nil", file: file, line: line) }
         
         let body = try JSONDecoder().decode(Body.self, from: data)
-        XCTAssertEqual(body.until_message_id, messageID)
+        XCTAssertEqual(body.until_message_id, messageID, file: file, line: line)
     }
     
     private struct Body: Decodable {

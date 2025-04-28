@@ -30,7 +30,7 @@ final class RefreshTokenEndpointTests: XCTestCase {
         }
         
         let body = try! JSONDecoder().decode(Body.self, from: data)
-        XCTAssertEqual(body.refresh_token, token)
+        XCTAssertEqual(body.refresh_token, token, file: file, line: line)
     }
     
     private struct Body: Decodable {
