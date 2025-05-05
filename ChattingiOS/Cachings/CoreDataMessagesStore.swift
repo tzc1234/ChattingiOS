@@ -8,14 +8,45 @@
 import CoreData
 
 actor CoreDataMessagesStore {
+    enum MessageID {
+        case before(Int)
+        case after(Int)
+    }
+    
     private let container: NSPersistentContainer
-    private let context: NSManagedObjectContext
     
     init(url: URL) throws {
         guard let model = Self.model else { throw SetupError.modelNotFound }
         
         self.container = try Self.loadContainer(for: url, with: model)
-        self.context = container.newBackgroundContext()
+    }
+    
+    func save(_ messages: [Message]) async throws {
+        guard !messages.isEmpty else { return }
+        
+        let context = container.newBackgroundContext()
+        context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
+        
+        try await context.perform {
+            let request = NSBatchInsertRequest(entityName: ManagedMessage.entityName, objects: messages.toObjects())
+            try context.execute(request)
+            try context.save()
+        }
+    }
+    
+    func retrieve(for messageID: MessageID) async throws -> [Message] {
+        let context = container.newBackgroundContext()
+        return try await context.perform {
+            let request = NSFetchRequest<ManagedMessage>(entityName: ManagedMessage.entityName)
+            request.returnsObjectsAsFaults = false
+            request.predicate = switch messageID {
+            case let .before(id): NSPredicate(format: "id < %@", id as CVarArg)
+            case let .after(id): NSPredicate(format: "id > %@", id as CVarArg)
+            }
+            
+            let managedMessages = try context.fetch(request)
+            return managedMessages.toMessages()
+        }
     }
     
     deinit { Self.cleanup(container) }
@@ -57,5 +88,23 @@ extension CoreDataMessagesStore {
             let coordinator = container.persistentStoreCoordinator
             try? coordinator.persistentStores.forEach(coordinator.remove)
         }
+    }
+}
+
+private extension Message {
+    func toObject() -> [String: Any] {
+        [
+            "id": id,
+            "text": text,
+            "senderID": senderID,
+            "isRead": isRead,
+            "createdAt": createdAt
+        ]
+    }
+}
+
+private extension [Message] {
+    func toObjects() -> [[String: Any]] {
+        map { $0.toObject() }
     }
 }
