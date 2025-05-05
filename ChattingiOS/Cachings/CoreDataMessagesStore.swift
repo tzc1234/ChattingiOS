@@ -37,18 +37,33 @@ actor CoreDataMessagesStore {
         }
     }
     
-    func retrieve(for messageID: MessageID) async throws -> [Message] {
+    func retrieve(for messageID: MessageID, contactID: Int, limit: Int) async throws -> [Message] {
         let context = container.newBackgroundContext()
         return try await context.perform {
             let request = NSFetchRequest<ManagedMessage>(entityName: ManagedMessage.entityName)
             request.returnsObjectsAsFaults = false
-            request.predicate = switch messageID {
-            case let .before(id): NSPredicate(format: "id < %@", id as CVarArg)
-            case let .after(id): NSPredicate(format: "id > %@", id as CVarArg)
-            }
+            request.fetchLimit = limit
             
-            let managedMessages = try context.fetch(request)
-            return managedMessages.toMessages()
+            let contactIDPredicate = NSPredicate(format: "contactID = %@", contactID as CVarArg)
+            switch messageID {
+            case let .before(id):
+                request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                    contactIDPredicate,
+                    NSPredicate(format: "id < %@", id as CVarArg)
+                ])
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedMessage.id, ascending: false)]
+                
+                let messages = try context.fetch(request).toMessages()
+                return messages.sorted { $0.id < $1.id }
+            case let .after(id):
+                request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                    contactIDPredicate,
+                    NSPredicate(format: "id > %@", id as CVarArg)
+                ])
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedMessage.id, ascending: true)]
+                
+                return try context.fetch(request).toMessages()
+            }
         }
     }
     
