@@ -21,14 +21,17 @@ actor CoreDataMessagesStore {
         self.container = try Self.loadContainer(for: url, with: model)
     }
     
-    func save(_ messages: [Message]) async throws {
+    func save(_ messages: [Message], with contactID: Int) async throws {
         guard !messages.isEmpty else { return }
         
         let context = container.newBackgroundContext()
         context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         
         try await context.perform {
-            let request = NSBatchInsertRequest(entityName: ManagedMessage.entityName, objects: messages.toObjects())
+            let request = NSBatchInsertRequest(
+                entityName: ManagedMessage.entityName,
+                objects: messages.toObjects(contactID: contactID)
+            )
             try context.execute(request)
             try context.save()
         }
@@ -92,9 +95,10 @@ extension CoreDataMessagesStore {
 }
 
 private extension Message {
-    func toObject() -> [String: Any] {
+    func toObject(contactID: Int) -> [String: Any] {
         [
             "id": id,
+            "contactID": contactID,
             "text": text,
             "senderID": senderID,
             "isRead": isRead,
@@ -104,7 +108,7 @@ private extension Message {
 }
 
 private extension [Message] {
-    func toObjects() -> [[String: Any]] {
-        map { $0.toObject() }
+    func toObjects(contactID: Int) -> [[String: Any]] {
+        map { $0.toObject(contactID: contactID) }
     }
 }

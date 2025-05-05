@@ -10,6 +10,7 @@ import CoreData
 @objc(ManagedMessage)
 final class ManagedMessage: NSManagedObject {
     @NSManaged var id: Int
+    @NSManaged var contactID: Int
     @NSManaged var text: String
     @NSManaged var senderID: Int
     @NSManaged var isRead: Bool
