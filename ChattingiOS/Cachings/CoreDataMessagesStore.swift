@@ -39,32 +39,58 @@ actor CoreDataMessagesStore {
         }
     }
     
-    func retrieve(for messageID: MessageID, contactID: Int, limit: Int) async throws -> [Message] {
+    func retrieve(for messageID: MessageID?, contactID: Int, userID: Int, limit: Int) async throws -> [Message] {
         let context = container.newBackgroundContext()
         return try await context.perform {
             let request = NSFetchRequest<ManagedMessage>(entityName: ManagedMessage.entityName)
             request.returnsObjectsAsFaults = false
             request.fetchLimit = limit
             
-            let contactPredicate = NSPredicate(format: "contact.id = %d", contactID as CVarArg)
+            let contactPredicate = NSPredicate(format: "contact.id = %d", contactID)
             switch messageID {
             case let .before(id):
                 request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
                     contactPredicate,
-                    NSPredicate(format: "id < %@", id as CVarArg)
+                    NSPredicate(format: "id < %d", id)
                 ])
                 request.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedMessage.id, ascending: false)]
                 
                 let messages = try context.fetch(request).toMessages()
                 return messages.sorted { $0.id < $1.id }
+                
             case let .after(id):
                 request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
                     contactPredicate,
-                    NSPredicate(format: "id > %@", id as CVarArg)
+                    NSPredicate(format: "id > %d", id)
                 ])
                 request.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedMessage.id, ascending: true)]
                 
                 return try context.fetch(request).toMessages()
+                
+            case .none:
+                let firstUnreadMessageRequest = NSFetchRequest<ManagedMessage>(entityName: ManagedMessage.entityName)
+                firstUnreadMessageRequest.returnsObjectsAsFaults = false
+                firstUnreadMessageRequest.fetchLimit = 1
+                firstUnreadMessageRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                    contactPredicate,
+                    NSPredicate(format: "isRead == %@", NSNumber(value: false)),
+                    NSPredicate(format: "senderID != %d", userID),
+                ])
+                if let firstUnreadMessage = try context.fetch(firstUnreadMessageRequest).first {
+                    request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+                        contactPredicate,
+                        NSPredicate(format: "id <= %d", firstUnreadMessage.id)
+                    ])
+                    request.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedMessage.id, ascending: false)]
+                    
+                    let messages = try context.fetch(request).toMessages()
+                    return messages.sorted { $0.id < $1.id }
+                }
+                
+                request.predicate = contactPredicate
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedMessage.id, ascending: false)]
+                let messages = try context.fetch(request).toMessages()
+                return messages.sorted { $0.id < $1.id }
             }
         }
     }
@@ -93,10 +119,7 @@ extension CoreDataMessagesStore {
         container.persistentStoreDescriptions = [NSPersistentStoreDescription(url: url)]
         
         var loadError: Error?
-        container.loadPersistentStores { _, error in
-            loadError = error
-        }
-        
+        container.loadPersistentStores { loadError = $1 }
         guard loadError == nil else { throw SetupError.loadContainerFailed }
         
         return container
