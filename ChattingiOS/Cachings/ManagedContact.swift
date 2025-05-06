@@ -28,8 +28,15 @@ extension ManagedContact {
     private static func find(by id: Int, in context: NSManagedObjectContext) throws -> ManagedContact? {
         let request = NSFetchRequest<ManagedContact>(entityName: entityName)
         request.returnsObjectsAsFaults = false
+        request.predicate = NSPredicate(format: "id == %d", id)
         request.fetchLimit = 1
         return try context.fetch(request).first
+    }
+    
+    static func findAll(in context: NSManagedObjectContext) throws -> [ManagedContact] {
+        let request = NSFetchRequest<ManagedContact>(entityName: entityName)
+        request.returnsObjectsAsFaults = false
+        return try context.fetch(request)
     }
     
     private static var entityName: String { String(describing: Self.self) }

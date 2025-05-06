@@ -59,6 +59,15 @@ actor CoreDataMessagesStore {
         }
     }
     
+    func deleteAll() async throws {
+        let context = container.newBackgroundContext()
+        try await context.perform {
+            let managedContacts = try ManagedContact.findAll(in: context)
+            managedContacts.forEach(context.delete)
+            try context.save()
+        }
+    }
+    
     deinit { Self.cleanup(container) }
 }
 
