@@ -29,11 +29,17 @@ actor CoreDataMessagesStore {
         
         try await context.perform {
             let contact = try ManagedContact.findOrCreate(by: contactID, in: context)
-            let request = NSBatchInsertRequest(
-                entityName: ManagedMessage.entityName,
-                objects: messages.toObjects(contactID: contact.id)
-            )
-            try context.execute(request)
+            let request = NSBatchInsertRequest(entityName: ManagedMessage.entityName, objects: messages.toObjects())
+            request.resultType = .objectIDs
+            
+            if let result = try context.execute(request) as? NSBatchInsertResult,
+               let objectIDs = result.result as? [NSManagedObjectID] {
+                for objectID in objectIDs {
+                    let managedMessage = try context.existingObject(with: objectID) as? ManagedMessage
+                    managedMessage?.contact = contact
+                }
+            }
+            
             contact.syncDate = .now
             try context.save()
         }
@@ -108,20 +114,19 @@ extension CoreDataMessagesStore {
 }
 
 private extension Message {
-    func toObject(contactID: Int) -> [String: Any] {
+    func toObject() -> [String: Any] {
         [
             "id": id,
             "text": text,
             "senderID": senderID,
             "isRead": isRead,
-            "createdAt": createdAt,
-            "contactID": contactID
+            "createdAt": createdAt
         ]
     }
 }
 
 private extension [Message] {
-    func toObjects(contactID: Int) -> [[String: Any]] {
-        map { $0.toObject(contactID: contactID) }
+    func toObjects() -> [[String: Any]] {
+        map { $0.toObject() }
     }
 }

@@ -14,6 +14,7 @@ final class ManagedMessage: NSManagedObject {
     @NSManaged var senderID: Int
     @NSManaged var isRead: Bool
     @NSManaged var createdAt: Date
+    @NSManaged var contact: ManagedContact
 }
 
 extension ManagedMessage {
