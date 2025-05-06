@@ -17,6 +17,76 @@ final class ManagedMessage: NSManagedObject {
 }
 
 extension ManagedMessage {
+    static func find(before id: Int,
+                     in context: NSManagedObjectContext,
+                     contactID: Int,
+                     limit: Int) throws -> [ManagedMessage] {
+        let request = fetchRequest(limit: limit)
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            contactPredicate(with: contactID),
+            NSPredicate(format: "id < %d", id)
+        ])
+        request.sortDescriptors = idSortDescriptors(ascending: false)
+        return try context.fetch(request).sorted { $0.id < $1.id }
+    }
+    
+    static func find(after id: Int,
+                     in context: NSManagedObjectContext,
+                     contactID: Int,
+                     limit: Int) throws -> [ManagedMessage] {
+        let request = fetchRequest(limit: limit)
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            contactPredicate(with: contactID),
+            NSPredicate(format: "id > %d", id)
+        ])
+        request.sortDescriptors = idSortDescriptors(ascending: true)
+        return try context.fetch(request)
+    }
+    
+    static func findByFirstUnreadMessage(in context: NSManagedObjectContext,
+                                         contactID: Int,
+                                         userID: Int,
+                                         limit: Int) throws -> [ManagedMessage] {
+        let firstUnreadMessageRequest = fetchRequest(limit: 1)
+        firstUnreadMessageRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            contactPredicate(with: contactID),
+            NSPredicate(format: "isRead == %@", NSNumber(value: false)),
+            NSPredicate(format: "senderID != %d", userID),
+        ])
+        
+        guard let firstUnreadMessage = try context.fetch(firstUnreadMessageRequest).first else { return [] }
+        
+        let request = fetchRequest(limit: limit)
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            contactPredicate(with: contactID),
+            NSPredicate(format: "id <= %d", firstUnreadMessage.id)
+        ])
+        request.sortDescriptors = idSortDescriptors(ascending: false)
+        return try context.fetch(request).sorted { $0.id < $1.id }
+    }
+    
+    static func find(in context: NSManagedObjectContext, contactID: Int, limit: Int) throws -> [ManagedMessage] {
+        let request = fetchRequest(limit: limit)
+        request.predicate = contactPredicate(with: contactID)
+        request.sortDescriptors = idSortDescriptors(ascending: false)
+        return try context.fetch(request).sorted { $0.id < $1.id }
+    }
+    
+    private static func fetchRequest(limit: Int) -> NSFetchRequest<ManagedMessage> {
+        let request = NSFetchRequest<ManagedMessage>(entityName: ManagedMessage.entityName)
+        request.returnsObjectsAsFaults = false
+        request.fetchLimit = limit
+        return request
+    }
+    
+    private static func contactPredicate(with contactID: Int) -> NSPredicate {
+        NSPredicate(format: "contact.id = %d", contactID)
+    }
+    
+    private static func idSortDescriptors(ascending: Bool) -> [NSSortDescriptor] {
+        [NSSortDescriptor(keyPath: \ManagedMessage.id, ascending: ascending)]
+    }
+    
     static var entityName: String { String(describing: Self.self) }
     
     func toMessage() -> Message {
