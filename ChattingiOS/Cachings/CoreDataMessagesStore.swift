@@ -28,11 +28,13 @@ actor CoreDataMessagesStore {
         context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         
         try await context.perform {
+            let contact = try ManagedContact.findOrCreate(by: contactID, in: context)
             let request = NSBatchInsertRequest(
                 entityName: ManagedMessage.entityName,
-                objects: messages.toObjects(contactID: contactID)
+                objects: messages.toObjects(contactID: contact.id)
             )
             try context.execute(request)
+            contact.syncDate = .now
             try context.save()
         }
     }
@@ -44,11 +46,11 @@ actor CoreDataMessagesStore {
             request.returnsObjectsAsFaults = false
             request.fetchLimit = limit
             
-            let contactIDPredicate = NSPredicate(format: "contactID = %@", contactID as CVarArg)
+            let contactPredicate = NSPredicate(format: "contact.id = %d", contactID as CVarArg)
             switch messageID {
             case let .before(id):
                 request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-                    contactIDPredicate,
+                    contactPredicate,
                     NSPredicate(format: "id < %@", id as CVarArg)
                 ])
                 request.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedMessage.id, ascending: false)]
@@ -57,7 +59,7 @@ actor CoreDataMessagesStore {
                 return messages.sorted { $0.id < $1.id }
             case let .after(id):
                 request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-                    contactIDPredicate,
+                    contactPredicate,
                     NSPredicate(format: "id > %@", id as CVarArg)
                 ])
                 request.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedMessage.id, ascending: true)]
@@ -113,11 +115,11 @@ private extension Message {
     func toObject(contactID: Int) -> [String: Any] {
         [
             "id": id,
-            "contactID": contactID,
             "text": text,
             "senderID": senderID,
             "isRead": isRead,
-            "createdAt": createdAt
+            "createdAt": createdAt,
+            "contactID": contactID
         ]
     }
 }
