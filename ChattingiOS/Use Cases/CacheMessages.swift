@@ -14,9 +14,9 @@ actor CacheMessages {
         self.store = store
     }
     
-    func cache(_ messages: [Message], for contactID: Int) async throws(UseCaseError) {
+    func cache(_ messages: Messages, for contactID: Int) async throws(UseCaseError) {
         do {
-            try await store.save(messages, for: contactID)
+            try await store.save(messages.items, for: contactID)
         } catch {
             throw .invalidData
         }
