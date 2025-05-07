@@ -18,7 +18,7 @@ final class CachingForGetMessagesDecorator: GetMessages {
     
     func get(with params: GetMessagesParams) async throws(UseCaseError) -> Messages {
         let messages = try await getMessages.get(with: params)
-        try? await cache.cache(messages, for: params.contactID)
+        try? await cache.cache(messages.items, for: params.contactID)
         return messages
     }
 }
