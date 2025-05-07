@@ -8,13 +8,13 @@
 import Foundation
 
 protocol GetMessages: Sendable {
-    func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message]
+    func get(with params: GetMessagesParams) async throws(UseCaseError) -> Messages
 }
 
 typealias DefaultGetMessages = GeneralUseCase<GetMessagesParams, MessagesResponseMapper>
 
 extension DefaultGetMessages: GetMessages {
-    func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
+    func get(with params: GetMessagesParams) async throws(UseCaseError) -> Messages {
         try await perform(with: params)
     }
 }

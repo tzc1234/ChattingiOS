@@ -77,7 +77,7 @@ final class MessageListViewModel: ObservableObject {
     
     private func loadMessages() async throws(UseCaseError) {
         let param = GetMessagesParams(contactID: contactID)
-        let messages = try await getMessages.get(with: param)
+        let messages = try await getMessages.get(with: param).items
         canLoadPrevious = !messages.isEmpty
         canLoadMore = !messages.isEmpty
         self.messages = messages.toDisplayedModels(currentUserID: currentUserID)
@@ -105,7 +105,8 @@ final class MessageListViewModel: ObservableObject {
         isLoadingPreviousMessages = true
         
         let param = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
-        let previousMessages = try await getMessages.get(with: param).toDisplayedModels(currentUserID: currentUserID)
+        let previousMessages = try await getMessages.get(with: param).items
+            .toDisplayedModels(currentUserID: currentUserID)
         canLoadPrevious = !previousMessages.isEmpty
         
         if !previousMessages.isEmpty {
@@ -203,7 +204,7 @@ final class MessageListViewModel: ObservableObject {
         isLoadingMoreMessages = true
         let messageID = messages.last.map { GetMessagesParams.MessageID.after($0.id) }
         let param = GetMessagesParams(contactID: contactID, messageID: messageID)
-        let moreMessages = try await getMessages.get(with: param)
+        let moreMessages = try await getMessages.get(with: param).items
         canLoadMore = !moreMessages.isEmpty
         messages += moreMessages.toDisplayedModels(currentUserID: currentUserID)
         isLoadingMoreMessages = false

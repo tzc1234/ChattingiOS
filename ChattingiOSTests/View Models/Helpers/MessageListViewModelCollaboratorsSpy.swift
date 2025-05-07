@@ -43,12 +43,14 @@ final class MessageListViewModelCollaboratorsSpy {
 }
 
 extension MessageListViewModelCollaboratorsSpy: GetMessages {
-    func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
+    func get(with params: GetMessagesParams) async throws(UseCaseError) -> Messages {
         events.append(.get(with: params.contactID, params.messageID))
         if !getMessagesDelayInSeconds.isEmpty {
             try? await Task.sleep(for: .seconds(getMessagesDelayInSeconds.removeFirst()))
         }
-        return try getMessagesStubs.removeFirst().get()
+        
+        let messages = try getMessagesStubs.removeFirst().get()
+        return Messages(items: messages, metadata: nil)
     }
 }
 
