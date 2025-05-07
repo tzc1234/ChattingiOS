@@ -21,7 +21,7 @@ actor CoreDataMessagesStore {
         self.container = try Self.loadContainer(for: url, with: model)
     }
     
-    func save(_ messages: [Message], with contactID: Int) async throws {
+    func save(_ messages: [Message], for contactID: Int) async throws {
         guard !messages.isEmpty else { return }
         
         let context = container.newBackgroundContext()
