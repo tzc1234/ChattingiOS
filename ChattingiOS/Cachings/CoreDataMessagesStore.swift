@@ -40,7 +40,6 @@ actor CoreDataMessagesStore {
                 }
             }
             
-            contact.syncDate = .now
             try context.save()
         }
     }

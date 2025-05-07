@@ -10,7 +10,6 @@ import CoreData
 @objc(ManagedContact)
 final class ManagedContact: NSManagedObject {
     @NSManaged var id: Int
-    @NSManaged var syncDate: Date
     @NSManaged var messages: NSOrderedSet
 }
 
@@ -20,7 +19,6 @@ extension ManagedContact {
         
         let newContact = ManagedContact(context: context)
         newContact.id = id
-        newContact.syncDate = .now
         try context.save()
         return newContact
     }
