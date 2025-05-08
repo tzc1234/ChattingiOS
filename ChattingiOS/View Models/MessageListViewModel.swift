@@ -142,7 +142,7 @@ final class MessageListViewModel: ObservableObject {
         
         reestablishMessageChannelTask = Task {
             do {
-                try await loadMoreMessageUntilTheEnd()
+                try await loadMoreMessageToTheEnd()
                 try await establishMessageChannel()
             } catch let error as UseCaseError {
                 initialError = error.toGeneralErrorMessage()
@@ -182,7 +182,7 @@ final class MessageListViewModel: ObservableObject {
         isLoading = true
         sendMessageTask = Task {
             do {
-                try await loadMoreMessageUntilTheEnd()
+                try await loadMoreMessageToTheEnd()
                 try await connection?.send(text: inputMessage)
                 inputMessage = ""
             } catch let error as UseCaseError {
@@ -194,16 +194,16 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
-    private func loadMoreMessageUntilTheEnd() async throws(UseCaseError) {
-        while canLoadMore { try await _loadMoreMessages() }
+    private func loadMoreMessageToTheEnd() async throws(UseCaseError) {
+        try await _loadMoreMessages(limit: -1)
     }
     
-    private func _loadMoreMessages() async throws(UseCaseError) {
+    private func _loadMoreMessages(limit: Int? = nil) async throws(UseCaseError) {
         guard !isLoadingMoreMessages else { return }
         
         isLoadingMoreMessages = true
         let messageID = messages.last.map { GetMessagesParams.MessageID.after($0.id) }
-        let param = GetMessagesParams(contactID: contactID, messageID: messageID)
+        let param = GetMessagesParams(contactID: contactID, messageID: messageID, limit: limit)
         let moreMessages = try await getMessages.get(with: param).items
         canLoadMore = !moreMessages.isEmpty
         messages += moreMessages.toDisplayedModels(currentUserID: currentUserID)

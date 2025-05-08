@@ -167,11 +167,11 @@ final class MessageListViewModelTests: XCTestCase {
         
         await loadPreviousMessages(on: sut)
         
-        XCTAssertEqual(spy.events, [.get(with: contactID, .before(firstMessageID))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .before(firstMessageID))])
         
         sut.loadPreviousMessages()
         
-        XCTAssertEqual(spy.events, [.get(with: contactID, .before(firstMessageID))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .before(firstMessageID))])
     }
     
     func test_loadPreviousMessages_sendsParamsToCollaboratorsCorrectly() async {
@@ -189,7 +189,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         await loadPreviousMessages(on: sut)
         
-        XCTAssertEqual(spy.events, [.get(with: contactID, .before(firstMessageID))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .before(firstMessageID))])
     }
     
     func test_loadPreviousMessages_ignoresWhenFirstLoadPreviousMessagesNotYetFinished() async {
@@ -211,7 +211,7 @@ final class MessageListViewModelTests: XCTestCase {
         await loadPreviousMessages1
         await sut.completeAllLoadPreviousMessagesTasks()
         
-        XCTAssertEqual(spy.events, [.get(with: contactID, .before(firstMessageID))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .before(firstMessageID))])
     }
     
     func test_loadPreviousMessages_deliversErrorMessageOnUseCaseError() async {
@@ -288,11 +288,11 @@ final class MessageListViewModelTests: XCTestCase {
         
         await loadMoreMessages(on: sut)
         
-        XCTAssertEqual(spy.events, [.get(with: contactID, .after(messageID))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(messageID))])
         
         sut.loadMoreMessages()
         
-        XCTAssertEqual(spy.events, [.get(with: contactID, .after(messageID))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(messageID))])
     }
     
     func test_loadMoreMessages_sendsParamsToCollaboratorsCorrectly() async throws {
@@ -310,7 +310,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         await loadMoreMessages(on: sut)
         
-        XCTAssertEqual(spy.events, [.get(with: contactID, .after(lastMessageID))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(lastMessageID))])
     }
     
     func test_loadMoreMessages_ignoresWhenFirstLoadMoreMessagesNotYetFinished() async {
@@ -332,7 +332,7 @@ final class MessageListViewModelTests: XCTestCase {
         await loadMoreMessages1
         await sut.completeAllLoadMoreMessagesTasks()
         
-        XCTAssertEqual(spy.events, [.get(with: contactID, .after(messageID))])
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(messageID))])
     }
     
     func test_loadMoreMessages_deliversErrorMessageOnUseCaseError() async {
@@ -407,7 +407,7 @@ final class MessageListViewModelTests: XCTestCase {
         await reestablishMessageChannel(on: sut)
         
         XCTAssertEqual(spy.events, [
-            .get(with: contactID, .after(messageID)),
+            .get(with: contactID, messageID: .after(messageID), limit: -1),
             .establish(for: contactID)
         ])
     }
@@ -456,12 +456,10 @@ final class MessageListViewModelTests: XCTestCase {
     func test_reestablishMessageChannel_deliversUpdatedMessagesAfterMoreMessagesLoaded() async {
         let initialMessages = [makeMessage(id: 0)]
         let moreMessages = [makeMessage(id: 1)]
-        let andMoreMessages = [makeMessage(id: 2)]
         let (sut, _) = makeSUT(
             getMessagesStubs: [
                 .success(initialMessages.models),
                 .success(moreMessages.models),
-                .success(andMoreMessages.models),
                 .success([])
             ],
             establishChannelStubs: [.success(()), .success(())]
@@ -470,7 +468,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         await reestablishMessageChannel(on: sut)
         
-        XCTAssertEqual(sut.messages, (initialMessages + moreMessages + andMoreMessages).displays)
+        XCTAssertEqual(sut.messages, (initialMessages + moreMessages).displays)
     }
     
     func test_sendMessage_ignoresWhenEmptyInputMessage() async {
@@ -484,28 +482,34 @@ final class MessageListViewModelTests: XCTestCase {
     }
     
     func test_sendMessage_loadsAllNewMessagesFirst() async {
+        let contactID = 0
         let initialMessages = [makeMessage(id: 0)]
         let moreMessages = [makeMessage(id: 1)]
-        let andMoreMessages = [makeMessage(id: 2)]
-        let (sut, _) = makeSUT(
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
             getMessagesStubs: [
                 .success(initialMessages.models),
                 .success(moreMessages.models),
-                .success(andMoreMessages.models),
                 .success([]),
             ]
         )
-        await finishInitialLoad(on: sut)
+        await finishInitialLoad(on: sut, resetEventsOn: spy)
         
         XCTAssertEqual(sut.messages, initialMessages.displays)
         
         await sendMessage(on: sut, message: "any")
         
-        XCTAssertEqual(sut.messages, (initialMessages + moreMessages + andMoreMessages).displays)
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(0), limit: -1),])
+        XCTAssertEqual(sut.messages, (initialMessages + moreMessages).displays)
     }
     
     func test_sendMessage_sendsMessageSuccessfully() async {
-        let (sut, spy) = makeSUT()
+        let (sut, spy) = makeSUT(
+            getMessagesStubs: [
+                .success([]),
+                .success([])
+            ]
+        )
         await finishInitialLoad(on: sut, resetEventsOn: spy)
         
         let messageSent = "message sent"
@@ -531,7 +535,13 @@ final class MessageListViewModelTests: XCTestCase {
     }
     
     func test_sendMessage_deliversGeneralErrorOnOtherError() async {
-        let (sut, _) = makeSUT(sendMessageError: anyNSError())
+        let (sut, _) = makeSUT(
+            getMessagesStubs: [
+                .success([]),
+                .success([])
+            ],
+            sendMessageError: anyNSError()
+        )
         await finishInitialLoad(on: sut)
         
         await sendMessage(on: sut, message: "any")
@@ -577,7 +587,9 @@ final class MessageListViewModelTests: XCTestCase {
             getMessagesDelayInSeconds: getMessagesDelayInSeconds,
             establishChannelStubs: establishChannelStubs,
             connectionMessageStubs: connectionMessageStubs,
-            sendMessageError: sendMessageError
+            sendMessageError: sendMessageError,
+            file: file,
+            line: line
         )
         let sut = MessageListViewModel(
             currentUserID: currentUserID,

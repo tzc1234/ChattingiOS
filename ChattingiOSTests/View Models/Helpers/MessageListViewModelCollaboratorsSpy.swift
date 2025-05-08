@@ -5,12 +5,13 @@
 //  Created by Tsz-Lung on 21/04/2025.
 //
 
+import XCTest
 @testable import ChattingiOS
 
 @MainActor
 final class MessageListViewModelCollaboratorsSpy {
     enum Event: Equatable {
-        case get(with: Int, GetMessagesParams.MessageID? = nil)
+        case get(with: Int, messageID: GetMessagesParams.MessageID? = nil, limit: Int? = nil)
         case establish(for: Int)
         case read(with: Int, until: Int)
     }
@@ -24,17 +25,23 @@ final class MessageListViewModelCollaboratorsSpy {
     private var establishChannelStubs: [Result<Void, MessageChannelError>]
     private let connectionMessageStubs: [Result<Message, Error>]
     private let sendMessageError: Error?
+    private let file: StaticString
+    private let line: UInt
     
     init(getMessagesStubs: [Result<[Message], UseCaseError>],
          getMessagesDelayInSeconds: [Double],
          establishChannelStubs: [Result<Void, MessageChannelError>],
          connectionMessageStubs: [Result<Message, Error>],
-         sendMessageError: Error?) {
+         sendMessageError: Error?,
+         file: StaticString,
+         line: UInt) {
         self.getMessagesStubs = getMessagesStubs
         self.establishChannelStubs = establishChannelStubs
         self.connectionMessageStubs = connectionMessageStubs
         self.getMessagesDelayInSeconds = getMessagesDelayInSeconds
         self.sendMessageError = sendMessageError
+        self.file = file
+        self.line = line
     }
     
     func resetEvents() {
@@ -44,9 +51,14 @@ final class MessageListViewModelCollaboratorsSpy {
 
 extension MessageListViewModelCollaboratorsSpy: GetMessages {
     func get(with params: GetMessagesParams) async throws(UseCaseError) -> Messages {
-        events.append(.get(with: params.contactID, params.messageID))
+        events.append(.get(with: params.contactID, messageID: params.messageID, limit: params.limit))
         if !getMessagesDelayInSeconds.isEmpty {
             try? await Task.sleep(for: .seconds(getMessagesDelayInSeconds.removeFirst()))
+        }
+        
+        guard !getMessagesStubs.isEmpty else {
+            XCTFail("getMessagesStubs count invalid.", file: file, line: line)
+            return Messages(items: [], metadata: nil)
         }
         
         let messages = try getMessagesStubs.removeFirst().get()
