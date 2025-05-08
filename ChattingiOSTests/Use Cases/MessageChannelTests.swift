@@ -146,9 +146,18 @@ final class MessageChannelTests: XCTestCase {
     func test_messageStream_deliversMessagesSuccessfully() async throws {
         let now = Date.now.removeTimeIntervalDecimal()
         let messages = [
-            Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture),
-            Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast),
-            Message(id: 2, text: "another text 2", senderID: 0, isRead: false, createdAt: now),
+            makeWebSocketMessage(
+                Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture),
+                previousID: nil
+            ),
+            makeWebSocketMessage(
+                Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast),
+                previousID: 0
+            ),
+            makeWebSocketMessage(
+                Message(id: 2, text: "another text 2", senderID: 0, isRead: false, createdAt: now),
+                previousID: 1
+            )
         ]
         let (connection, _) = try await establishConnection(messageDataStubs: messages.map(\.toData))
         let logger = MessagesLogger()
@@ -258,9 +267,9 @@ final class MessageChannelTests: XCTestCase {
     
     @MainActor
     private final class MessagesLogger {
-        private(set) var messages = [Message]()
+        private(set) var messages = [WebSocketMessage]()
         
-        func append(_ message: Message) {
+        func append(_ message: WebSocketMessage) {
             messages.append(message)
         }
     }
@@ -323,29 +332,5 @@ private extension String {
     
     var toData: Data {
         try! JSONEncoder().encode(TextSent(text: self))
-    }
-}
-
-private extension Message {
-    private struct MessageResponse: Encodable {
-        let id: Int
-        let text: String
-        let sender_id: Int
-        let is_read: Bool
-        let created_at: Date?
-        
-        init(_ message: Message) {
-            self.id = message.id
-            self.text = message.text
-            self.sender_id = message.senderID
-            self.is_read = message.isRead
-            self.created_at = message.createdAt
-        }
-    }
-    
-    var toData: Data {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        return try! encoder.encode(MessageResponse(self))
     }
 }

@@ -23,7 +23,7 @@ actor DefaultMessageChannel: MessageChannel {
             self.webSocket = webSocket
         }
         
-        var messageStream: AsyncThrowingStream<Message, Error> {
+        var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
             defer {
                 Task { await webSocket.start() }
             }

@@ -164,10 +164,10 @@ final class MessageListViewModel: ObservableObject {
             
             do {
                 for try await message in connection.messageStream {
-                    messages.append(message.toDisplayedModel(currentUserID: currentUserID))
+                    messages.append(message.message.toDisplayedModel(currentUserID: currentUserID))
                     
                     if messageIDForListPosition == nil {
-                        messageIDForListPosition = message.id
+                        messageIDForListPosition = message.message.id
                     }
                 }
             } catch {

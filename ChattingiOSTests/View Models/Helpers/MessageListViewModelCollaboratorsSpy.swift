@@ -81,12 +81,12 @@ extension MessageListViewModelCollaboratorsSpy: ReadMessages {
 }
 
 extension MessageListViewModelCollaboratorsSpy: MessageChannelConnection {
-    nonisolated var messageStream: AsyncThrowingStream<Message, Error> {
+    nonisolated var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
         AsyncThrowingStream { continuation in
             connectionMessageStubs.forEach { stub in
                 switch stub {
                 case let .success(message):
-                    continuation.yield(message)
+                    continuation.yield(WebSocketMessage(message: message, metadata: .init(previousID: nil)))
                 case let .failure(error):
                     continuation.finish(throwing: error)
                 }
