@@ -26,16 +26,16 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.isBlocked, contact.blockedByUserID != nil)
     }
     
-    func test_loadMessagesAndEstablishMessageChannel_sendsParamsToCollaboratorsCorrectly() async {
+    func test_initialiseMessageList_sendsParamsToCollaboratorsCorrectly() async {
         let contactID = 0
         let (sut, spy) = makeSUT(contact: makeContact(id: contactID))
         
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await initialiseMessageList(on: sut)
         
-        // Events order doesn't matter.
-        XCTAssertEqual(spy.events.count, 2)
-        XCTAssertTrue(spy.events.contains(.get(with: contactID)))
-        XCTAssertTrue(spy.events.contains(.establish(for: contactID)))
+        XCTAssertEqual(spy.events, [
+            .get(with: contactID),
+            .establish(for: contactID)
+        ])
     }
     
     func test_loadMessages_deliversInitialErrorOnUseCaseError() async {
@@ -44,7 +44,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertNil(sut.initialError)
         
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await initialiseMessageList(on: sut)
         
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
@@ -53,7 +53,7 @@ final class MessageListViewModelTests: XCTestCase {
         let emptyMessages = [Message]()
         let (sut, _) = makeSUT(getMessagesStubs: [.success(emptyMessages)])
         
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await initialiseMessageList(on: sut)
         
         XCTAssertTrue(sut.messages.isEmpty)
     }
@@ -70,7 +70,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertTrue(sut.messages.isEmpty)
         XCTAssertNil(sut.messageIDForListPosition)
         
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await initialiseMessageList(on: sut)
         
         XCTAssertEqual(sut.messages, messages.displays)
         let firstUnreadMessageID = try XCTUnwrap(messages.displays.first(where: \.isUnread)?.id)
@@ -83,7 +83,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertNil(sut.initialError)
         
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await initialiseMessageList(on: sut)
         
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
@@ -105,7 +105,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertNil(sut.messageIDForListPosition)
         XCTAssertEqual(spy.closeCallCount, 0)
         
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await initialiseMessageList(on: sut)
         
         XCTAssertEqual(sut.messages, messages.displays)
         let firstReceivedMessageID = messages.displays[0].id
@@ -134,7 +134,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertEqual(spy.closeCallCount, 0)
         
-        await loadMessagesAndEstablishMessageChannel(on: sut)
+        await initialiseMessageList(on: sut)
         
         XCTAssertEqual(sut.messages, [messageBeforeError.display])
         XCTAssertEqual(spy.closeCallCount, 1)
@@ -594,14 +594,14 @@ final class MessageListViewModelTests: XCTestCase {
                                    resetEventsOn spy: MessageListViewModelCollaboratorsSpy? = nil,
                                    file: StaticString = #filePath,
                                    line: UInt = #line) async {
-        await loadMessagesAndEstablishMessageChannel(on: sut, file: file, line: line)
+        await initialiseMessageList(on: sut, file: file, line: line)
         spy?.resetEvents()
     }
     
-    private func loadMessagesAndEstablishMessageChannel(on sut: MessageListViewModel,
-                                                        file: StaticString = #filePath,
-                                                        line: UInt = #line) async {
-        await sut.loadMessagesAndEstablishMessageChannel()
+    private func initialiseMessageList(on sut: MessageListViewModel,
+                                       file: StaticString = #filePath,
+                                       line: UInt = #line) async {
+        await sut.initialiseMessageList()
         await sut.messageStreamTask?.value
         try? await Task.sleep(for: .seconds(0.001))
         
