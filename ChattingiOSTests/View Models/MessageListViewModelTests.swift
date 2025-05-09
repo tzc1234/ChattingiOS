@@ -11,7 +11,7 @@ import XCTest
 @MainActor
 final class MessageListViewModelTests: XCTestCase {
     func test_init_doesNotNotifyCollaboratorsUponCreation() {
-        let (_, spy) = makeSUT()
+        let (_, spy) = makeSUT(getMessagesStubs: [])
         
         XCTAssertTrue(spy.events.isEmpty)
     }
@@ -19,7 +19,7 @@ final class MessageListViewModelTests: XCTestCase {
     func test_init_deliversContactInfoCorrectly() {
         let avatarURL = URL(string: "http://avatar-url.com")!
         let contact = makeContact(responderName: "a name", avatarURL: avatarURL.absoluteString, blockedByUserID: 0)
-        let (sut, _) = makeSUT(contact: contact)
+        let (sut, _) = makeSUT(contact: contact, getMessagesStubs: [])
         
         XCTAssertEqual(sut.username, contact.responder.name)
         XCTAssertEqual(sut.avatarURL, avatarURL)
@@ -460,7 +460,6 @@ final class MessageListViewModelTests: XCTestCase {
             getMessagesStubs: [
                 .success(initialMessages.models),
                 .success(moreMessages.models),
-                .success([])
             ],
             establishChannelStubs: [.success(()), .success(())]
         )
@@ -490,7 +489,6 @@ final class MessageListViewModelTests: XCTestCase {
             getMessagesStubs: [
                 .success(initialMessages.models),
                 .success(moreMessages.models),
-                .success([]),
             ]
         )
         await finishInitialLoad(on: sut, resetEventsOn: spy)
@@ -499,17 +497,12 @@ final class MessageListViewModelTests: XCTestCase {
         
         await sendMessage(on: sut, message: "any")
         
-        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(0), limit: -1),])
+        XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(0), limit: -1)])
         XCTAssertEqual(sut.messages, (initialMessages + moreMessages).displays)
     }
     
     func test_sendMessage_sendsMessageSuccessfully() async {
-        let (sut, spy) = makeSUT(
-            getMessagesStubs: [
-                .success([]),
-                .success([])
-            ]
-        )
+        let (sut, spy) = makeSUT()
         await finishInitialLoad(on: sut, resetEventsOn: spy)
         
         let messageSent = "message sent"
@@ -535,13 +528,7 @@ final class MessageListViewModelTests: XCTestCase {
     }
     
     func test_sendMessage_deliversGeneralErrorOnOtherError() async {
-        let (sut, _) = makeSUT(
-            getMessagesStubs: [
-                .success([]),
-                .success([])
-            ],
-            sendMessageError: anyNSError()
-        )
+        let (sut, _) = makeSUT(sendMessageError: anyNSError())
         await finishInitialLoad(on: sut)
         
         await sendMessage(on: sut, message: "any")

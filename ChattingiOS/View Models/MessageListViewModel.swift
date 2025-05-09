@@ -195,6 +195,8 @@ final class MessageListViewModel: ObservableObject {
     }
     
     private func loadMoreMessageToTheEnd() async throws(UseCaseError) {
+        guard canLoadMore else { return }
+        
         try await _loadMoreMessages(limit: -1)
     }
     

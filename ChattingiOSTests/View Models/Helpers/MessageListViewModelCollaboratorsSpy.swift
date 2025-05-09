@@ -47,6 +47,12 @@ final class MessageListViewModelCollaboratorsSpy {
     func resetEvents() {
         events.removeAll()
     }
+    
+    deinit {
+        if !getMessagesStubs.isEmpty {
+            XCTFail("getMessagesStubs still contain unused stub(s).", file: file, line: line)
+        }
+    }
 }
 
 extension MessageListViewModelCollaboratorsSpy: GetMessages {
