@@ -36,13 +36,13 @@ actor GetCachedMessages {
 
 private extension CoreDataMessagesStore.MessageID {
     init?(_ messageID: GetMessagesParams.MessageID?) {
-        guard let messageID else { return nil }
-        
         switch messageID {
         case .before(let id):
             self = .before(id)
         case .after(let id):
             self = .after(id)
+        case .betweenExcluded, .none:
+            return nil
         }
     }
 }

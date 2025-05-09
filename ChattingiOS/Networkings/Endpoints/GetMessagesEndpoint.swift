@@ -17,10 +17,13 @@ struct GetMessagesEndpoint: Endpoint {
         items["limit"] = params.limit.map(String.init)
         
         switch params.messageID {
-        case .before(let id):
+        case let .before(id):
             items["before_message_id"] = String(id)
-        case .after(let id):
+        case let .after(id):
             items["after_message_id"] = String(id)
+        case let .betweenExcluded(from: fromID, to: toID):
+            items["after_message_id"] = String(fromID)
+            items["before_message_id"] = String(toID)
         case .none:
             break
         }
