@@ -56,31 +56,31 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func initialiseMessageList() async {
-        isLoading = true
-        
         do {
-            try await loadMessages()
-            isLoading = false
-            
+            try await loadMessagesTask().value
             try await establishMessageChannel()
         } catch let error as UseCaseError {
             initialError = error.toGeneralErrorMessage()
-            isLoading = false
         } catch let error as MessageChannelError {
             initialError = error.toGeneralErrorMessage()
         } catch {
-            print("This is required to silence `non-exhaustive` catch error. Should never come here.")
+            print("Initial error: \(error)")
         }
     }
     
-    private func loadMessages() async throws(UseCaseError) {
-        let param = GetMessagesParams(contactID: contactID)
-        let messages = try await getMessages.get(with: param).items
-        canLoadPrevious = !messages.isEmpty
-        canLoadMore = !messages.isEmpty
-        self.messages = messages.toDisplayedModels(currentUserID: currentUserID)
-        
-        messageIDForListPosition = messageIDForInitialListPosition
+    private func loadMessagesTask() -> Task<Void, Error> {
+        isLoading = true
+        return Task {
+            defer { isLoading = false }
+            
+            let param = GetMessagesParams(contactID: contactID)
+            let messages = try await getMessages.get(with: param).items
+            canLoadPrevious = !messages.isEmpty
+            canLoadMore = !messages.isEmpty
+            self.messages = messages.toDisplayedModels(currentUserID: currentUserID)
+            
+            messageIDForListPosition = messageIDForInitialListPosition
+        }
     }
     
     func loadPreviousMessages() {
@@ -147,7 +147,7 @@ final class MessageListViewModel: ObservableObject {
             } catch let error as MessageChannelError {
                 initialError = error.toGeneralErrorMessage()
             } catch {
-                print("This is required to silence error. Should never come here.")
+                print("Initial error: \(error)")
             }
             isLoading = false
         }
