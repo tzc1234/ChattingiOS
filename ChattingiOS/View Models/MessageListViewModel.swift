@@ -11,7 +11,7 @@ import Foundation
 final class MessageListViewModel: ObservableObject {
     @Published private(set) var messages = [DisplayedMessage]()
     @Published var generalError: String?
-    @Published var initialError: String?
+    @Published var setupError: String?
     @Published var inputMessage = ""
     @Published private(set) var isLoading = false
     @Published var messageIDForListPosition: Int?
@@ -65,9 +65,9 @@ final class MessageListViewModel: ObservableObject {
                 try await loadMessages()
                 try await establishMessageChannel()
             } catch let error as UseCaseError {
-                initialError = error.toGeneralErrorMessage()
+                setupError = error.toGeneralErrorMessage()
             } catch let error as MessageChannelError {
-                initialError = error.toGeneralErrorMessage()
+                setupError = error.toGeneralErrorMessage()
             } catch {
                 print("This is required to silence error. Should never come here.")
             }
@@ -148,9 +148,9 @@ final class MessageListViewModel: ObservableObject {
                 try await loadMoreMessageToTheEnd()
                 try await establishMessageChannel()
             } catch let error as UseCaseError {
-                initialError = error.toGeneralErrorMessage()
+                setupError = error.toGeneralErrorMessage()
             } catch let error as MessageChannelError {
-                initialError = error.toGeneralErrorMessage()
+                setupError = error.toGeneralErrorMessage()
             } catch {
                 print("This is required to silence error. Should never come here.")
             }

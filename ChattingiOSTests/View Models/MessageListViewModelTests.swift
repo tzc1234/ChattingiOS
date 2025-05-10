@@ -42,11 +42,11 @@ final class MessageListViewModelTests: XCTestCase {
         let error = UseCaseError.connectivity
         let (sut, _) = makeSUT(getMessagesStubs: [.failure(error)])
         
-        XCTAssertNil(sut.initialError)
+        XCTAssertNil(sut.setupError)
         
         await setupMessageList(on: sut)
         
-        XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
+        XCTAssertEqual(sut.setupError, error.toGeneralErrorMessage())
     }
     
     func test_loadMessages_deliversEmptyMessagesWhenReceivedNoMessages() async {
@@ -81,11 +81,11 @@ final class MessageListViewModelTests: XCTestCase {
         let error = MessageChannelError.notFound
         let (sut, _) = makeSUT(establishChannelStubs: [.failure(error)])
         
-        XCTAssertNil(sut.initialError)
+        XCTAssertNil(sut.setupError)
         
         await setupMessageList(on: sut)
         
-        XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
+        XCTAssertEqual(sut.setupError, error.toGeneralErrorMessage())
     }
     
     func test_messageChannelConnection_deliversMessagesWhenReceivedMessagesFromMessageChannelConnection() async {
@@ -422,7 +422,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         await reestablishMessageChannel(on: sut)
         
-        XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
+        XCTAssertEqual(sut.setupError, error.toGeneralErrorMessage())
     }
     
     func test_reestablishMessageChannel_deliversInitialErrorOnMessageChannelError() async {
@@ -435,7 +435,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         await reestablishMessageChannel(on: sut)
         
-        XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
+        XCTAssertEqual(sut.setupError, error.toGeneralErrorMessage())
     }
     
     func test_reestablishMessageChannel_deliversSameMessagesWhenNoMoreMessagesLoaded() async {

@@ -28,11 +28,11 @@ struct MessageListView: View {
             readMessages: viewModel.readMessages
         )
         .toolbar(.hidden, for: .tabBar)
-        .alert("⚠️Oops!", isPresented: $viewModel.initialError.toBool) {
+        .alert("⚠️Oops!", isPresented: $viewModel.setupError.toBool) {
             Button("Retry", role: .none, action: viewModel.setupMessageList)
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text(viewModel.initialError ?? "")
+            Text(viewModel.setupError ?? "")
         }
         .onAppear { viewModel.setupMessageList() }
         .onDisappear { viewModel.closeMessageChannel() }
