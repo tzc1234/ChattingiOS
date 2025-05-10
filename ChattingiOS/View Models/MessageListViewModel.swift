@@ -56,8 +56,11 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func initialiseMessageList() async {
+        isLoading = true
+        defer { isLoading = false }
+        
         do {
-            try await loadMessagesTask().value
+            try await loadMessages()
             try await establishMessageChannel()
         } catch let error as UseCaseError {
             initialError = error.toGeneralErrorMessage()
@@ -68,19 +71,14 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
-    private func loadMessagesTask() -> Task<Void, Error> {
-        isLoading = true
-        return Task {
-            defer { isLoading = false }
-            
-            let param = GetMessagesParams(contactID: contactID)
-            let messages = try await getMessages.get(with: param).items
-            canLoadPrevious = !messages.isEmpty
-            canLoadMore = !messages.isEmpty
-            self.messages = messages.toDisplayedModels(currentUserID: currentUserID)
-            
-            messageIDForListPosition = messageIDForInitialListPosition
-        }
+    private func loadMessages() async throws {
+        let param = GetMessagesParams(contactID: contactID)
+        let messages = try await getMessages.get(with: param).items
+        canLoadPrevious = !messages.isEmpty
+        canLoadMore = !messages.isEmpty
+        self.messages = messages.toDisplayedModels(currentUserID: currentUserID)
+        
+        messageIDForListPosition = messageIDForInitialListPosition
     }
     
     func loadPreviousMessages() {
@@ -88,12 +86,13 @@ final class MessageListViewModel: ObservableObject {
         
         isLoading = true
         loadPreviousMessagesTasks.append(Task {
+            defer { isLoading = false }
+            
             do throws(UseCaseError) {
                 try await _loadPreviousMessages()
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
-            isLoading = false
         })
     }
     
@@ -120,12 +119,13 @@ final class MessageListViewModel: ObservableObject {
         
         isLoading = true
         loadMoreMessagesTasks.append(Task {
+            defer { isLoading = false }
+            
             do throws(UseCaseError) {
                 try await _loadMoreMessages()
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
-            isLoading = false
         })
     }
     
@@ -135,10 +135,12 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func reestablishMessageChannel() {
-        isLoading = true
         canLoadMore = true
         
+        isLoading = true
         reestablishMessageChannelTask = Task {
+            defer { isLoading = false }
+            
             do {
                 try await loadMoreMessageToTheEnd()
                 try await establishMessageChannel()
@@ -149,7 +151,6 @@ final class MessageListViewModel: ObservableObject {
             } catch {
                 print("Initial error: \(error)")
             }
-            isLoading = false
         }
     }
     
@@ -179,6 +180,8 @@ final class MessageListViewModel: ObservableObject {
         
         isLoading = true
         sendMessageTask = Task {
+            defer { isLoading = false }
+            
             do {
                 try await loadMoreMessageToTheEnd()
                 try await connection?.send(text: inputMessage)
@@ -188,7 +191,6 @@ final class MessageListViewModel: ObservableObject {
             } catch {
                 generalError = "Cannot send the message, please try it again later."
             }
-            isLoading = false
         }
     }
     
