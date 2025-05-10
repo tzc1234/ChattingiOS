@@ -30,7 +30,7 @@ final class MessageListViewModelTests: XCTestCase {
         let contactID = 0
         let (sut, spy) = makeSUT(contact: makeContact(id: contactID))
         
-        await initialiseMessageList(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(spy.events, [
             .get(with: contactID),
@@ -44,7 +44,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertNil(sut.initialError)
         
-        await initialiseMessageList(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
@@ -53,7 +53,7 @@ final class MessageListViewModelTests: XCTestCase {
         let emptyMessages = [Message]()
         let (sut, _) = makeSUT(getMessagesStubs: [.success(emptyMessages)])
         
-        await initialiseMessageList(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertTrue(sut.messages.isEmpty)
     }
@@ -70,7 +70,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertTrue(sut.messages.isEmpty)
         XCTAssertNil(sut.messageIDForListPosition)
         
-        await initialiseMessageList(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(sut.messages, messages.displays)
         let firstUnreadMessageID = try XCTUnwrap(messages.displays.first(where: \.isUnread)?.id)
@@ -83,7 +83,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertNil(sut.initialError)
         
-        await initialiseMessageList(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(sut.initialError, error.toGeneralErrorMessage())
     }
@@ -105,7 +105,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertNil(sut.messageIDForListPosition)
         XCTAssertEqual(spy.closeCallCount, 0)
         
-        await initialiseMessageList(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(sut.messages, messages.displays)
         let firstReceivedMessageID = messages.displays[0].id
@@ -134,7 +134,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertEqual(spy.closeCallCount, 0)
         
-        await initialiseMessageList(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(sut.messages, [messageBeforeError.display])
         XCTAssertEqual(spy.closeCallCount, 1)
@@ -594,14 +594,14 @@ final class MessageListViewModelTests: XCTestCase {
                                    resetEventsOn spy: MessageListViewModelCollaboratorsSpy? = nil,
                                    file: StaticString = #filePath,
                                    line: UInt = #line) async {
-        await initialiseMessageList(on: sut, file: file, line: line)
+        await setupMessageList(on: sut, file: file, line: line)
         spy?.resetEvents()
     }
     
-    private func initialiseMessageList(on sut: MessageListViewModel,
+    private func setupMessageList(on sut: MessageListViewModel,
                                        file: StaticString = #filePath,
                                        line: UInt = #line) async {
-        await sut.initialiseMessageList()
+        sut.setupMessageList()
         await sut.messageStreamTask?.value
         try? await Task.sleep(for: .seconds(0.001))
         

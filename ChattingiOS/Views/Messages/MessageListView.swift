@@ -27,21 +27,15 @@ struct MessageListView: View {
             loadMoreMessages: viewModel.loadMoreMessages,
             readMessages: viewModel.readMessages
         )
-        .task {
-            await viewModel.initialiseMessageList()
-        }
         .toolbar(.hidden, for: .tabBar)
         .alert("⚠️Oops!", isPresented: $viewModel.initialError.toBool) {
-            Button("Retry", role: .none) {
-                Task { await viewModel.initialiseMessageList() }
-            }
+            Button("Retry", role: .none, action: viewModel.setupMessageList)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(viewModel.initialError ?? "")
         }
-        .onDisappear {
-            viewModel.closeMessageChannel()
-        }
+        .onAppear { viewModel.setupMessageList() }
+        .onDisappear { viewModel.closeMessageChannel() }
         .onChange(of: scenePhase) { phase in
             if phase == .active {
                 viewModel.reestablishMessageChannel()

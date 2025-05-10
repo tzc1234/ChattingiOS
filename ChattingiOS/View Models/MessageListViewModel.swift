@@ -55,19 +55,22 @@ final class MessageListViewModel: ObservableObject {
         self.readMessages = readMessages
     }
     
-    func initialiseMessageList() async {
+    func setupMessageList() {
         isLoading = true
-        defer { isLoading = false }
         
-        do {
-            try await loadMessages()
-            try await establishMessageChannel()
-        } catch let error as UseCaseError {
-            initialError = error.toGeneralErrorMessage()
-        } catch let error as MessageChannelError {
-            initialError = error.toGeneralErrorMessage()
-        } catch {
-            print("Initial error: \(error)")
+        Task {
+            defer { isLoading = false }
+            
+            do {
+                try await loadMessages()
+                try await establishMessageChannel()
+            } catch let error as UseCaseError {
+                initialError = error.toGeneralErrorMessage()
+            } catch let error as MessageChannelError {
+                initialError = error.toGeneralErrorMessage()
+            } catch {
+                print("This is required to silence error. Should never come here.")
+            }
         }
     }
     
@@ -149,7 +152,7 @@ final class MessageListViewModel: ObservableObject {
             } catch let error as MessageChannelError {
                 initialError = error.toGeneralErrorMessage()
             } catch {
-                print("Initial error: \(error)")
+                print("This is required to silence error. Should never come here.")
             }
         }
     }
