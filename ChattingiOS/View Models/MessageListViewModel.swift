@@ -30,10 +30,10 @@ final class MessageListViewModel: ObservableObject {
     private var messagesToBeReadIDs = Set<Int>()
     
     // Expose for testing.
+    private(set) var setupMessageListTask: Task<Void, Never>?
     private(set) var messageStreamTask: Task<Void, Never>?
     private(set) var loadPreviousMessagesTasks: [Task<Void, Never>] = []
     private(set) var loadMoreMessagesTasks: [Task<Void, Never>] = []
-    private(set) var reestablishMessageChannelTask: Task<Void, Never>?
     private(set) var sendMessageTask: Task<Void, Never>?
     private(set) var readMessagesTask: Task<Void, Never>?
     
@@ -57,12 +57,16 @@ final class MessageListViewModel: ObservableObject {
     
     func setupMessageList() {
         isLoading = true
-        
-        Task {
+        setupMessageListTask = Task {
             defer { isLoading = false }
             
             do {
-                try await loadMessages()
+                if messages.isEmpty {
+                    try await loadMessages()
+                } else {
+                    canLoadMore = true
+                    try await loadMoreMessageToTheEnd()
+                }
                 try await establishMessageChannel()
             } catch let error as UseCaseError {
                 setupError = error.toGeneralErrorMessage()
@@ -82,6 +86,27 @@ final class MessageListViewModel: ObservableObject {
         self.messages = messages.toDisplayedModels(currentUserID: currentUserID)
         
         messageIDForListPosition = messageIDForInitialListPosition
+    }
+    
+    private func establishMessageChannel() async throws(MessageChannelError) {
+        let connection = try await messageChannel.establish(for: contactID)
+        self.connection = connection
+        
+        messageStreamTask = Task {
+            defer { Task { try? await connection.close() } }
+            
+            do {
+                for try await message in connection.messageStream {
+                    messages.append(message.message.toDisplayedModel(currentUserID: currentUserID))
+                    
+                    if messageIDForListPosition == nil {
+                        messageIDForListPosition = message.message.id
+                    }
+                }
+            } catch {
+                print("Message channel error received: \(error)")
+            }
+        }
     }
     
     func loadPreviousMessages() {
@@ -125,52 +150,6 @@ final class MessageListViewModel: ObservableObject {
                 generalError = error.toGeneralErrorMessage()
             }
         })
-    }
-    
-    func closeMessageChannel() {
-        messageStreamTask?.cancel()
-        messageStreamTask = nil
-    }
-    
-    func reestablishMessageChannel() {
-        canLoadMore = true
-        
-        isLoading = true
-        reestablishMessageChannelTask = Task {
-            defer { isLoading = false }
-            
-            do {
-                try await loadMoreMessageToTheEnd()
-                try await establishMessageChannel()
-            } catch let error as UseCaseError {
-                setupError = error.toGeneralErrorMessage()
-            } catch let error as MessageChannelError {
-                setupError = error.toGeneralErrorMessage()
-            } catch {
-                print("This is required to silence error. Should never come here.")
-            }
-        }
-    }
-    
-    private func establishMessageChannel() async throws(MessageChannelError) {
-        let connection = try await messageChannel.establish(for: contactID)
-        self.connection = connection
-        
-        messageStreamTask = Task {
-            defer { Task { try? await connection.close() } }
-            
-            do {
-                for try await message in connection.messageStream {
-                    messages.append(message.message.toDisplayedModel(currentUserID: currentUserID))
-                    
-                    if messageIDForListPosition == nil {
-                        messageIDForListPosition = message.message.id
-                    }
-                }
-            } catch {
-                print("Message channel error received: \(error)")
-            }
-        }
     }
     
     func sendMessage() {
@@ -222,6 +201,11 @@ final class MessageListViewModel: ObservableObject {
             let param = ReadMessagesParams(contactID: contactID, untilMessageID: maxMessageID)
             try? await readMessages.read(with: param)
         }
+    }
+    
+    func closeMessageChannel() {
+        messageStreamTask?.cancel()
+        messageStreamTask = nil
     }
 }
 

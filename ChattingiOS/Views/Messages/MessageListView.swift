@@ -38,7 +38,7 @@ struct MessageListView: View {
         .onDisappear { viewModel.closeMessageChannel() }
         .onChange(of: scenePhase) { phase in
             if phase == .active {
-                viewModel.reestablishMessageChannel()
+                viewModel.setupMessageList()
             } else if phase == .inactive {
                 viewModel.closeMessageChannel()
             }

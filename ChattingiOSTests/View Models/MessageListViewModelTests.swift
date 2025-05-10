@@ -414,7 +414,7 @@ final class MessageListViewModelTests: XCTestCase {
         )
         await finishInitialLoad(on: sut, resetEventsOn: spy)
         
-        await reestablishMessageChannel(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(spy.events, [
             .get(with: contactID, messageID: .after(messageID), limit: -1),
@@ -430,7 +430,7 @@ final class MessageListViewModelTests: XCTestCase {
         )
         await finishInitialLoad(on: sut)
         
-        await reestablishMessageChannel(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(sut.setupError, error.toGeneralErrorMessage())
     }
@@ -443,7 +443,7 @@ final class MessageListViewModelTests: XCTestCase {
         )
         await finishInitialLoad(on: sut)
         
-        await reestablishMessageChannel(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(sut.setupError, error.toGeneralErrorMessage())
     }
@@ -458,7 +458,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertEqual(sut.messages, initialMessages.displays)
         
-        await reestablishMessageChannel(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(sut.messages, initialMessages.displays)
     }
@@ -475,7 +475,7 @@ final class MessageListViewModelTests: XCTestCase {
         )
         await finishInitialLoad(on: sut)
         
-        await reestablishMessageChannel(on: sut)
+        await setupMessageList(on: sut)
         
         XCTAssertEqual(sut.messages, (initialMessages + moreMessages).displays)
     }
@@ -609,13 +609,18 @@ final class MessageListViewModelTests: XCTestCase {
     }
     
     private func setupMessageList(on sut: MessageListViewModel,
-                                       file: StaticString = #filePath,
-                                       line: UInt = #line) async {
+                                  file: StaticString = #filePath,
+                                  line: UInt = #line) async {
         sut.setupMessageList()
-        await sut.messageStreamTask?.value
-        try? await Task.sleep(for: .seconds(0.001))
+        
+        XCTAssertTrue(sut.isLoading, file: file, line: line)
+        
+        await sut.setupMessageListTask?.value
         
         XCTAssertFalse(sut.isLoading, file: file, line: line)
+        
+        await sut.messageStreamTask?.value
+        try? await Task.sleep(for: .seconds(0.001))
     }
     
     private func loadPreviousMessages(on sut: MessageListViewModel,
@@ -640,21 +645,6 @@ final class MessageListViewModelTests: XCTestCase {
         await sut.completeAllLoadMoreMessagesTasks()
         
         XCTAssertFalse(sut.isLoading, file: file, line: line)
-    }
-    
-    private func reestablishMessageChannel(on sut: MessageListViewModel,
-                                           file: StaticString = #filePath,
-                                           line: UInt = #line) async {
-        sut.reestablishMessageChannel()
-        
-        XCTAssertTrue(sut.isLoading, file: file, line: line)
-        
-        await sut.reestablishMessageChannelTask?.value
-        
-        XCTAssertFalse(sut.isLoading, file: file, line: line)
-        
-        await sut.messageStreamTask?.value
-        try? await Task.sleep(for: .seconds(0.001))
     }
     
     private func sendMessage(on sut: MessageListViewModel,
