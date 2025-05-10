@@ -92,29 +92,24 @@ final class MessageListViewModel: ObservableObject {
             defer { isLoading = false }
             
             do throws(UseCaseError) {
-                try await _loadPreviousMessages()
+                guard !isLoadingPreviousMessages, let firstMessageID = messages.first?.id else { return }
+                
+                isLoadingPreviousMessages = true
+                defer { isLoadingPreviousMessages = false }
+                
+                let param = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
+                let previousMessages = try await getMessages.get(with: param).items
+                    .toDisplayedModels(currentUserID: currentUserID)
+                canLoadPrevious = !previousMessages.isEmpty
+                
+                if !previousMessages.isEmpty {
+                    messages.insert(contentsOf: previousMessages, at: 0)
+                    messageIDForListPosition = firstMessageID
+                }
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
         })
-    }
-    
-    private func _loadPreviousMessages() async throws(UseCaseError) {
-        guard !isLoadingPreviousMessages, let firstMessageID = messages.first?.id else { return }
-        
-        isLoadingPreviousMessages = true
-        
-        let param = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
-        let previousMessages = try await getMessages.get(with: param).items
-            .toDisplayedModels(currentUserID: currentUserID)
-        canLoadPrevious = !previousMessages.isEmpty
-        
-        if !previousMessages.isEmpty {
-            messages.insert(contentsOf: previousMessages, at: 0)
-            messageIDForListPosition = firstMessageID
-        }
-        
-        isLoadingPreviousMessages = false
     }
     
     func loadMoreMessages() {
