@@ -197,10 +197,10 @@ final class MessageListViewModel: ObservableObject {
     private func loadMoreMessageToTheEnd() async throws(UseCaseError) {
         guard canLoadMore else { return }
         
-        try await _loadMoreMessages(limit: -1)
+        try await _loadMoreMessages(to: .endLimit)
     }
     
-    private func _loadMoreMessages(limit: Int? = nil) async throws(UseCaseError) {
+    private func _loadMoreMessages(to limit: Int? = nil) async throws(UseCaseError) {
         guard !isLoadingMoreMessages else { return }
         
         isLoadingMoreMessages = true
@@ -243,4 +243,8 @@ private extension [Message] {
     func toDisplayedModels(currentUserID: Int) -> [DisplayedMessage] {
         map { $0.toDisplayedModel(currentUserID: currentUserID) }
     }
+}
+
+private extension Int? {
+    static var endLimit: Int { -1 }
 }
