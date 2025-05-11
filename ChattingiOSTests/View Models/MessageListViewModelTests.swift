@@ -629,7 +629,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertFalse(sut.isLoading, file: file, line: line)
         
-        await sut.messageStreamTask?.value
+        await sut.completeMessageStreamTask()
         try? await Task.sleep(for: .seconds(0.001))
     }
     
@@ -701,6 +701,10 @@ private extension MessageListViewModel {
     func completeReadMessagesTask() async {
         await readMessagesTask?.value
         try? await Task.sleep(for: .seconds(0.001))
+    }
+    
+    func completeMessageStreamTask() async {
+        await messageStreamTask?.value
     }
 }
 

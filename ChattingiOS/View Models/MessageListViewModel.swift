@@ -20,6 +20,7 @@ final class MessageListViewModel: ObservableObject {
     var username: String { contact.responder.name }
     var avatarURL: URL? { contact.responder.avatarURL.map(URL.init) ?? nil }
     var isBlocked: Bool { contact.blockedByUserID != nil }
+    var isStreamingMessages: Bool { messageStreamTask != nil }
     private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
     
     private var connection: MessageChannelConnection?
@@ -29,7 +30,7 @@ final class MessageListViewModel: ObservableObject {
     
     // Expose for testing.
     private(set) var setupMessageListTask: Task<Void, Never>?
-    private(set) var messageStreamTask: Task<Void, Never>?
+    @Published private(set) var messageStreamTask: Task<Void, Never>?
     private(set) var loadPreviousMessagesTask: Task<Void, Never>?
     private(set) var loadMoreMessagesTask: Task<Void, Never>?
     private(set) var sendMessageTask: Task<Void, Never>?
@@ -91,7 +92,10 @@ final class MessageListViewModel: ObservableObject {
         self.connection = connection
         
         messageStreamTask = Task {
-            defer { Task { try? await connection.close() } }
+            defer {
+                Task { try? await connection.close() }
+                messageStreamTask = nil
+            }
             
             do {
                 for try await message in connection.messageStream {

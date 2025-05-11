@@ -25,7 +25,8 @@ struct MessageListView: View {
             sendMessage: viewModel.sendMessage,
             loadPreviousMessages: viewModel.loadPreviousMessages,
             loadMoreMessages: viewModel.loadMoreMessages,
-            readMessages: viewModel.readMessages
+            readMessages: viewModel.readMessages,
+            isStreamingMessages: viewModel.isStreamingMessages
         )
         .toolbar(.hidden, for: .tabBar)
         .alert("⚠️Oops!", isPresented: $viewModel.setupError.toBool) {
@@ -59,6 +60,7 @@ struct MessageListContentView: View {
     let loadPreviousMessages: () -> Void
     let loadMoreMessages: () -> Void
     let readMessages: (Int) -> Void
+    let isStreamingMessages: Bool
     
     @FocusState private var textEditorFocused: Bool
     @State private var scrollToMessageID: Int?
@@ -122,6 +124,8 @@ struct MessageListContentView: View {
                     .disabled(inputMessage.isEmpty)
                     .brightness(isLoading || inputMessage.isEmpty ? -0.1 : 0)
                 }
+                .disabled(!isStreamingMessages)
+                .brightness(isStreamingMessages ? 0 : -0.1)
                 .padding(.vertical, 8)
                 .padding(.horizontal, 18)
                 .fixedSize(horizontal: false, vertical: true)
@@ -187,7 +191,8 @@ struct MessageListContentView: View {
             sendMessage: {},
             loadPreviousMessages: {},
             loadMoreMessages: {},
-            readMessages: { _ in }
+            readMessages: { _ in },
+            isStreamingMessages: true
         )
     }
 }
