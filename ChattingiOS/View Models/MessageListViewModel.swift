@@ -24,7 +24,6 @@ final class MessageListViewModel: ObservableObject {
     
     private var connection: MessageChannelConnection?
     private var canLoadPrevious = false
-    private var isLoadingPreviousMessages = false
     private var canLoadMore = false
     private var isLoadingMoreMessages = false
     private var messagesToBeReadIDs = Set<Int>()
@@ -32,7 +31,7 @@ final class MessageListViewModel: ObservableObject {
     // Expose for testing.
     private(set) var setupMessageListTask: Task<Void, Never>?
     private(set) var messageStreamTask: Task<Void, Never>?
-    private(set) var loadPreviousMessagesTasks: [Task<Void, Never>] = []
+    private(set) var loadPreviousMessagesTask: Task<Void, Never>?
     private(set) var loadMoreMessagesTasks: [Task<Void, Never>] = []
     private(set) var sendMessageTask: Task<Void, Never>?
     private(set) var readMessagesTask: Task<Void, Never>?
@@ -110,20 +109,22 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func loadPreviousMessages() {
-        guard canLoadPrevious else { return }
+        guard canLoadPrevious, loadPreviousMessagesTask == nil else { return }
         
         isLoading = true
-        loadPreviousMessagesTasks.append(Task {
-            defer { isLoading = false }
+        loadPreviousMessagesTask = Task {
+            defer {
+                isLoading = false
+                loadPreviousMessagesTask = nil
+            }
             
             do throws(UseCaseError) {
-                guard !isLoadingPreviousMessages, let firstMessageID = messages.first?.id else { return }
-                
-                isLoadingPreviousMessages = true
-                defer { isLoadingPreviousMessages = false }
+                guard let firstMessageID = messages.first?.id else { return }
                 
                 let param = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
-                let previousMessages = try await getMessages.get(with: param).items
+                let previousMessages = try await getMessages
+                    .get(with: param)
+                    .items
                     .toDisplayedModels(currentUserID: currentUserID)
                 canLoadPrevious = !previousMessages.isEmpty
                 
@@ -134,7 +135,7 @@ final class MessageListViewModel: ObservableObject {
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
-        })
+        }
     }
     
     func loadMoreMessages() {

@@ -192,7 +192,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .before(firstMessageID))])
     }
     
-    func test_loadPreviousMessages_ignoresWhenFirstLoadPreviousMessagesNotYetFinished() async {
+    func test_loadPreviousMessages_ignoresWhenPendingLoadPreviousMessagesNotYetFinished() async {
         let contactID = 0
         let firstMessageID = 0
         let lastMessageID = 1
@@ -211,12 +211,12 @@ final class MessageListViewModelTests: XCTestCase {
         async let loadPreviousMessages1: Void = sut.loadPreviousMessages()
         await loadPreviousMessages0
         await loadPreviousMessages1
-        await sut.completeAllLoadPreviousMessagesTasks()
+        await sut.completeLoadPreviousMessagesTask()
         
         XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .before(firstMessageID))])
         
         sut.loadPreviousMessages()
-        await sut.completeAllLoadPreviousMessagesTasks()
+        await sut.completeLoadPreviousMessagesTask()
         
         XCTAssertEqual(spy.events, [
             .get(with: contactID, messageID: .before(firstMessageID)),
@@ -630,7 +630,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertTrue(sut.isLoading, file: file, line: line)
         
-        await sut.completeAllLoadPreviousMessagesTasks()
+        await sut.completeLoadPreviousMessagesTask()
         
         XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
@@ -680,10 +680,8 @@ final class MessageListViewModelTests: XCTestCase {
 }
 
 private extension MessageListViewModel {
-    func completeAllLoadPreviousMessagesTasks() async {
-        for task in loadPreviousMessagesTasks {
-            await task.value
-        }
+    func completeLoadPreviousMessagesTask() async {
+        await loadPreviousMessagesTask?.value
     }
     
     func completeAllLoadMoreMessagesTasks() async {
