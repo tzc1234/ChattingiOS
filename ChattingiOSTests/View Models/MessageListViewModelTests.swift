@@ -326,11 +326,13 @@ final class MessageListViewModelTests: XCTestCase {
     func test_loadMoreMessages_ignoresWhenFirstLoadMoreMessagesNotYetFinished() async {
         let contactID = 0
         let messageID = 0
+        let lastMessageID = 1
         let (sut, spy) = makeSUT(
             contact: makeContact(id: contactID),
             getMessagesStubs: [
                 .success([makeMessage(id: messageID).model]),
-                .success([makeMessage(id: 1).model])
+                .success([makeMessage(id: lastMessageID).model]),
+                .success([])
             ],
             getMessagesDelayInSeconds: [0, 0.1]
         )
@@ -343,6 +345,14 @@ final class MessageListViewModelTests: XCTestCase {
         await sut.completeAllLoadMoreMessagesTasks()
         
         XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(messageID))])
+        
+        sut.loadMoreMessages()
+        await sut.completeAllLoadMoreMessagesTasks()
+        
+        XCTAssertEqual(spy.events, [
+            .get(with: contactID, messageID: .after(messageID)),
+            .get(with: contactID, messageID: .after(lastMessageID))
+        ])
     }
     
     func test_loadMoreMessages_deliversErrorMessageOnUseCaseError() async {
