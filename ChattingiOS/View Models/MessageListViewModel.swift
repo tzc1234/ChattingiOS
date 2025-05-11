@@ -25,14 +25,13 @@ final class MessageListViewModel: ObservableObject {
     private var connection: MessageChannelConnection?
     private var canLoadPrevious = false
     private var canLoadMore = false
-    private var isLoadingMoreMessages = false
     private var messagesToBeReadIDs = Set<Int>()
     
     // Expose for testing.
     private(set) var setupMessageListTask: Task<Void, Never>?
     private(set) var messageStreamTask: Task<Void, Never>?
     private(set) var loadPreviousMessagesTask: Task<Void, Never>?
-    private(set) var loadMoreMessagesTasks: [Task<Void, Never>] = []
+    private(set) var loadMoreMessagesTask: Task<Void, Never>?
     private(set) var sendMessageTask: Task<Void, Never>?
     private(set) var readMessagesTask: Task<Void, Never>?
     
@@ -139,18 +138,21 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func loadMoreMessages() {
-        guard canLoadMore else { return }
+        guard canLoadMore, loadMoreMessagesTask == nil else { return }
         
         isLoading = true
-        loadMoreMessagesTasks.append(Task {
-            defer { isLoading = false }
+        loadMoreMessagesTask = Task {
+            defer {
+                isLoading = false
+                loadMoreMessagesTask = nil
+            }
             
             do throws(UseCaseError) {
                 try await _loadMoreMessages()
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
-        })
+        }
     }
     
     func sendMessage() {
@@ -179,15 +181,11 @@ final class MessageListViewModel: ObservableObject {
     }
     
     private func _loadMoreMessages(to limit: Int? = nil) async throws(UseCaseError) {
-        guard !isLoadingMoreMessages else { return }
-        
-        isLoadingMoreMessages = true
         let messageID = messages.last.map { GetMessagesParams.MessageID.after($0.id) }
         let param = GetMessagesParams(contactID: contactID, messageID: messageID, limit: limit)
         let moreMessages = try await getMessages.get(with: param).items
         canLoadMore = !moreMessages.isEmpty
         messages += moreMessages.toDisplayedModels(currentUserID: currentUserID)
-        isLoadingMoreMessages = false
     }
     
     func readMessages(until messageID: Int) {

@@ -342,12 +342,12 @@ final class MessageListViewModelTests: XCTestCase {
         async let loadMoreMessages1: Void = sut.loadMoreMessages()
         await loadMoreMessages0
         await loadMoreMessages1
-        await sut.completeAllLoadMoreMessagesTasks()
+        await sut.completeLoadMoreMessagesTask()
         
         XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(messageID))])
         
         sut.loadMoreMessages()
-        await sut.completeAllLoadMoreMessagesTasks()
+        await sut.completeLoadMoreMessagesTask()
         
         XCTAssertEqual(spy.events, [
             .get(with: contactID, messageID: .after(messageID)),
@@ -652,7 +652,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertTrue(sut.isLoading, file: file, line: line)
         
-        await sut.completeAllLoadMoreMessagesTasks()
+        await sut.completeLoadMoreMessagesTask()
         
         XCTAssertFalse(sut.isLoading, file: file, line: line)
     }
@@ -694,10 +694,8 @@ private extension MessageListViewModel {
         await loadPreviousMessagesTask?.value
     }
     
-    func completeAllLoadMoreMessagesTasks() async {
-        for task in loadMoreMessagesTasks {
-            await task.value
-        }
+    func completeLoadMoreMessagesTask() async {
+        await loadMoreMessagesTask?.value
     }
     
     func completeReadMessagesTask() async {
