@@ -95,6 +95,7 @@ final class MessageListViewModel: ObservableObject {
             defer {
                 Task { try? await connection.close() }
                 messageStreamTask = nil
+                self.connection = nil
             }
             
             do {
@@ -209,6 +210,7 @@ final class MessageListViewModel: ObservableObject {
     func closeMessageChannel() {
         messageStreamTask?.cancel()
         messageStreamTask = nil
+        connection = nil
     }
 }
 

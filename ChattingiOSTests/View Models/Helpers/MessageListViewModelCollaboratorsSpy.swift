@@ -20,6 +20,8 @@ final class MessageListViewModelCollaboratorsSpy {
     private(set) var textsSent = [String]()
     private(set) var closeCallCount = 0
     
+    private let stream: AsyncThrowingStream<WebSocketMessage, Error>
+    private let continuation: AsyncThrowingStream<WebSocketMessage, Error>.Continuation
     private var getMessagesStubs: [Result<[Message], UseCaseError>]
     private var getMessagesDelayInSeconds: [Double]
     private var establishChannelStubs: [Result<Void, MessageChannelError>]
@@ -35,6 +37,7 @@ final class MessageListViewModelCollaboratorsSpy {
          sendMessageError: Error?,
          file: StaticString,
          line: UInt) {
+        (self.stream, self.continuation) = AsyncThrowingStream.makeStream()
         self.getMessagesStubs = getMessagesStubs
         self.establishChannelStubs = establishChannelStubs
         self.connectionMessageStubs = connectionMessageStubs
@@ -90,17 +93,19 @@ extension MessageListViewModelCollaboratorsSpy: ReadMessages {
 
 extension MessageListViewModelCollaboratorsSpy: MessageChannelConnection {
     nonisolated var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
-        AsyncThrowingStream { continuation in
-            connectionMessageStubs.forEach { stub in
-                switch stub {
-                case let .success(message):
-                    continuation.yield(WebSocketMessage(message: message, metadata: .init(previousID: nil)))
-                case let .failure(error):
-                    continuation.finish(throwing: error)
-                }
+        connectionMessageStubs.forEach { stub in
+            switch stub {
+            case let .success(message):
+                continuation.yield(WebSocketMessage(message: message, metadata: .init(previousID: nil)))
+            case let .failure(error):
+                continuation.finish(throwing: error)
             }
-            continuation.finish()
         }
+        return stream
+    }
+    
+    func finishStream() {
+        continuation.finish()
     }
     
     func send(text: String) async throws {
