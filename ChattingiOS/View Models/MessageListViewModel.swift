@@ -114,7 +114,7 @@ final class MessageListViewModel: ObservableObject {
                     }
                 }
             } catch {
-                print("Message channel error received: \(error)")
+                setupError = "Connection error occurred."
             }
         }
     }
