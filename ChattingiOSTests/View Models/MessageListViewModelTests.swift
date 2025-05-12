@@ -101,15 +101,20 @@ final class MessageListViewModelTests: XCTestCase {
             connectionMessageStubs: messages.models.map { .success($0) }
         )
         
+        XCTAssertFalse(sut.isConnecting)
         XCTAssertTrue(sut.messages.isEmpty)
         XCTAssertNil(sut.messageIDForListPosition)
         XCTAssertEqual(spy.closeCallCount, 0)
         
-        await setupMessageList(on: sut, spy: spy)
+        await setupMessageList(on: sut, spy: spy, shouldCompleteMessageStream: false)
         
+        XCTAssertTrue(sut.isConnecting)
         XCTAssertEqual(sut.messages, messages.displays)
         let firstReceivedMessageID = messages.displays[0].id
         XCTAssertEqual(sut.messageIDForListPosition, firstReceivedMessageID)
+        
+        await completeMessageStream(on: sut, spy: spy)
+        
         XCTAssertEqual(spy.closeCallCount, 1)
     }
     
