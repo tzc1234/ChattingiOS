@@ -35,6 +35,7 @@ final class CachingForMessageChannelDecorator: MessageChannel {
                             try? await cache.cache([message.message], for: contactID)
                             continuation.yield(message)
                         }
+                        continuation.finish()
                     } catch {
                         continuation.finish(throwing: error)
                     }
