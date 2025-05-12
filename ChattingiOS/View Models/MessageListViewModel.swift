@@ -99,17 +99,42 @@ final class MessageListViewModel: ObservableObject {
             }
             
             do {
-                for try await message in connection.messageStream {
-                    messages.append(message.message.toDisplayedModel(currentUserID: currentUserID))
+                for try await result in connection.messageStream {
+                    let metadata = result.metadata
+                    let message = result.message
+                    
+                    if let previousID = metadata.previousID, !messages.contains(where: { $0.id == previousID }) {
+                        try await loadMissingMessages(to: message.id)
+                    }
+                    
+                    messages.append(message.toDisplayedModel(currentUserID: currentUserID))
+                    canLoadMore = false
                     
                     if messageIDForListPosition == nil {
-                        messageIDForListPosition = message.message.id
+                        messageIDForListPosition = message.id
                     }
                 }
             } catch {
                 print("Message channel error received: \(error)")
             }
         }
+    }
+    
+    private func loadMissingMessages(to newLastID: Int) async throws {
+        isLoading = true
+        defer { isLoading = false }
+        
+        let params: GetMessagesParams = if let currentLastID = messages.last?.id {
+            .init(
+                contactID: contactID,
+                messageID: .betweenExcluded(from: currentLastID, to: newLastID),
+                limit: .endLimit
+            )
+        } else {
+            .init(contactID: contactID, messageID: .before(newLastID), limit: .endLimit)
+        }
+        messages += try await getMessages.get(with: params).items
+            .toDisplayedModels(currentUserID: currentUserID)
     }
     
     func loadPreviousMessages() {
@@ -125,10 +150,8 @@ final class MessageListViewModel: ObservableObject {
             do throws(UseCaseError) {
                 guard let firstMessageID = messages.first?.id else { return }
                 
-                let param = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
-                let previousMessages = try await getMessages
-                    .get(with: param)
-                    .items
+                let params = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
+                let previousMessages = try await getMessages.get(with: params).items
                     .toDisplayedModels(currentUserID: currentUserID)
                 canLoadPrevious = !previousMessages.isEmpty
                 
