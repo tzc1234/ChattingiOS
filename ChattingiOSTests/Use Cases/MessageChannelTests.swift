@@ -122,10 +122,10 @@ final class MessageChannelTests: XCTestCase {
         }
     }
     
-    func test_messageStream_finishesOnDisconnectedError() async throws {
+    func test_messageStream_deliversOnDisconnectedError() async throws {
         let (connection, _) = try await establishConnection(webSocketErrorStub: .disconnected)
         
-        await assertNoThrow({ for try await _ in connection.messageStream {} })
+        await assertThrowsError({ for try await _ in connection.messageStream {} })
     }
     
     func test_messageStream_deliversUnsupportedDataOnReceivedWebSocketInvalidData() async throws {
@@ -305,7 +305,7 @@ final class MessageChannelTests: XCTestCase {
         func start() async {
             if !messageDataStubs.isEmpty {
                 messageDataStubs.forEach { continuation.yield($0) }
-                continuation.finish(throwing: WebSocketError.disconnected)
+                continuation.finish()
             }
             
             if let webSocketErrorStub {
