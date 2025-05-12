@@ -20,17 +20,17 @@ final class MessageListViewModel: ObservableObject {
     var username: String { contact.responder.name }
     var avatarURL: URL? { contact.responder.avatarURL.map(URL.init) ?? nil }
     var isBlocked: Bool { contact.blockedByUserID != nil }
-    var isStreamingMessages: Bool { messageStreamTask != nil }
+    var isConnecting: Bool { connection != nil }
     private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
     
-    private var connection: MessageChannelConnection?
+    @Published private var connection: MessageChannelConnection?
     private var canLoadPrevious = false
     private var canLoadMore = false
     private var messagesToBeReadIDs = Set<Int>()
     
     // Expose for testing.
     private(set) var setupMessageListTask: Task<Void, Never>?
-    @Published private(set) var messageStreamTask: Task<Void, Never>?
+    private(set) var messageStreamTask: Task<Void, Never>?
     private(set) var loadPreviousMessagesTask: Task<Void, Never>?
     private(set) var loadMoreMessagesTask: Task<Void, Never>?
     private(set) var sendMessageTask: Task<Void, Never>?
@@ -77,7 +77,7 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
-    private func loadMessages() async throws {
+    private func loadMessages() async throws(UseCaseError) {
         let param = GetMessagesParams(contactID: contactID)
         let messages = try await getMessages.get(with: param).items
         canLoadPrevious = !messages.isEmpty
@@ -119,7 +119,7 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
-    private func loadMissingMessages(to newLastID: Int) async throws {
+    private func loadMissingMessages(to newLastID: Int) async throws(UseCaseError) {
         isLoading = true
         defer { isLoading = false }
         
