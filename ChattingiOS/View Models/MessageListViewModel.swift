@@ -100,10 +100,9 @@ final class MessageListViewModel: ObservableObject {
             
             do {
                 for try await result in connection.messageStream {
-                    let metadata = result.metadata
                     let message = result.message
                     
-                    if let previousID = metadata.previousID, !messages.contains(where: { $0.id == previousID }) {
+                    if let previousID = result.metadata.previousID, messages.last?.id != previousID {
                         try await loadMissingMessages(to: message.id)
                     }
                     
