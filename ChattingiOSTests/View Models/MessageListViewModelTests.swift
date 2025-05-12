@@ -414,6 +414,7 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertEqual(spy.closeCallCount, 1)
         XCTAssertNil(sut.messageStreamTask)
+        XCTAssertFalse(sut.isConnecting)
     }
     
     func test_reestablishMessageChannel_establishesConnectionSuccessfully() async {

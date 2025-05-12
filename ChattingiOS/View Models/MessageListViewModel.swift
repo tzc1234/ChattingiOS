@@ -231,8 +231,6 @@ final class MessageListViewModel: ObservableObject {
     
     func closeMessageChannel() {
         messageStreamTask?.cancel()
-        messageStreamTask = nil
-        connection = nil
     }
 }
 
