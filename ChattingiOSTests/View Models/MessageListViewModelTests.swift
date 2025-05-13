@@ -166,7 +166,31 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(spy.events, [
             .get(with: contactID),
             .establish(for: contactID),
-            .get(with: contactID, messageID: .before(firstStreamMessageID), limit: -1)
+            .get(with: contactID, messageID: .before(firstStreamMessageID), limit: .endLimit)
+        ])
+    }
+    
+    func test_loadMissingMessagesBeforeAppendingStreamMessage_loadsMessagesBetweenLastExistingMessageIDAndSteamMessageID() async {
+        let contactID = 0
+        let lastExistingMessageID = 1
+        let previousMessageID = 9
+        let streamMessageID = 10
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
+            getMessagesStubs: [
+                .success([makeMessage(id: lastExistingMessageID).model]),
+                .success([]),
+            ],
+            streamMessageStubs: [
+                .success(WebSocketMessage(makeMessage(id: streamMessageID).model, previousID: previousMessageID)),
+            ]
+        )
+        await setupMessageList(on: sut, spy: spy)
+        
+        XCTAssertEqual(spy.events, [
+            .get(with: contactID),
+            .establish(for: contactID),
+            .get(with: contactID, messageID: .betweenExcluded(from: lastExistingMessageID, to: streamMessageID), limit: .endLimit)
         ])
     }
     

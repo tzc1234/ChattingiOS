@@ -252,6 +252,6 @@ private extension [Message] {
     }
 }
 
-private extension Int? {
+extension Int? {
     static var endLimit: Int { -1 }
 }
