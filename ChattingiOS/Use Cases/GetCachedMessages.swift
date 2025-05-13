@@ -32,6 +32,13 @@ actor GetCachedMessages {
             throw .invalidData
         }
     }
+    
+    func isMessageExisted(id: Int) async -> Bool {
+        guard let currentUserID = await currentUserID() else { return false }
+        
+        let message = try? await store.retrieve(by: id, userID: currentUserID)
+        return message != nil
+    }
 }
 
 private extension CoreDataMessagesStore.MessageID {

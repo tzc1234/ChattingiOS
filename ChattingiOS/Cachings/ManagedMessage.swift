@@ -86,6 +86,15 @@ extension ManagedMessage {
         return try context.fetch(request).sorted { $0.id < $1.id }
     }
     
+    static func find(by id: Int, userID: Int, in context: NSManagedObjectContext) throws -> ManagedMessage? {
+        let request = fetchRequest(limit: 1)
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            userPredicate(with: userID),
+            NSPredicate(format: "id == %d", id)
+        ])
+        return try context.fetch(request).first
+    }
+    
     private static func fetchRequest(limit: Int) -> NSFetchRequest<ManagedMessage> {
         let request = NSFetchRequest<ManagedMessage>(entityName: ManagedMessage.entityName)
         request.returnsObjectsAsFaults = false

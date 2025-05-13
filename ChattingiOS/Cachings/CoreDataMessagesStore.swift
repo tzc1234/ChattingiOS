@@ -73,6 +73,13 @@ actor CoreDataMessagesStore {
         }
     }
     
+    func retrieve(by id: Int, userID: Int) async throws -> Message? {
+        let context = container.newBackgroundContext()
+        return try await context.perform {
+            try ManagedMessage.find(by: id, userID: userID, in: context)?.toMessage()
+        }
+    }
+    
     deinit { Self.cleanup(container) }
 }
 
