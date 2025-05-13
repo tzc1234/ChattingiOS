@@ -145,6 +145,31 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(spy.closeCallCount, 1)
     }
     
+    func test_loadMissingMessagesBeforeAppendingStreamMessage_loadsMessagesWhenHavingPreviousMessageID() async {
+        let contactID = 0
+        let previousMessageID = 9
+        let firstStreamMessageID = 10
+        let lastStreamMessageID = 11
+        let (sut, spy) = makeSUT(
+            contact: makeContact(id: contactID),
+            getMessagesStubs: [
+                .success([]),
+                .success([makeMessage(id: previousMessageID).model]),
+            ],
+            streamMessageStubs: [
+                .success(WebSocketMessage(makeMessage(id: firstStreamMessageID).model, previousID: previousMessageID)),
+                .success(WebSocketMessage(makeMessage(id: lastStreamMessageID).model)), // no previousID, will not trigger loadMessages
+            ]
+        )
+        await setupMessageList(on: sut, spy: spy)
+        
+        XCTAssertEqual(spy.events, [
+            .get(with: contactID),
+            .establish(for: contactID),
+            .get(with: contactID, messageID: .before(firstStreamMessageID), limit: -1)
+        ])
+    }
+    
     func test_loadPreviousMessages_ignoresWhenEmptyMessagesLoadedBefore() async {
         let emptyMessagesLoadedBefore = [Message]()
         let (sut, spy) = makeSUT(getMessagesStubs: [.success(emptyMessagesLoadedBefore)])
