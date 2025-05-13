@@ -25,7 +25,7 @@ final class MessageListViewModelCollaboratorsSpy {
     private var getMessagesStubs: [Result<[Message], UseCaseError>]
     private var getMessagesDelayInSeconds: [Double]
     private var establishChannelStubs: [Result<Void, MessageChannelError>]
-    private let connectionMessageStubs: [Result<Message, Error>]
+    private let streamMessageStubs: [Result<WebSocketMessage, Error>]
     private let sendMessageError: Error?
     private let file: StaticString
     private let line: UInt
@@ -33,14 +33,14 @@ final class MessageListViewModelCollaboratorsSpy {
     init(getMessagesStubs: [Result<[Message], UseCaseError>],
          getMessagesDelayInSeconds: [Double],
          establishChannelStubs: [Result<Void, MessageChannelError>],
-         connectionMessageStubs: [Result<Message, Error>],
+         streamMessageStubs: [Result<WebSocketMessage, Error>],
          sendMessageError: Error?,
          file: StaticString,
          line: UInt) {
         (self.stream, self.continuation) = AsyncThrowingStream.makeStream()
         self.getMessagesStubs = getMessagesStubs
         self.establishChannelStubs = establishChannelStubs
-        self.connectionMessageStubs = connectionMessageStubs
+        self.streamMessageStubs = streamMessageStubs
         self.getMessagesDelayInSeconds = getMessagesDelayInSeconds
         self.sendMessageError = sendMessageError
         self.file = file
@@ -93,10 +93,10 @@ extension MessageListViewModelCollaboratorsSpy: ReadMessages {
 
 extension MessageListViewModelCollaboratorsSpy: MessageChannelConnection {
     nonisolated var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
-        connectionMessageStubs.forEach { stub in
+        streamMessageStubs.forEach { stub in
             switch stub {
             case let .success(message):
-                continuation.yield(WebSocketMessage(message: message, metadata: .init(previousID: nil)))
+                continuation.yield(message)
             case let .failure(error):
                 continuation.finish(throwing: error)
             }

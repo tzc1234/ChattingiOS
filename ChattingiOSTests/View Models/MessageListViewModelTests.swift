@@ -88,7 +88,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(sut.setupError, error.toGeneralErrorMessage())
     }
     
-    func test_messageChannelConnection_deliversMessagesWhenReceivedMessagesFromMessageChannelConnection() async {
+    func test_messageStream_deliversMessagesWhenReceivedMessagesFromMessageChannelConnection() async {
         let currentUserID = 0
         let messages = [
             makeMessage(id: 0, text: "text 0", senderID: currentUserID, currentUserID: currentUserID, isRead: true),
@@ -98,7 +98,7 @@ final class MessageListViewModelTests: XCTestCase {
         let (sut, spy) = makeSUT(
             currentUserID: currentUserID,
             establishChannelStubs: [.success(())],
-            connectionMessageStubs: messages.models.map { .success($0) }
+            streamMessageStubs: messages.models.map { .success(WebSocketMessage($0)) }
         )
         
         XCTAssertFalse(sut.isConnecting)
@@ -118,7 +118,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertEqual(spy.closeCallCount, 1)
     }
     
-    func test_messageChannelConnection_stopsDeliveringMessagesOnError() async {
+    func test_messageStream_stopsDeliveringMessagesOnError() async {
         let currentUserID = 0
         let messageBeforeError = makeMessage(
             id: 0,
@@ -130,10 +130,10 @@ final class MessageListViewModelTests: XCTestCase {
         let (sut, spy) = makeSUT(
             currentUserID: currentUserID,
             establishChannelStubs: [.success(())],
-            connectionMessageStubs: [
-                .success(messageBeforeError.model),
+            streamMessageStubs: [
+                .success(WebSocketMessage(messageBeforeError.model)),
                 .failure(anyNSError()),
-                .success(messageAfterError.model)
+                .success(WebSocketMessage(messageAfterError.model)),
             ]
         )
         
@@ -596,7 +596,7 @@ final class MessageListViewModelTests: XCTestCase {
                          getMessagesStubs: [Result<[Message], UseCaseError>] = [.success([])],
                          getMessagesDelayInSeconds: [Double] = [],
                          establishChannelStubs: [Result<Void, MessageChannelError>] = [.success(())],
-                         connectionMessageStubs: [Result<Message, Error>] = [],
+                         streamMessageStubs: [Result<WebSocketMessage, Error>] = [],
                          sendMessageError: Error? = nil,
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: MessageListViewModel, spy: MessageListViewModelCollaboratorsSpy) {
@@ -604,7 +604,7 @@ final class MessageListViewModelTests: XCTestCase {
             getMessagesStubs: getMessagesStubs,
             getMessagesDelayInSeconds: getMessagesDelayInSeconds,
             establishChannelStubs: establishChannelStubs,
-            connectionMessageStubs: connectionMessageStubs,
+            streamMessageStubs: streamMessageStubs,
             sendMessageError: sendMessageError,
             file: file,
             line: line
@@ -742,4 +742,10 @@ private struct MessagePair {
 private extension [MessagePair] {
     var models: [Message] { map(\.model) }
     var displays: [DisplayedMessage] { map(\.display) }
+}
+
+private extension WebSocketMessage {
+    init(_ message: Message, previousID: Int? = nil) {
+        self.init(message: message, metadata: .init(previousID: previousID))
+    }
 }
