@@ -21,15 +21,18 @@ actor CoreDataMessagesStore {
         self.container = try Self.loadContainer(for: url, with: model)
     }
     
-    func save(_ messages: [Message], for contactID: Int) async throws {
+    func save(_ messages: [Message], for contactID: Int, userID: Int) async throws {
         guard !messages.isEmpty else { return }
         
         let context = container.newBackgroundContext()
         context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         
         try await context.perform {
-            let contact = try ManagedContact.findOrCreate(by: contactID, in: context)
-            let request = NSBatchInsertRequest(entityName: ManagedMessage.entityName, objects: messages.toObjects())
+            let contact = try ManagedContact.findOrCreate(by: contactID, userID: userID, in: context)
+            let request = NSBatchInsertRequest(
+                entityName: ManagedMessage.entityName,
+                objects: messages.toObjects(userID: userID)
+            )
             request.resultType = .objectIDs
             
             if let result = try context.execute(request) as? NSBatchInsertResult,
@@ -49,27 +52,24 @@ actor CoreDataMessagesStore {
         return try await context.perform {
             switch messageID {
             case let .before(id):
-                return try ManagedMessage.find(before: id, in: context, contactID: contactID, limit: limit).toMessages()
+                return try ManagedMessage
+                    .find(before: id, in: context, contactID: contactID, userID: userID, limit: limit)
+                    .toMessages()
             case let .after(id):
-                return try ManagedMessage.find(after: id, in: context, contactID: contactID, limit: limit).toMessages()
+                return try ManagedMessage
+                    .find(after: id, in: context, contactID: contactID, userID: userID, limit: limit)
+                    .toMessages()
             case .none:
                 let managedMessage = try ManagedMessage
                     .findByFirstUnreadMessage(in: context, contactID: contactID, userID: userID, limit: limit)
                 guard !managedMessage.isEmpty else {
-                    return try ManagedMessage.find(in: context, contactID: contactID, limit: limit).toMessages()
+                    return try ManagedMessage
+                        .find(in: context, contactID: contactID, userID: userID, limit: limit)
+                        .toMessages()
                 }
                 
                 return managedMessage.toMessages()
             }
-        }
-    }
-    
-    func deleteAll() async throws {
-        let context = container.newBackgroundContext()
-        try await context.perform {
-            let managedContacts = try ManagedContact.findAll(in: context)
-            managedContacts.forEach(context.delete)
-            try context.save()
         }
     }
     
@@ -113,19 +113,20 @@ extension CoreDataMessagesStore {
 }
 
 private extension Message {
-    func toObject() -> [String: Any] {
+    func toObject(userID: Int) -> [String: Any] {
         [
             "id": id,
             "text": text,
             "senderID": senderID,
             "isRead": isRead,
-            "createdAt": createdAt
+            "createdAt": createdAt,
+            "userID": userID
         ]
     }
 }
 
 private extension [Message] {
-    func toObjects() -> [[String: Any]] {
-        map { $0.toObject() }
+    func toObjects(userID: Int) -> [[String: Any]] {
+        map { $0.toObject(userID: userID) }
     }
 }

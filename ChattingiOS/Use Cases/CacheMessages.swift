@@ -9,14 +9,18 @@ import Foundation
 
 actor CacheMessages {
     private let store: CoreDataMessagesStore
+    private let currentUserID: () async -> Int?
     
-    init(store: CoreDataMessagesStore) {
+    init(store: CoreDataMessagesStore, currentUserID: @escaping () async -> Int?) {
         self.store = store
+        self.currentUserID = currentUserID
     }
     
     func cache(_ messages: [Message], for contactID: Int) async throws(UseCaseError) {
+        guard let currentUserID = await currentUserID() else { throw .connectivity }
+        
         do {
-            try await store.save(messages, for: contactID)
+            try await store.save(messages, for: contactID, userID: currentUserID)
         } catch {
             throw .invalidData
         }
