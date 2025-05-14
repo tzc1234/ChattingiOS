@@ -57,15 +57,15 @@ actor CoreDataMessagesStore {
                     .toMessages()
             case .after: return []
             case .none:
-                let managedMessage = try ManagedMessage
+                let managedMessages = try ManagedMessage
                     .findByFirstUnreadMessage(in: context, contactID: contactID, userID: userID, limit: limit)
-                guard !managedMessage.isEmpty else {
+                guard !managedMessages.isEmpty else {
                     return try ManagedMessage
                         .find(in: context, contactID: contactID, userID: userID, limit: limit)
                         .toMessages()
                 }
                 
-                return managedMessage.toMessages()
+                return managedMessages.toMessages()
             }
         }
     }

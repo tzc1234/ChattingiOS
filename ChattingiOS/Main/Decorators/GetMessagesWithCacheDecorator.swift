@@ -23,6 +23,7 @@ final class GetMessagesWithCacheDecorator: GetMessages {
     
     func get(with params: GetMessagesParams) async throws(UseCaseError) -> Messages {
         switch params.messageID {
+        // Only load previous/initial messages from cache.
         case .before where shouldLoadFromCache, .none where shouldLoadFromCache:
             if let cached = try? await getCachedMessages.get(with: params), !cached.isEmpty {
                 return Messages(items: cached, metadata: nil)
