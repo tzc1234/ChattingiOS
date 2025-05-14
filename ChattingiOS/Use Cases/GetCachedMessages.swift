@@ -19,7 +19,7 @@ actor GetCachedMessages {
     }
     
     func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
-        guard let currentUserID = await currentUserID() else { throw .connectivity }
+        guard let currentUserID = await currentUserID() else { return [] }
         
         do {
             return try await store.retrieve(
