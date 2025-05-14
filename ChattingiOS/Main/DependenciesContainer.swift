@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreData
 
 @MainActor
 final class DependenciesContainer {
@@ -13,6 +14,10 @@ final class DependenciesContainer {
     let contentViewModel = ContentViewModel()
     let pushNotificationHandler = PushNotificationsHandler()
     private let httpClient = URLSessionHTTPClient(session: .shared)
+    
+    private let messagesStoreURL = NSPersistentContainer.defaultDirectoryURL().appending(path: "messages-store.sqlite")
+    private lazy var messagesStore = try! CoreDataMessagesStore(url: messagesStoreURL)
+    private lazy var cacheMessages = CacheMessages(store: messagesStore, currentUserID: currentUserID)
     
     private(set) lazy var userSignIn = UserSignIn(client: httpClient) {
         try UserSignInEndpoint(params: $0).request
@@ -37,7 +42,7 @@ final class DependenciesContainer {
     private(set) lazy var newContact = DefaultNewContact(client: refreshTokenHTTPClient) { [accessToken] in
         NewContactEndpoint(accessToken: try await accessToken(), responderEmail: $0).request
     }
-    private(set) lazy var getMessages = DefaultGetMessages(client: refreshTokenHTTPClient) { [accessToken] in
+    private lazy var getMessages = DefaultGetMessages(client: refreshTokenHTTPClient) { [accessToken] in
         GetMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
     private(set) lazy var readMessages = DefaultReadMessages(client: refreshTokenHTTPClient) { [accessToken] in
@@ -70,7 +75,7 @@ final class DependenciesContainer {
         contentViewModel: contentViewModel
     )
     
-    private(set) lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [messageChannelAccessToken] in
+    private lazy var messageChannel = DefaultMessageChannel(client: refreshTokenWebSocketClient) { [messageChannelAccessToken] in
         MessageChannelEndpoint(accessToken: try await messageChannelAccessToken(), contactID: $0).request
     }
     
@@ -83,4 +88,23 @@ final class DependenciesContainer {
             return accessToken
         }
     }
+    
+    private(set) lazy var decoratedGetMessagesWithCaching = GetMessagesWithCacheDecorator(
+        getMessages: getMessages,
+        getCachedMessages: getCachedMessages,
+        cacheMessages: cacheMessages
+    )
+    
+    private lazy var getCachedMessages = GetCachedMessages(store: messagesStore, currentUserID: currentUserID)
+    
+    private var currentUserID: (@Sendable () async -> Int?) {
+        { [currentUserVault] in
+            await currentUserVault.retrieveCurrentUser()?.user.id
+        }
+    }
+    
+    private(set) lazy var decoratedMessageChannelWithCaching = CachingForMessageChannelDecorator(
+        messageChannel: messageChannel,
+        cacheMessages: cacheMessages
+    )
 }

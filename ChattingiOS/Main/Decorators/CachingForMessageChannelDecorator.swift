@@ -9,11 +9,11 @@ import Foundation
 
 final class CachingForMessageChannelDecorator: MessageChannel {
     private let messageChannel: MessageChannel
-    private let cache: CacheMessages
+    private let cacheMessages: CacheMessages
     
-    init(messageChannel: MessageChannel, cache: CacheMessages) {
+    init(messageChannel: MessageChannel, cacheMessages: CacheMessages) {
         self.messageChannel = messageChannel
-        self.cache = cache
+        self.cacheMessages = cacheMessages
     }
     
     private struct ConnectionWrapper: MessageChannelConnection {
@@ -58,6 +58,6 @@ final class CachingForMessageChannelDecorator: MessageChannel {
     
     func establish(for contactID: Int) async throws(MessageChannelError) -> MessageChannelConnection {
         let connection = try await messageChannel.establish(for: contactID)
-        return ConnectionWrapper(contactID: contactID, connection: connection, cache: cache)
+        return ConnectionWrapper(contactID: contactID, connection: connection, cache: cacheMessages)
     }
 }

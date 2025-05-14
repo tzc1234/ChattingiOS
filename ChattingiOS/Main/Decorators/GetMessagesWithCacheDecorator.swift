@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor
 final class GetMessagesWithCacheDecorator: GetMessages {
-    private var shouldLoadFromCache = false
+    private var shouldLoadFromCache = true
     
     private let getMessages: GetMessages
     private let getCachedMessages: GetCachedMessages
@@ -23,7 +23,7 @@ final class GetMessagesWithCacheDecorator: GetMessages {
     
     func get(with params: GetMessagesParams) async throws(UseCaseError) -> Messages {
         switch params.messageID {
-        case .before where shouldLoadFromCache:
+        case .before where shouldLoadFromCache, .none where shouldLoadFromCache:
             if let cached = try? await getCachedMessages.get(with: params), !cached.isEmpty {
                 return Messages(items: cached, metadata: nil)
             }
