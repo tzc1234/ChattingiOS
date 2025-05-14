@@ -89,11 +89,16 @@ final class DependenciesContainer {
         }
     }
     
-    private(set) lazy var decoratedGetMessagesWithCaching = GetMessagesWithCacheDecorator(
-        getMessages: getMessages,
-        getCachedMessages: GetCachedMessages(store: messagesStore, currentUserID: currentUserID),
-        cacheMessages: cacheMessages
-    )
+    // Reset GetMessagesWithCacheDecorator.shouldLoadFromCache every time, so using computed var.
+    var decoratedGetMessagesWithCaching: GetMessagesWithCacheDecorator {
+        GetMessagesWithCacheDecorator(
+            getMessages: getMessages,
+            getCachedMessages: getCachedMessages,
+            cacheMessages: cacheMessages
+        )
+    }
+    
+    private lazy var getCachedMessages = GetCachedMessages(store: messagesStore, currentUserID: currentUserID)
     
     private(set) lazy var decoratedReadMessagesAndCache = ReadMessageAndCacheDecorator(
         readMessages: readMessages,
