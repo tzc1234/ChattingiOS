@@ -106,7 +106,7 @@ final class DependenciesContainer {
     
     private var currentUserID: (@Sendable () async -> Int?) {
         { [currentUserVault] in
-            let currentUserID = await currentUserVault.retrieveCurrentUser()?.user.id
+            let currentUserID = await currentUserVault.retrieveCurrentUser()?.id
             assert(currentUserID != nil, "Not expect currentUserID is nil in this moment.")
             return currentUserID
         }

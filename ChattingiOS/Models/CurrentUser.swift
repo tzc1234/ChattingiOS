@@ -11,4 +11,6 @@ struct CurrentUser {
     let user: User
     let accessToken: AccessToken
     let refreshToken: String
+    
+    var id: Int { user.id }
 }
