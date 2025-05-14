@@ -31,7 +31,7 @@ actor CoreDataMessagesStore {
             let contact = try ManagedContact.findOrCreate(by: contactID, userID: userID, in: context)
             let request = NSBatchInsertRequest(
                 entityName: ManagedMessage.entityName,
-                objects: messages.toObjects(userID: userID)
+                objects: messages.toObjects(contactID: contactID, userID: userID)
             )
             request.resultType = .objectIDs
             
@@ -127,20 +127,21 @@ extension CoreDataMessagesStore {
 }
 
 private extension Message {
-    func toObject(userID: Int) -> [String: Any] {
+    func toObject(contactID: Int, userID: Int) -> [String: Any] {
         [
             "id": id,
             "text": text,
             "senderID": senderID,
             "isRead": isRead,
             "createdAt": createdAt,
+            "contactID": contactID,
             "userID": userID
         ]
     }
 }
 
 private extension [Message] {
-    func toObjects(userID: Int) -> [[String: Any]] {
-        map { $0.toObject(userID: userID) }
+    func toObjects(contactID: Int, userID: Int) -> [[String: Any]] {
+        map { $0.toObject(contactID: contactID, userID: userID) }
     }
 }

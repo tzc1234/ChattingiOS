@@ -116,7 +116,7 @@ extension ManagedMessage {
     }
     
     private static func contactPredicate(with contactID: Int) -> NSPredicate {
-        NSPredicate(format: "contact.id == %d", contactID)
+        NSPredicate(format: "contactID == %d", contactID)
     }
     
     private static func userPredicate(with userID: Int) -> NSPredicate {
