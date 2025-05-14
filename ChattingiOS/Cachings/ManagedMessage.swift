@@ -34,21 +34,6 @@ extension ManagedMessage {
         return try context.fetch(request).sorted { $0.id < $1.id }
     }
     
-    static func find(after id: Int,
-                     in context: NSManagedObjectContext,
-                     contactID: Int,
-                     userID: Int,
-                     limit: Int) throws -> [ManagedMessage] {
-        let request = fetchRequest(limit: limit)
-        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            contactPredicate(with: contactID),
-            userPredicate(with: userID),
-            NSPredicate(format: "id > %d", id)
-        ])
-        request.sortDescriptors = idSortDescriptors(ascending: true)
-        return try context.fetch(request)
-    }
-    
     static func findByFirstUnreadMessage(in context: NSManagedObjectContext,
                                          contactID: Int,
                                          userID: Int,
