@@ -45,7 +45,7 @@ final class DependenciesContainer {
     private lazy var getMessages = DefaultGetMessages(client: refreshTokenHTTPClient) { [accessToken] in
         GetMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
-    private(set) lazy var readMessages = DefaultReadMessages(client: refreshTokenHTTPClient) { [accessToken] in
+    private lazy var readMessages = DefaultReadMessages(client: refreshTokenHTTPClient) { [accessToken] in
         ReadMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
     private(set) lazy var blockContact = DefaultBlockContact(client: httpClient) { [accessToken] in
@@ -91,11 +91,14 @@ final class DependenciesContainer {
     
     private(set) lazy var decoratedGetMessagesWithCaching = GetMessagesWithCacheDecorator(
         getMessages: getMessages,
-        getCachedMessages: getCachedMessages,
+        getCachedMessages: GetCachedMessages(store: messagesStore, currentUserID: currentUserID),
         cacheMessages: cacheMessages
     )
     
-    private lazy var getCachedMessages = GetCachedMessages(store: messagesStore, currentUserID: currentUserID)
+    private(set) lazy var decoratedReadMessagesAndCache = ReadMessageAndCacheDecorator(
+        readMessages: readMessages,
+        readCachedMessages: ReadCachedMessages(store: messagesStore, currentUserID: currentUserID)
+    )
     
     private var currentUserID: (@Sendable () async -> Int?) {
         { [currentUserVault] in
