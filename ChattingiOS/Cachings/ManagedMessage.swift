@@ -57,7 +57,7 @@ extension ManagedMessage {
         firstUnreadMessageRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             contactPredicate(with: contactID),
             userPredicate(with: userID),
-            NSPredicate(format: "isRead == %@", NSNumber(value: false)),
+            isReadPredicate(isRead: false),
             NSPredicate(format: "senderID != %d", userID)
         ])
         
@@ -102,12 +102,29 @@ extension ManagedMessage {
         return request
     }
     
+    static func read(until id: Int, contactID: Int, userID: Int, in context: NSManagedObjectContext) throws {
+        let request = NSBatchUpdateRequest(entityName: ManagedMessage.entityName)
+        request.propertiesToUpdate = ["isRead": true]
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            contactPredicate(with: contactID),
+            userPredicate(with: userID),
+            isReadPredicate(isRead: false),
+            NSPredicate(format: "id <= %d", id),
+            NSPredicate(format: "senderID != %d", userID)
+        ])
+        try context.execute(request)
+    }
+    
     private static func contactPredicate(with contactID: Int) -> NSPredicate {
         NSPredicate(format: "contact.id == %d", contactID)
     }
     
     private static func userPredicate(with userID: Int) -> NSPredicate {
         NSPredicate(format: "userID == %d", userID)
+    }
+    
+    private static func isReadPredicate(isRead: Bool) -> NSPredicate {
+        NSPredicate(format: "isRead == %@", NSNumber(value: isRead))
     }
     
     private static func idSortDescriptors(ascending: Bool) -> [NSSortDescriptor] {
