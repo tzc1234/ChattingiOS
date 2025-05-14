@@ -7,7 +7,7 @@
 
 import Foundation
 
-actor ReadCachedMessages: ReadMessages {
+actor ReadCachedMessages {
     private let store: CoreDataMessagesStore
     private let currentUserID: () async -> Int?
     
