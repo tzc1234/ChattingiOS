@@ -55,6 +55,9 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func setupMessageList() {
+        generalError = nil
+        setupError = nil
+        
         isLoading = true
         setupMessageListTask = Task {
             defer { isLoading = false }
