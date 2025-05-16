@@ -20,8 +20,10 @@ struct MessageListView: View {
             isLoading: viewModel.isLoading,
             isBlocked: viewModel.isBlocked,
             generalError: $viewModel.generalError,
+            setupError: $viewModel.setupError,
             inputMessage: $viewModel.inputMessage,
             listPositionMessageID: $viewModel.messageIDForListPosition,
+            setupList: viewModel.setupMessageList,
             sendMessage: viewModel.sendMessage,
             loadPreviousMessages: viewModel.loadPreviousMessages,
             loadMoreMessages: viewModel.loadMoreMessages,
@@ -29,12 +31,6 @@ struct MessageListView: View {
             isConnecting: viewModel.isConnecting
         )
         .toolbar(.hidden, for: .tabBar)
-        .alert("⚠️Oops!", isPresented: $viewModel.setupError.toBool) {
-            Button("Retry", role: .none, action: viewModel.setupMessageList)
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(viewModel.setupError ?? "")
-        }
         .onAppear { viewModel.setupMessageList() }
         .onDisappear { viewModel.closeMessageChannel() }
         .onChange(of: scenePhase) { phase in
@@ -54,8 +50,10 @@ struct MessageListContentView: View {
     let isLoading: Bool
     let isBlocked: Bool
     @Binding var generalError: String?
+    @Binding var setupError: String?
     @Binding var inputMessage: String
     @Binding var listPositionMessageID: Int?
+    let setupList: () -> Void
     let sendMessage: () -> Void
     let loadPreviousMessages: () -> Void
     let loadMoreMessages: () -> Void
@@ -64,9 +62,15 @@ struct MessageListContentView: View {
     
     @FocusState private var textEditorFocused: Bool
     @State private var scrollToMessageID: Int?
+    @State private var showSetupError = false
     
     var body: some View {
         VStack {
+            setupErrorView
+                .onChange(of: setupError) { error in
+                    withAnimation { showSetupError = error != nil }
+                }
+            
             GeometryReader { proxy in
                 ScrollViewReader { scrollViewProxy in
                     List(messages) { message in
@@ -131,9 +135,7 @@ struct MessageListContentView: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .onTapGesture {
-            textEditorFocused = false
-        }
+        .onTapGesture { textEditorFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -162,6 +164,29 @@ struct MessageListContentView: View {
     }
     
     @ViewBuilder
+    private var setupErrorView: some View {
+        if showSetupError {
+            HStack {
+                Text((setupError ?? "") + " Switch to read-only mode.")
+                    .foregroundStyle(.white)
+                    .padding(.vertical)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Button("Connect") {
+                    setupError = nil
+                    setupList()
+                }
+                .foregroundStyle(.ctRed)
+                .padding(10)
+                .background(.background, in: .rect(cornerRadius: 8))
+            }
+            .font(.subheadline)
+            .padding(.horizontal, 20)
+            .background(.ctRed, in: .rect)
+        }
+    }
+    
+    @ViewBuilder
     private var loadingButtonLabel: some View {
         if isLoading {
             ProgressView()
@@ -186,8 +211,10 @@ struct MessageListContentView: View {
             isLoading: false,
             isBlocked: false,
             generalError: .constant(nil),
+            setupError: .constant(nil),
             inputMessage: .constant(""),
             listPositionMessageID: .constant(nil),
+            setupList: {},
             sendMessage: {},
             loadPreviousMessages: {},
             loadMoreMessages: {},
