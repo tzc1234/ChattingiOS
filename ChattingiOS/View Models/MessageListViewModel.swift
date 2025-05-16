@@ -22,6 +22,7 @@ final class MessageListViewModel: ObservableObject {
     var isBlocked: Bool { contact.blockedByUserID != nil }
     var isConnecting: Bool { connection != nil }
     private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
+    private var isReadOnlyMode: Bool { setupError != nil }
     
     @Published private var connection: MessageChannelConnection?
     private var canLoadPrevious = false
@@ -162,7 +163,9 @@ final class MessageListViewModel: ObservableObject {
                     messageIDForListPosition = firstMessageID
                 }
             } catch {
-                generalError = error.toGeneralErrorMessage()
+                if !isReadOnlyMode {
+                    generalError = error.toGeneralErrorMessage()
+                }
             }
         }
     }
@@ -180,7 +183,9 @@ final class MessageListViewModel: ObservableObject {
             do throws(UseCaseError) {
                 try await _loadMoreMessages()
             } catch {
-                generalError = error.toGeneralErrorMessage()
+                if !isReadOnlyMode {
+                    generalError = error.toGeneralErrorMessage()
+                }
             }
         }
     }
