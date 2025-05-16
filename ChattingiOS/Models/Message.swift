@@ -7,6 +7,16 @@
 
 import Foundation
 
+struct Messages {
+    struct Metadata {
+        let previousID: Int?
+        let nextID: Int?
+    }
+    
+    let items: [Message]
+    let metadata: Metadata?
+}
+
 struct Message: Equatable {
     let id: Int
     let text: String

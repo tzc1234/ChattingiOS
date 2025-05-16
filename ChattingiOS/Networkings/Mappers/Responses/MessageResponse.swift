@@ -8,12 +8,27 @@
 import Foundation
 
 struct MessagesResponse {
+    struct Metadata: Decodable {
+        let previousID: Int?
+        let nextID: Int?
+        
+        enum CodingKeys: String, CodingKey {
+            case previousID = "previous_id"
+            case nextID = "next_id"
+        }
+        
+        var toModel: Messages.Metadata {
+            Messages.Metadata(previousID: previousID, nextID: nextID)
+        }
+    }
+    
     let messages: [MessageResponse]
+    let metadata: Metadata
 }
 
 extension MessagesResponse: Response {
-    var toModel: [Message] {
-        messages.map(\.toModel)
+    var toModel: Messages {
+        Messages(items: messages.map(\.toModel), metadata: metadata.toModel)
     }
 }
 

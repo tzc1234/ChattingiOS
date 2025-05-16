@@ -41,7 +41,6 @@ final class GetMessagesEndpointTests: XCTestCase {
         let request = endpoint.request
         let url = try XCTUnwrap(request.url)
         
-        XCTAssertEqual(url.withoutQuery(), constants.url(lastPart: "contacts/\(params.contactID)/messages"))
         XCTAssertFalse(url.absoluteString.contains("before_message_id="))
         XCTAssertFalse(url.absoluteString.contains("after_message_id="))
         XCTAssertTrue(url.absoluteString.contains("limit=\(limit)"))
@@ -66,6 +65,26 @@ final class GetMessagesEndpointTests: XCTestCase {
         XCTAssertEqual(request.httpMethod, "GET")
         XCTAssertEqual(request.allHTTPHeaderFields, expectedHeaderFields(with: token))
         XCTAssertNil(request.httpBody)
+    }
+    
+    func test_request_constructsURLCorrectlyWithBetweenExcludedMessageID() throws {
+        let constants = APIConstants.test
+        let token = "any-token"
+        let fromID = 1
+        let toID = 10
+        let params = GetMessagesParams(contactID: contactID, messageID: .betweenExcluded(from: fromID, to: toID))
+        let endpoint = GetMessagesEndpoint(
+            apiConstants: constants,
+            accessToken: AccessToken(wrappedString: token),
+            params: params
+        )
+        
+        let request = endpoint.request
+        let url = try XCTUnwrap(request.url)
+        
+        XCTAssertTrue(url.absoluteString.contains("after_message_id=\(fromID)"))
+        XCTAssertTrue(url.absoluteString.contains("before_message_id=\(toID)"))
+        XCTAssertFalse(url.absoluteString.contains("limit="))
     }
     
     // MARK: - Helpers

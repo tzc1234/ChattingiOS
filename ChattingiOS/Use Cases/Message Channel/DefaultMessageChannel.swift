@@ -23,7 +23,7 @@ actor DefaultMessageChannel: MessageChannel {
             self.webSocket = webSocket
         }
         
-        var messageStream: AsyncThrowingStream<Message, Error> {
+        var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
             defer {
                 Task { await webSocket.start() }
             }
@@ -33,6 +33,7 @@ actor DefaultMessageChannel: MessageChannel {
                         for try await data in webSocket.outputStream {
                             continuation.yield(try MessageChannelReceivedMessageMapper.map(data))
                         }
+                        continuation.finish()
                     } catch let error as WebSocketError {
                         continuation.finish(throwing: error.toMessageChannelConnectionError)
                     } catch {
@@ -98,7 +99,7 @@ private extension WebSocketError {
     var toMessageChannelConnectionError: MessageChannelConnectionError? {
         switch self {
         case .disconnected:
-            .none
+            .disconnected
         case .unsupportedData:
             .unsupportedData
         case .other(let error):

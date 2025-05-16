@@ -20,31 +20,22 @@ struct MessageListView: View {
             isLoading: viewModel.isLoading,
             isBlocked: viewModel.isBlocked,
             generalError: $viewModel.generalError,
+            setupError: $viewModel.setupError,
             inputMessage: $viewModel.inputMessage,
             listPositionMessageID: $viewModel.messageIDForListPosition,
+            setupList: viewModel.setupMessageList,
             sendMessage: viewModel.sendMessage,
             loadPreviousMessages: viewModel.loadPreviousMessages,
             loadMoreMessages: viewModel.loadMoreMessages,
-            readMessages: viewModel.readMessages
+            readMessages: viewModel.readMessages,
+            isConnecting: viewModel.isConnecting
         )
-        .task {
-            await viewModel.loadMessagesAndEstablishMessageChannel()
-        }
         .toolbar(.hidden, for: .tabBar)
-        .alert("⚠️Oops!", isPresented: $viewModel.initialError.toBool) {
-            Button("Retry", role: .none) {
-                Task { await viewModel.loadMessagesAndEstablishMessageChannel() }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(viewModel.initialError ?? "")
-        }
-        .onDisappear {
-            viewModel.closeMessageChannel()
-        }
+        .onAppear { viewModel.setupMessageList() }
+        .onDisappear { viewModel.closeMessageChannel() }
         .onChange(of: scenePhase) { phase in
             if phase == .active {
-                viewModel.reestablishMessageChannel()
+                viewModel.setupMessageList()
             } else if phase == .inactive {
                 viewModel.closeMessageChannel()
             }
@@ -59,18 +50,27 @@ struct MessageListContentView: View {
     let isLoading: Bool
     let isBlocked: Bool
     @Binding var generalError: String?
+    @Binding var setupError: String?
     @Binding var inputMessage: String
     @Binding var listPositionMessageID: Int?
+    let setupList: () -> Void
     let sendMessage: () -> Void
     let loadPreviousMessages: () -> Void
     let loadMoreMessages: () -> Void
     let readMessages: (Int) -> Void
+    let isConnecting: Bool
     
     @FocusState private var textEditorFocused: Bool
     @State private var scrollToMessageID: Int?
+    @State private var showSetupError = false
     
     var body: some View {
         VStack {
+            setupErrorView
+                .onChange(of: setupError) { error in
+                    withAnimation { showSetupError = error != nil }
+                }
+            
             GeometryReader { proxy in
                 ScrollViewReader { scrollViewProxy in
                     List(messages) { message in
@@ -128,14 +128,14 @@ struct MessageListContentView: View {
                     .disabled(inputMessage.isEmpty)
                     .brightness(isLoading || inputMessage.isEmpty ? -0.1 : 0)
                 }
+                .disabled(!isConnecting)
+                .brightness(isConnecting ? 0 : -0.1)
                 .padding(.vertical, 8)
                 .padding(.horizontal, 18)
                 .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .onTapGesture {
-            textEditorFocused = false
-        }
+        .onTapGesture { textEditorFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -164,6 +164,29 @@ struct MessageListContentView: View {
     }
     
     @ViewBuilder
+    private var setupErrorView: some View {
+        if showSetupError {
+            HStack {
+                Text((setupError ?? "") + " Switch to read-only mode.")
+                    .foregroundStyle(.white)
+                    .padding(.vertical)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Button("Connect") {
+                    setupError = nil
+                    setupList()
+                }
+                .foregroundStyle(.ctRed)
+                .padding(10)
+                .background(.background, in: .rect(cornerRadius: 8))
+            }
+            .font(.subheadline)
+            .padding(.horizontal, 20)
+            .background(.ctRed, in: .rect)
+        }
+    }
+    
+    @ViewBuilder
     private var loadingButtonLabel: some View {
         if isLoading {
             ProgressView()
@@ -188,12 +211,15 @@ struct MessageListContentView: View {
             isLoading: false,
             isBlocked: false,
             generalError: .constant(nil),
+            setupError: .constant(nil),
             inputMessage: .constant(""),
             listPositionMessageID: .constant(nil),
+            setupList: {},
             sendMessage: {},
             loadPreviousMessages: {},
             loadMoreMessages: {},
-            readMessages: { _ in }
+            readMessages: { _ in },
+            isConnecting: true
         )
     }
 }

@@ -9,6 +9,7 @@ struct GetMessagesParams: Equatable {
     enum MessageID: Equatable {
         case before(Int)
         case after(Int)
+        case betweenExcluded(from: Int, to: Int)
     }
     
     let contactID: Int

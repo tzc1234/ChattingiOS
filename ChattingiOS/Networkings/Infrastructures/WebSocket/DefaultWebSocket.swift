@@ -20,6 +20,18 @@ actor DefaultWebSocket: WebSocket {
     init(asyncChannel: AsyncChannel) {
         self.asyncChannel = asyncChannel
         (self.outputStream, self.continuation) = AsyncThrowingStream.makeStream()
+        
+        Task { [weak self] in
+            guard let self else { return }
+            
+            while true {
+                try? await Task.sleep(for: .seconds(10))
+                if await !channel.isActive {
+                    continuation.finish(throwing: WebSocketError.disconnected)
+                    return
+                }
+            }
+        }
     }
     
     func close() async throws {
@@ -70,7 +82,7 @@ actor DefaultWebSocket: WebSocket {
     private func handleFrame(_ frame: WebSocketFrame) async throws {
         switch frame.opcode {
         case .binary:
-            continuation.yield(frame.toData)
+            continuation.yield(frame.toData())
         case .connectionClose:
             continuation.finish(throwing: WebSocketError.disconnected)
         case .ping, .pong:
@@ -85,7 +97,7 @@ actor DefaultWebSocket: WebSocket {
 }
 
 private extension WebSocketFrame {
-    var toData: Data {
+    func toData() -> Data {
         Data(buffer: data)
     }
 }

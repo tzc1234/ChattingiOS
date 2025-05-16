@@ -5,12 +5,13 @@
 //  Created by Tsz-Lung on 21/04/2025.
 //
 
+import XCTest
 @testable import ChattingiOS
 
 @MainActor
 final class MessageListViewModelCollaboratorsSpy {
     enum Event: Equatable {
-        case get(with: Int, GetMessagesParams.MessageID? = nil)
+        case get(with: Int, messageID: GetMessagesParams.MessageID? = nil, limit: Int? = nil)
         case establish(for: Int)
         case read(with: Int, until: Int)
     }
@@ -19,36 +20,60 @@ final class MessageListViewModelCollaboratorsSpy {
     private(set) var textsSent = [String]()
     private(set) var closeCallCount = 0
     
+    private let stream: AsyncThrowingStream<WebSocketMessage, Error>
+    private let continuation: AsyncThrowingStream<WebSocketMessage, Error>.Continuation
     private var getMessagesStubs: [Result<[Message], UseCaseError>]
     private var getMessagesDelayInSeconds: [Double]
     private var establishChannelStubs: [Result<Void, MessageChannelError>]
-    private let connectionMessageStubs: [Result<Message, Error>]
+    private let streamMessageStubs: [Result<WebSocketMessage, Error>]
     private let sendMessageError: Error?
+    private let file: StaticString
+    private let line: UInt
     
     init(getMessagesStubs: [Result<[Message], UseCaseError>],
          getMessagesDelayInSeconds: [Double],
          establishChannelStubs: [Result<Void, MessageChannelError>],
-         connectionMessageStubs: [Result<Message, Error>],
-         sendMessageError: Error?) {
+         streamMessageStubs: [Result<WebSocketMessage, Error>],
+         sendMessageError: Error?,
+         file: StaticString,
+         line: UInt) {
+        (self.stream, self.continuation) = AsyncThrowingStream.makeStream()
         self.getMessagesStubs = getMessagesStubs
         self.establishChannelStubs = establishChannelStubs
-        self.connectionMessageStubs = connectionMessageStubs
+        self.streamMessageStubs = streamMessageStubs
         self.getMessagesDelayInSeconds = getMessagesDelayInSeconds
         self.sendMessageError = sendMessageError
+        self.file = file
+        self.line = line
     }
     
     func resetEvents() {
         events.removeAll()
     }
+    
+    deinit {
+        if !getMessagesStubs.isEmpty {
+            XCTFail("getMessagesStubs still contain unused stub(s).", file: file, line: line)
+        }
+    }
 }
 
 extension MessageListViewModelCollaboratorsSpy: GetMessages {
-    func get(with params: GetMessagesParams) async throws(UseCaseError) -> [Message] {
-        events.append(.get(with: params.contactID, params.messageID))
+    func get(with params: GetMessagesParams) async throws(UseCaseError) -> Messages {
+        events.append(.get(with: params.contactID, messageID: params.messageID, limit: params.limit))
+        
         if !getMessagesDelayInSeconds.isEmpty {
-            try? await Task.sleep(for: .seconds(getMessagesDelayInSeconds.removeFirst()))
+            let delay = getMessagesDelayInSeconds.removeFirst()
+            if delay > 0 { try? await Task.sleep(for: .seconds(delay)) }
         }
-        return try getMessagesStubs.removeFirst().get()
+        
+        guard !getMessagesStubs.isEmpty else {
+            XCTFail("getMessagesStubs count invalid.", file: file, line: line)
+            return Messages(items: [], metadata: nil)
+        }
+        
+        let messages = try getMessagesStubs.removeFirst().get()
+        return Messages(items: messages, metadata: nil)
     }
 }
 
@@ -67,18 +92,20 @@ extension MessageListViewModelCollaboratorsSpy: ReadMessages {
 }
 
 extension MessageListViewModelCollaboratorsSpy: MessageChannelConnection {
-    nonisolated var messageStream: AsyncThrowingStream<Message, Error> {
-        AsyncThrowingStream { continuation in
-            connectionMessageStubs.forEach { stub in
-                switch stub {
-                case let .success(message):
-                    continuation.yield(message)
-                case let .failure(error):
-                    continuation.finish(throwing: error)
-                }
+    nonisolated var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
+        streamMessageStubs.forEach { stub in
+            switch stub {
+            case let .success(message):
+                continuation.yield(message)
+            case let .failure(error):
+                continuation.finish(throwing: error)
             }
-            continuation.finish()
         }
+        return stream
+    }
+    
+    func finishStream() {
+        continuation.finish()
     }
     
     func send(text: String) async throws {
