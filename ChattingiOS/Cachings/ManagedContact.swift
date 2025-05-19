@@ -18,6 +18,20 @@ final class ManagedContact: NSManagedObject {
 }
 
 extension ManagedContact {
+    static func findAll(in context: NSManagedObjectContext,
+                        userID: Int,
+                        exceptIDs: [Int],
+                        limit: Int) throws -> [ManagedContact] {
+        let request = NSFetchRequest<ManagedContact>(entityName: entityName)
+        request.returnsObjectsAsFaults = false
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "id NOT IN %@", exceptIDs),
+            NSPredicate(format: "userID == %d", userID)
+        ])
+        request.fetchLimit = limit
+        return try context.fetch(request)
+    }
+    
     static func findOrCreate(by id: Int, userID: Int, in context: NSManagedObjectContext) throws -> ManagedContact {
         let contact = try findOrNewInstance(by: id, userID: userID, in: context)
         try context.save()
@@ -46,4 +60,42 @@ extension ManagedContact {
     }
     
     private static var entityName: String { String(describing: Self.self) }
+    
+    func toContact(in context: NSManagedObjectContext) throws -> Contact? {
+        guard let responder else { return nil }
+        
+        return Contact(
+            id: id,
+            responder: responder.toResponder(),
+            blockedByUserID: blockedByUserID?.intValue,
+            unreadMessageCount: try unreadMessageCount(in: context),
+            createdAt: createdAt,
+            lastUpdate: try lastUpdate(in: context),
+            lastMessage: try lastMessage(in: context)?.toMessage()
+        )
+    }
+    
+    private func lastUpdate(in context: NSManagedObjectContext) throws -> Date {
+        let lastMessage = try ManagedMessage.lastMessage(in: context, contactID: id, userID: userID)
+        return lastMessage?.createdAt ?? createdAt
+    }
+    
+    private func lastMessage(in context: NSManagedObjectContext) throws -> ManagedMessage? {
+        if let firstUnreadMessage = try ManagedMessage.firstUnreadMessage(in: context, contactID: id, userID: userID) {
+            return firstUnreadMessage
+        }
+        
+        return try ManagedMessage.lastMessage(in: context, contactID: id, userID: userID)
+    }
+    
+    private func unreadMessageCount(in context: NSManagedObjectContext) throws -> Int {
+        try ManagedMessage.unreadMessageCount(in: context, contactID: id, userID: userID)
+    }
+}
+
+extension [ManagedContact] {
+    func toContacts(in context: NSManagedObjectContext) throws -> [Contact] {
+        try compactMap { try $0.toContact(in: context) }
+            .sorted { $0.lastUpdate > $1.lastUpdate }
+    }
 }

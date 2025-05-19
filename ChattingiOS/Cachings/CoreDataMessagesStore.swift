@@ -97,6 +97,14 @@ actor CoreDataMessagesStore {
         }
     }
     
+    func retrieveContacts(by userID: Int, exceptIDs: [Int], limit: Int) async throws -> [Contact] {
+        let context = container.newBackgroundContext()
+        return try await context.perform {
+            try ManagedContact.findAll(in: context, userID: userID, exceptIDs: exceptIDs, limit: limit)
+                .toContacts(in: context)
+        }
+    }
+    
     deinit { Self.cleanup(container) }
 }
 

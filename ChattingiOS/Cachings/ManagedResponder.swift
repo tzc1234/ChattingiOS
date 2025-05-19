@@ -24,4 +24,8 @@ extension ManagedResponder {
         managedResponder.avatarURL = responder.avatarURL
         return managedResponder
     }
+    
+    func toResponder() -> User {
+        User(id: id, name: name, email: email, avatarURL: avatarURL)
+    }
 }
