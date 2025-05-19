@@ -22,6 +22,7 @@ struct ContactResponse {
     let responder: UserResponse
     let blockedByUserID: Int?
     let unreadMessageCount: Int
+    let createdAt: Date
     let lastUpdate: Date
     let lastMessage: MessageResponse?
     
@@ -30,6 +31,7 @@ struct ContactResponse {
         case responder
         case blockedByUserID = "blocked_by_user_id"
         case unreadMessageCount = "unread_message_count"
+        case createdAt = "created_at"
         case lastUpdate = "last_update"
         case lastMessage = "last_message"
     }
@@ -42,6 +44,7 @@ extension ContactResponse: Response {
             responder: responder.toModel,
             blockedByUserID: blockedByUserID,
             unreadMessageCount: unreadMessageCount,
+            createdAt: createdAt,
             lastUpdate: lastUpdate,
             lastMessage: lastMessage?.toModel
         )

@@ -15,6 +15,7 @@ func makeContact(id: Int = 99,
                  avatarURL: String? = nil,
                  blockedByUserID: Int? = nil,
                  unreadMessageCount: Int = 0,
+                 createdAt: Date = .now,
                  lastUpdate: Date = .now,
                  lastMessage: Message? = nil) -> Contact {
     Contact(
@@ -22,6 +23,7 @@ func makeContact(id: Int = 99,
         responder: User(id: responderID, name: responderName, email: responderEmail, avatarURL: avatarURL),
         blockedByUserID: blockedByUserID,
         unreadMessageCount: unreadMessageCount,
+        createdAt: createdAt,
         lastUpdate: lastUpdate,
         lastMessage: lastMessage
     )

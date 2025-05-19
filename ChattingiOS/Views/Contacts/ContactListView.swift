@@ -173,7 +173,8 @@ struct ContactListContentView: View {
                     ),
                     blockedByUserID: 0,
                     unreadMessageCount: 0,
-                    lastUpdate: Date(),
+                    createdAt: .now,
+                    lastUpdate: .now,
                     lastMessage: nil
                 ),
                 Contact(
@@ -186,7 +187,8 @@ struct ContactListContentView: View {
                     ),
                     blockedByUserID: nil,
                     unreadMessageCount: 100,
-                    lastUpdate: Date(),
+                    createdAt: .now,
+                    lastUpdate: .now,
                     lastMessage: Message(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now)
                 )
             ],
