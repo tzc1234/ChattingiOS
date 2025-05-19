@@ -84,6 +84,19 @@ actor CoreDataMessagesStore {
         }
     }
     
+    func saveContacts(_ contacts: [Contact], for userID: Int) async throws {
+        let context = container.newBackgroundContext()
+        try await context.perform {
+            for contact in contacts {
+                let managedContact = try ManagedContact.findOrNewInstance(by: contact.id, userID: userID, in: context)
+                managedContact.responder = ManagedResponder.newInstance(by: contact.responder, in: context)
+                managedContact.blockedByUserID = contact.blockedByUserID.map(NSNumber.init)
+                managedContact.createdAt = contact.createdAt
+            }
+            try context.save()
+        }
+    }
+    
     deinit { Self.cleanup(container) }
 }
 

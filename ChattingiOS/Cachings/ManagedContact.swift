@@ -12,16 +12,25 @@ final class ManagedContact: NSManagedObject {
     @NSManaged var id: Int
     @NSManaged var userID: Int
     @NSManaged var messages: NSOrderedSet
+    @NSManaged var responder: ManagedResponder?
+    @NSManaged var blockedByUserID: NSNumber?
+    @NSManaged var createdAt: Date
 }
 
 extension ManagedContact {
     static func findOrCreate(by id: Int, userID: Int, in context: NSManagedObjectContext) throws -> ManagedContact {
+        let contact = try findOrNewInstance(by: id, userID: userID, in: context)
+        try context.save()
+        return contact
+    }
+    
+    static func findOrNewInstance(by id: Int, userID: Int, in context: NSManagedObjectContext) throws -> ManagedContact {
         if let contact = try find(by: id, userID: userID, in: context) { return contact }
         
         let newContact = ManagedContact(context: context)
         newContact.id = id
         newContact.userID = userID
-        try context.save()
+        newContact.createdAt = .now
         return newContact
     }
     
