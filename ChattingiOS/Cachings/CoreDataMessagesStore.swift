@@ -28,7 +28,7 @@ actor CoreDataMessagesStore {
         context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         
         try await context.perform {
-            let contact = try ManagedContact.findOrCreate(by: contactID, userID: userID, in: context)
+            let contact = try ManagedContact.findOrNewInstance(id: contactID, userID: userID, in: context)
             let request = NSBatchInsertRequest(
                 entityName: ManagedMessage.entityName,
                 objects: messages.toObjects(contactID: contactID, userID: userID)
@@ -88,7 +88,7 @@ actor CoreDataMessagesStore {
         let context = container.newBackgroundContext()
         try await context.perform {
             for contact in contacts {
-                let managedContact = try ManagedContact.findOrNewInstance(by: contact.id, userID: userID, in: context)
+                let managedContact = try ManagedContact.findOrNewInstance(id: contact.id, userID: userID, in: context)
                 managedContact.responder = ManagedResponder.newInstance(by: contact.responder, in: context)
                 managedContact.blockedByUserID = contact.blockedByUserID.map(NSNumber.init)
                 managedContact.createdAt = contact.createdAt
@@ -97,7 +97,7 @@ actor CoreDataMessagesStore {
         }
     }
     
-    func retrieveContacts(by userID: Int, exceptIDs: [Int], limit: Int) async throws -> [Contact] {
+    func retrieveContacts(by userID: Int, exceptIDs: [Int], before: Date?, limit: Int) async throws -> [Contact] {
         let context = container.newBackgroundContext()
         return try await context.perform {
             try ManagedContact.findAll(in: context, userID: userID, exceptIDs: exceptIDs, limit: limit)

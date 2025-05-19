@@ -15,6 +15,18 @@ final class ManagedContact: NSManagedObject {
     @NSManaged var responder: ManagedResponder?
     @NSManaged var blockedByUserID: NSNumber?
     @NSManaged var createdAt: Date
+    @NSManaged var lastUpdate: Date?
+    
+    private var lastMessageCreatedAt: Date? { messagesArray.max { $0.createdAt < $1.createdAt }?.createdAt }
+    private var messagesArray: [ManagedMessage] { messages.array as? [ManagedMessage] ?? [] }
+    
+    override func willSave() {
+        super.willSave()
+        
+        if let lastMessageCreatedAt, lastMessageCreatedAt > lastUpdate ?? createdAt {
+            lastUpdate = lastMessageCreatedAt
+        }
+    }
 }
 
 extension ManagedContact {
@@ -25,22 +37,24 @@ extension ManagedContact {
         let request = NSFetchRequest<ManagedContact>(entityName: entityName)
         request.returnsObjectsAsFaults = false
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(format: "id NOT IN %@", exceptIDs),
+            NSPredicate(format: "NOT (id IN %@)", exceptIDs),
             NSPredicate(format: "userID == %d", userID)
         ])
         request.fetchLimit = limit
-        return try context.fetch(request)
+        let result = try context.fetch(request)
+        
+        return result
     }
     
-    static func findOrCreate(by id: Int, userID: Int, in context: NSManagedObjectContext) throws -> ManagedContact {
-        let contact = try findOrNewInstance(by: id, userID: userID, in: context)
-        try context.save()
+    static func findOrNewInstance(id: Int, userID: Int, in context: NSManagedObjectContext) throws -> ManagedContact {
+        guard let contact = try find(by: id, userID: userID, in: context) else {
+            return newInstance(by: id, userID: userID, in: context)
+        }
+        
         return contact
     }
     
-    static func findOrNewInstance(by id: Int, userID: Int, in context: NSManagedObjectContext) throws -> ManagedContact {
-        if let contact = try find(by: id, userID: userID, in: context) { return contact }
-        
+    private static func newInstance(by id: Int, userID: Int, in context: NSManagedObjectContext) -> ManagedContact {
         let newContact = ManagedContact(context: context)
         newContact.id = id
         newContact.userID = userID
@@ -70,14 +84,9 @@ extension ManagedContact {
             blockedByUserID: blockedByUserID?.intValue,
             unreadMessageCount: try unreadMessageCount(in: context),
             createdAt: createdAt,
-            lastUpdate: try lastUpdate(in: context),
+            lastUpdate: lastUpdate ?? createdAt,
             lastMessage: try lastMessage(in: context)?.toMessage()
         )
-    }
-    
-    private func lastUpdate(in context: NSManagedObjectContext) throws -> Date {
-        let lastMessage = try ManagedMessage.lastMessage(in: context, contactID: id, userID: userID)
-        return lastMessage?.createdAt ?? createdAt
     }
     
     private func lastMessage(in context: NSManagedObjectContext) throws -> ManagedMessage? {
