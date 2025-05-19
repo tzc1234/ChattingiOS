@@ -34,6 +34,7 @@ final class ContactListViewModel: ObservableObject {
     }
     
     func loadContacts() async {
+        contacts = []
         do {
             let params = GetContactsParams(before: nil)
             contacts = try await getContacts.get(with: params)
@@ -44,9 +45,11 @@ final class ContactListViewModel: ObservableObject {
     }
     
     func loadMoreContacts() {
-        guard canLoadMore else { return }
+        guard canLoadMore, loadMoreTask == nil else { return }
         
         loadMoreTask = Task {
+            defer { loadMoreTask = nil }
+            
             do throws(UseCaseError) {
                 let lastUpdate = contacts.last?.lastUpdate
                 let params = GetContactsParams(before: lastUpdate)

@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ContactListView<AlertContent: View>: View {
     @State private var alertState = AlertState()
-    @State private var lastContact: Contact?
     
     @ObservedObject var viewModel: ContactListViewModel
     @ViewBuilder let alertContent: (Binding<AlertState>) -> AlertContent
@@ -18,26 +17,17 @@ struct ContactListView<AlertContent: View>: View {
     var body: some View {
         ContactListContentView(
             contacts: viewModel.contacts,
-            lastContact: $lastContact,
             generalError: $viewModel.generalError,
             message: $viewModel.message,
             isLoading: viewModel.isLoading,
+            loadMoreContacts: viewModel.loadMoreContacts,
             blockContact: viewModel.blockContact,
             unblockContact: viewModel.unblockContact,
             canUnblock: viewModel.canUnblock,
             rowTapped: rowTapped
         )
-        .task {
-            await viewModel.loadContacts()
-        }
-        .refreshable {
-            await viewModel.loadContacts()
-        }
-        .onChange(of: viewModel.contacts) { contacts in
-            if let lastContact, contacts.last != lastContact {
-                viewModel.loadMoreContacts()
-            }
-        }
+        .task { await viewModel.loadContacts() }
+        .refreshable { await viewModel.loadContacts() }
         .toolbar {
             Button {
                 alertState.present()
@@ -53,10 +43,10 @@ struct ContactListView<AlertContent: View>: View {
 
 struct ContactListContentView: View {
     let contacts: [Contact]
-    @Binding var lastContact: Contact?
     @Binding var generalError: String?
     @Binding var message: String?
     let isLoading: Bool
+    let loadMoreContacts: () -> Void
     let blockContact: (Int) -> Void
     let unblockContact: (Int) -> Void
     let canUnblock: (Int) -> Bool
@@ -95,9 +85,7 @@ struct ContactListContentView: View {
                     rowTapped(contact)
                 }
                 .onAppear {
-                    if contacts.last == contact {
-                        lastContact = contact
-                    }
+                    if contacts.last == contact { loadMoreContacts() }
                 }
                 .swipeActions {
                     swipeAction(contact: contact)
@@ -192,10 +180,10 @@ struct ContactListContentView: View {
                     lastMessage: Message(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now)
                 )
             ],
-            lastContact: .constant(nil),
             generalError: .constant(nil),
             message: .constant("New contact added."),
             isLoading: false,
+            loadMoreContacts: {},
             blockContact: { _ in },
             unblockContact: { _ in },
             canUnblock: { _ in true },
