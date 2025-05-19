@@ -15,23 +15,28 @@ final class ManagedContact: NSManagedObject {
     @NSManaged var responder: ManagedResponder?
     @NSManaged var blockedByUserID: NSNumber?
     @NSManaged var createdAt: Date
-    @NSManaged var lastUpdate: Date?
+    @NSManaged var lastUpdate: Date
 }
 
 extension ManagedContact {
     static func findAll(in context: NSManagedObjectContext,
                         userID: Int,
                         exceptIDs: [Int],
+                        before: Date?,
                         limit: Int) throws -> [ManagedContact] {
         let request = NSFetchRequest<ManagedContact>(entityName: entityName)
         request.returnsObjectsAsFaults = false
-        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+        var predicates = [
             NSPredicate(format: "NOT (id IN %@)", exceptIDs),
             NSPredicate(format: "userID == %d", userID)
-        ])
+        ]
+        if let before {
+            predicates.append(NSPredicate(format: "lastUpdate < %@", before as CVarArg))
+        }
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
         request.fetchLimit = limit
         let result = try context.fetch(request)
-        
+        print("result: \(result)")
         return result
     }
     
@@ -48,6 +53,7 @@ extension ManagedContact {
         newContact.id = id
         newContact.userID = userID
         newContact.createdAt = .now
+        newContact.lastUpdate = .distantPast
         return newContact
     }
     
@@ -65,9 +71,9 @@ extension ManagedContact {
     private static var entityName: String { String(describing: Self.self) }
     
     func setLastUpdate(_ date: Date) {
-        if date > lastUpdate ?? .distantPast {
-            lastUpdate = date
-        }
+        guard date > lastUpdate else { return }
+        
+        lastUpdate = date
     }
     
     func toContact(in context: NSManagedObjectContext) throws -> Contact? {
@@ -79,7 +85,7 @@ extension ManagedContact {
             blockedByUserID: blockedByUserID?.intValue,
             unreadMessageCount: try unreadMessageCount(in: context),
             createdAt: createdAt,
-            lastUpdate: lastUpdate ?? createdAt,
+            lastUpdate: lastUpdate,
             lastMessage: try lastMessage(in: context)?.toMessage()
         )
     }
