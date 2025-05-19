@@ -16,17 +16,6 @@ final class ManagedContact: NSManagedObject {
     @NSManaged var blockedByUserID: NSNumber?
     @NSManaged var createdAt: Date
     @NSManaged var lastUpdate: Date?
-    
-    private var lastMessageCreatedAt: Date? { messagesArray.max { $0.createdAt < $1.createdAt }?.createdAt }
-    private var messagesArray: [ManagedMessage] { messages.array as? [ManagedMessage] ?? [] }
-    
-    override func willSave() {
-        super.willSave()
-        
-        if let lastMessageCreatedAt, lastMessageCreatedAt > lastUpdate ?? createdAt {
-            lastUpdate = lastMessageCreatedAt
-        }
-    }
 }
 
 extension ManagedContact {
@@ -74,6 +63,12 @@ extension ManagedContact {
     }
     
     private static var entityName: String { String(describing: Self.self) }
+    
+    func setLastUpdate(_ date: Date) {
+        if date > lastUpdate ?? .distantPast {
+            lastUpdate = date
+        }
+    }
     
     func toContact(in context: NSManagedObjectContext) throws -> Contact? {
         guard let responder else { return nil }

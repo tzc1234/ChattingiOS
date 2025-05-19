@@ -38,8 +38,10 @@ actor CoreDataMessagesStore {
             if let result = try context.execute(request) as? NSBatchInsertResult,
                let objectIDs = result.result as? [NSManagedObjectID] {
                 for objectID in objectIDs {
-                    let managedMessage = try context.existingObject(with: objectID) as? ManagedMessage
-                    managedMessage?.contact = contact
+                    if let managedMessage = try context.existingObject(with: objectID) as? ManagedMessage {
+                        managedMessage.contact = contact
+                        contact.setLastUpdate(managedMessage.createdAt)
+                    }
                 }
             }
             
