@@ -20,7 +20,7 @@ actor CacheMessages {
         guard let currentUserID = await currentUserID() else { return }
         
         do {
-            try await store.save(messages, for: contactID, userID: currentUserID)
+            try await store.saveMessages(messages, for: contactID, userID: currentUserID)
         } catch {
             throw .invalidData
         }

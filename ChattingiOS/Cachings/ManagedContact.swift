@@ -35,9 +35,7 @@ extension ManagedContact {
         }
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
         request.fetchLimit = limit
-        let result = try context.fetch(request)
-        print("result: \(result)")
-        return result
+        return try context.fetch(request)
     }
     
     static func findOrNewInstance(id: Int, userID: Int, in context: NSManagedObjectContext) throws -> ManagedContact {
