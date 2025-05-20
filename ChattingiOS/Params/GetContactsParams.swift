@@ -9,9 +9,9 @@ import Foundation
 
 struct GetContactsParams: Equatable {
     let before: Date?
-    let limit: UInt?
+    let limit: Int?
     
-    init(before: Date?, limit: UInt? = nil) {
+    init(before: Date?, limit: Int? = nil) {
         self.before = before
         self.limit = limit
     }
