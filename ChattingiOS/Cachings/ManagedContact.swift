@@ -70,6 +70,15 @@ extension ManagedContact {
     
     private static var entityName: String { String(describing: Self.self) }
     
+    func updateOrNewResponder(by user: User, in context: NSManagedObjectContext) {
+        let managedResponder = responder ?? ManagedResponder(context: context)
+        managedResponder.id = user.id
+        managedResponder.name = user.name
+        managedResponder.email = user.email
+        managedResponder.avatarURL = user.avatarURL
+        self.responder = managedResponder
+    }
+    
     func setLastUpdate(_ date: Date) {
         guard date > lastUpdate else { return }
         
@@ -90,16 +99,16 @@ extension ManagedContact {
         )
     }
     
+    private func unreadMessageCount(in context: NSManagedObjectContext) throws -> Int {
+        try ManagedMessage.unreadMessageCount(in: context, contactID: id, userID: userID)
+    }
+    
     private func lastMessage(in context: NSManagedObjectContext) throws -> ManagedMessage? {
         if let firstUnreadMessage = try ManagedMessage.firstUnreadMessage(in: context, contactID: id, userID: userID) {
             return firstUnreadMessage
         }
         
         return try ManagedMessage.lastMessage(in: context, contactID: id, userID: userID)
-    }
-    
-    private func unreadMessageCount(in context: NSManagedObjectContext) throws -> Int {
-        try ManagedMessage.unreadMessageCount(in: context, contactID: id, userID: userID)
     }
 }
 

@@ -49,7 +49,7 @@ actor CoreDataMessagesStore {
         }
     }
     
-    func retrieve(for messageID: MessageID?, contactID: Int, userID: Int, limit: Int) async throws -> [Message] {
+    func retrieve(by messageID: MessageID?, contactID: Int, userID: Int, limit: Int) async throws -> [Message] {
         let context = container.newBackgroundContext()
         return try await context.perform {
             switch messageID {
@@ -91,7 +91,7 @@ actor CoreDataMessagesStore {
         try await context.perform {
             for contact in contacts {
                 let managedContact = try ManagedContact.findOrNewInstance(id: contact.id, userID: userID, in: context)
-                managedContact.responder = ManagedResponder.newInstance(by: contact.responder, in: context)
+                managedContact.updateOrNewResponder(by: contact.responder, in: context)
                 managedContact.blockedByUserID = contact.blockedByUserID.map(NSNumber.init)
                 managedContact.createdAt = contact.createdAt
                 managedContact.setLastUpdate(contact.createdAt)
@@ -100,7 +100,7 @@ actor CoreDataMessagesStore {
         }
     }
     
-    func retrieveContacts(by userID: Int, exceptIDs: [Int], before: Date?, limit: Int) async throws -> [Contact] {
+    func retrieveContacts(for userID: Int, exceptIDs: [Int], before: Date?, limit: Int) async throws -> [Contact] {
         let context = container.newBackgroundContext()
         return try await context.perform {
             try ManagedContact.findAll(in: context, userID: userID, exceptIDs: exceptIDs, before: before, limit: limit)

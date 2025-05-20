@@ -23,7 +23,7 @@ actor GetCachedMessages {
         
         do {
             return try await store.retrieve(
-                for: .init(params.messageID),
+                by: .init(params.messageID),
                 contactID: params.contactID,
                 userID: currentUserID,
                 limit: params.limit ?? defaultLimit

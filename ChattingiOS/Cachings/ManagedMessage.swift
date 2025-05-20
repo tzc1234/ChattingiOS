@@ -126,7 +126,6 @@ extension ManagedMessage {
             isReadPredicate(isRead: false),
             NSPredicate(format: "senderID != %d", userID)
         ])
-        request.resultType = .countResultType
         return try context.count(for: request)
     }
     

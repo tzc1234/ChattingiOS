@@ -16,15 +16,6 @@ final class ManagedResponder: NSManagedObject {
 }
 
 extension ManagedResponder {
-    static func newInstance(by responder: User, in context: NSManagedObjectContext) -> ManagedResponder {
-        let managedResponder = ManagedResponder(context: context)
-        managedResponder.id = responder.id
-        managedResponder.name = responder.name
-        managedResponder.email = responder.email
-        managedResponder.avatarURL = responder.avatarURL
-        return managedResponder
-    }
-    
     func toResponder() -> User {
         User(id: id, name: name, email: email, avatarURL: avatarURL)
     }
