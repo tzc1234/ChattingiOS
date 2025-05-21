@@ -13,7 +13,12 @@ final class DependenciesContainer {
     let currentUserVault = DefaultCurrentUserVault()
     let contentViewModel = ContentViewModel()
     let pushNotificationHandler = PushNotificationsHandler()
-    private let httpClient = URLSessionHTTPClient(session: .shared)
+    
+    private let httpClient: URLSessionHTTPClient = {
+        let configuration = URLSessionConfiguration.default
+        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+        return URLSessionHTTPClient(session: URLSession(configuration: configuration))
+    }()
     
     private let messagesStoreURL = NSPersistentContainer.defaultDirectoryURL().appending(path: "messages-store.sqlite")
     private lazy var messagesStore = try! CoreDataMessagesStore(url: messagesStoreURL)
@@ -107,10 +112,9 @@ final class DependenciesContainer {
     
     private(set) lazy var decoratedGetContactsWithCache = GetContactsWithCacheDecorator(
         getContacts: getContacts,
-        getCachedContacts: getCachedContacts,
+        getCachedContacts: GetCachedContacts(store: messagesStore, currentUserID: currentUserID),
         cache: cacheContacts
     )
-    private lazy var getCachedContacts = GetCachedContacts(store: messagesStore, currentUserID: currentUserID)
     
     private(set) lazy var decoratedBlockContactWithCache = CachingBlockContactDecorator(
         blockContact: blockContact,
