@@ -24,7 +24,8 @@ struct ContactListView<AlertContent: View>: View {
             blockContact: viewModel.blockContact,
             unblockContact: viewModel.unblockContact,
             canUnblock: viewModel.canUnblock,
-            rowTapped: rowTapped
+            rowTapped: rowTapped,
+            loadAvatarData: viewModel.loadAvatarData
         )
         .task { await viewModel.loadContacts() }
         .refreshable { await viewModel.loadContacts() }
@@ -51,6 +52,7 @@ struct ContactListContentView: View {
     let unblockContact: (Int) -> Void
     let canUnblock: (Int) -> Bool
     let rowTapped: (Contact) -> Void
+    let loadAvatarData: (URL) async -> Data?
     
     @State private var isFullScreenCoverPresenting = false
     @State private var messageDisplayed = ""
@@ -75,10 +77,19 @@ struct ContactListContentView: View {
             
             List(contacts) { contact in
                 ContactView(
-                    responder: contact.responder,
+                    responderName: contact.responder.name,
                     unreadCount: contact.unreadMessageCount,
                     isBlocked: contact.blockedByUserID != nil,
-                    lastMessageText: contact.lastMessage?.text
+                    lastMessageText: contact.lastMessage?.text,
+                    loadAvatar: {
+                        guard let urlString = contact.responder.avatarURL,
+                              let url = URL(string: urlString),
+                              let data = await loadAvatarData(url) else {
+                            return nil
+                        }
+                        
+                        return UIImage(data: data)
+                    }
                 )
                 .background(.white.opacity(0.01))
                 .onTapGesture {
@@ -187,7 +198,8 @@ struct ContactListContentView: View {
             blockContact: { _ in },
             unblockContact: { _ in },
             canUnblock: { _ in true },
-            rowTapped: { _ in }
+            rowTapped: { _ in },
+            loadAvatarData: { _ in nil }
         )
     }
 }

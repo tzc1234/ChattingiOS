@@ -421,7 +421,9 @@ final class ContactListViewModelTests: XCTestCase {
             currentUserID: currentUserID,
             getContacts: spy,
             blockContact: spy,
-            unblockContact: spy)
+            unblockContact: spy,
+            loadImageData: spy
+        )
         trackMemoryLeak(spy, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)
         return (sut, spy)
@@ -454,7 +456,7 @@ final class ContactListViewModelTests: XCTestCase {
     }
     
     @MainActor
-    private final class CollaboratorsSpy: GetContacts, BlockContact, UnblockContact {
+    private final class CollaboratorsSpy: GetContacts, BlockContact, UnblockContact, LoadImageData {
         enum Message: Equatable {
             case get(with: GetContactsParams)
             case block(for: Int)
@@ -488,6 +490,10 @@ final class ContactListViewModelTests: XCTestCase {
         func unblock(for contactID: Int) async throws(UseCaseError) -> Contact {
             messages.append(.unblock(for: contactID))
             return try unblockContactStubs.removeFirst().get()
+        }
+        
+        func load(for url: URL) async throws(UseCaseError) -> Data {
+            Data()
         }
     }
 }

@@ -158,7 +158,8 @@ final class Flow {
                 currentUserID: currentUserID,
                 getContacts: dependencies.decoratedGetContactsWithCache,
                 blockContact: dependencies.decoratedBlockContactWithCache,
-                unblockContact: dependencies.decoratedUnblockContactWithCache
+                unblockContact: dependencies.decoratedUnblockContactWithCache,
+                loadImageData: dependencies.loadImageData
             )
             contactListViewModel = viewModel
             return viewModel
