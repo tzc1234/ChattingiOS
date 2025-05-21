@@ -33,7 +33,7 @@ final class DependenciesContainer {
         contentViewModel: contentViewModel
     )
     
-    private(set) lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken] in
+    private lazy var getContacts = DefaultGetContacts(client: refreshTokenHTTPClient) { [accessToken] in
         GetContactsEndpoint(accessToken: try await accessToken(), params: $0).request
     }
     private(set) lazy var newContact = DefaultNewContact(client: refreshTokenHTTPClient) { [accessToken] in
@@ -103,6 +103,14 @@ final class DependenciesContainer {
         readMessages: readMessages,
         readCachedMessages: ReadCachedMessages(store: messagesStore, currentUserID: currentUserID)
     )
+    
+    private(set) lazy var decoratedGetContactsWithCache = GetContactsWithCacheDecorator(
+        getContacts: getContacts,
+        getCachedContacts: getCachedContacts,
+        cache: cacheContacts
+    )
+    private lazy var getCachedContacts = GetCachedContacts(store: messagesStore, currentUserID: currentUserID)
+    private lazy var cacheContacts = CacheContacts(store: messagesStore, currentUserID: currentUserID)
     
     private var currentUserID: (@Sendable () async -> Int?) {
         { [currentUserVault] in
