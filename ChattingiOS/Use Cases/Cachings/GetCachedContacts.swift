@@ -18,7 +18,7 @@ actor GetCachedContacts {
         self.currentUserID = currentUserID
     }
     
-    func get(with params: GetContactsParams, exceptIDs: [Int]) async throws(UseCaseError) -> [Contact] {
+    func get(with params: GetContactsParams, exceptIDs: Set<Int>) async throws(UseCaseError) -> [Contact] {
         guard let currentUserID = await currentUserID() else { return [] }
         
         do {

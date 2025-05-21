@@ -21,7 +21,7 @@ final class ManagedContact: NSManagedObject {
 extension ManagedContact {
     static func findAll(in context: NSManagedObjectContext,
                         userID: Int,
-                        exceptIDs: [Int],
+                        exceptIDs: Set<Int>,
                         before: Date?,
                         limit: Int) throws -> [ManagedContact] {
         let request = NSFetchRequest<ManagedContact>(entityName: entityName)

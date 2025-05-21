@@ -22,7 +22,7 @@ extension CoreDataMessagesStore {
         }
     }
     
-    func retrieveContacts(for userID: Int, exceptIDs: [Int], before: Date?, limit: Int) async throws -> [Contact] {
+    func retrieveContacts(for userID: Int, exceptIDs: Set<Int>, before: Date?, limit: Int) async throws -> [Contact] {
         let context = container.newBackgroundContext()
         return try await context.perform {
             try ManagedContact.findAll(in: context, userID: userID, exceptIDs: exceptIDs, before: before, limit: limit)
