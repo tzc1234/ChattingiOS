@@ -157,8 +157,8 @@ final class Flow {
             let viewModel = ContactListViewModel(
                 currentUserID: currentUserID,
                 getContacts: dependencies.decoratedGetContactsWithCache,
-                blockContact: dependencies.blockContact,
-                unblockContact: dependencies.unblockContact
+                blockContact: dependencies.decoratedBlockContactWithCache,
+                unblockContact: dependencies.decoratedUnblockContactWithCache
             )
             contactListViewModel = viewModel
             return viewModel

@@ -45,10 +45,10 @@ final class DependenciesContainer {
     private lazy var readMessages = DefaultReadMessages(client: refreshTokenHTTPClient) { [accessToken] in
         ReadMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
     }
-    private(set) lazy var blockContact = DefaultBlockContact(client: refreshTokenHTTPClient) { [accessToken] in
+    private lazy var blockContact = DefaultBlockContact(client: refreshTokenHTTPClient) { [accessToken] in
         BlockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
     }
-    private(set) lazy var unblockContact = DefaultUnblockContact(client: refreshTokenHTTPClient) { [accessToken] in
+    private lazy var unblockContact = DefaultUnblockContact(client: refreshTokenHTTPClient) { [accessToken] in
         UnblockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
     }
     
@@ -110,6 +110,16 @@ final class DependenciesContainer {
         cache: cacheContacts
     )
     private lazy var getCachedContacts = GetCachedContacts(store: messagesStore, currentUserID: currentUserID)
+    
+    private(set) lazy var decoratedBlockContactWithCache = CachingBlockContactDecorator(
+        blockContact: blockContact,
+        cache: cacheContacts
+    )
+    private(set) lazy var decoratedUnblockContactWithCache = CachingUnblockContactDecorator(
+        unblockContact: unblockContact,
+        cache: cacheContacts
+    )
+    
     private lazy var cacheContacts = CacheContacts(store: messagesStore, currentUserID: currentUserID)
     
     private var currentUserID: (@Sendable () async -> Int?) {
