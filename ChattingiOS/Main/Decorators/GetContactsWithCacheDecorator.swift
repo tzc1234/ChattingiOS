@@ -22,11 +22,12 @@ final class GetContactsWithCacheDecorator: GetContacts {
     }
     
     func get(with params: GetContactsParams) async throws(UseCaseError) -> [Contact] {
+        // Initial load contacts, reset exceptContactIDs.
+        if params.before == nil {
+            exceptContactIDs.removeAll()
+        }
+        
         do {
-            if params.before == nil { // Initial load contacts, reset exceptContactIDs.
-                exceptContactIDs.removeAll()
-            }
-            
             let contacts = try await getContacts.get(with: params)
             try? await cache.cache(contacts)
             

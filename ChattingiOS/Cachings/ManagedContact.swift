@@ -34,6 +34,7 @@ extension ManagedContact {
             predicates.append(NSPredicate(format: "lastUpdate < %@", before as CVarArg))
         }
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedContact.lastUpdate, ascending: false)]
         request.fetchLimit = limit
         return try context.fetch(request)
     }
