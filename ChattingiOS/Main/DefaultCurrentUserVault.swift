@@ -35,7 +35,7 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         let id: Int
         let name: String
         let email: String
-        let avatarURL: String?
+        let avatarURL: URL?
         
         init(_ user: User) {
             self.id = user.id

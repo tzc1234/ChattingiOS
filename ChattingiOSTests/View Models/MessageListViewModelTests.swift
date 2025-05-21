@@ -18,7 +18,7 @@ final class MessageListViewModelTests: XCTestCase {
     
     func test_init_deliversContactInfoCorrectly() {
         let avatarURL = URL(string: "http://avatar-url.com")!
-        let contact = makeContact(responderName: "a name", avatarURL: avatarURL.absoluteString, blockedByUserID: 0)
+        let contact = makeContact(responderName: "a name", avatarURL: avatarURL, blockedByUserID: 0)
         let (sut, _) = makeSUT(contact: contact, getMessagesStubs: [])
         
         XCTAssertEqual(sut.username, contact.responder.name)

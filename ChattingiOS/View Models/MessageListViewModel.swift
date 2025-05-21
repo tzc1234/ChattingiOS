@@ -18,7 +18,7 @@ final class MessageListViewModel: ObservableObject {
     
     private var contactID: Int { contact.id }
     var username: String { contact.responder.name }
-    var avatarURL: URL? { contact.responder.avatarURL.map(URL.init) ?? nil }
+    var avatarURL: URL? { contact.responder.avatarURL }
     var isBlocked: Bool { contact.blockedByUserID != nil }
     var isConnecting: Bool { connection != nil }
     private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }

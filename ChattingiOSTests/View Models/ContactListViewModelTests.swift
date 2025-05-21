@@ -47,7 +47,7 @@ final class ContactListViewModelTests: XCTestCase {
             makeContact(
                 id: 0,
                 responderID: 1,
-                avatarURL: "http://avatar-url.com",
+                avatarURL: URL(string: "http://avatar-url.com")!,
                 blockedByUserID: 0,
                 unreadMessageCount: 10,
                 lastUpdate: .distantFuture,

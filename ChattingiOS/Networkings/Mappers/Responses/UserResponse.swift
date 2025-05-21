@@ -5,11 +5,13 @@
 //  Created by Tsz-Lung on 16/12/2024.
 //
 
+import Foundation
+
 struct UserResponse {
     let id: Int
     let name: String
     let email: String
-    let avatarURL: String?
+    let avatarURL: URL?
     
     enum CodingKeys: String, CodingKey {
         case id

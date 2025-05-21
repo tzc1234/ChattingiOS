@@ -12,7 +12,7 @@ final class ManagedResponder: NSManagedObject {
     @NSManaged var id: Int
     @NSManaged var name: String
     @NSManaged var email: String
-    @NSManaged var avatarURL: String?
+    @NSManaged var avatarURL: URL?
 }
 
 extension ManagedResponder {

@@ -82,9 +82,7 @@ struct ContactListContentView: View {
                     isBlocked: contact.blockedByUserID != nil,
                     lastMessageText: contact.lastMessage?.text,
                     loadAvatar: {
-                        guard let urlString = contact.responder.avatarURL,
-                              let url = URL(string: urlString),
-                              let data = await loadAvatarData(url) else {
+                        guard let url = contact.responder.avatarURL, let data = await loadAvatarData(url) else {
                             return nil
                         }
                         

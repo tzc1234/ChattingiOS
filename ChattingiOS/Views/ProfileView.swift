@@ -18,7 +18,7 @@ struct ProfileView: View {
             CTCardView {
                 VStack(spacing: 12) {
                     VStack(spacing: 4) {
-                        AsyncImage(url: user.avatarURL.map(URL.init) ?? nil) { image in
+                        AsyncImage(url: user.avatarURL) { image in
                             image
                                 .resizable()
                                 .scaledToFill()
@@ -55,7 +55,7 @@ struct ProfileView: View {
             id: 0,
             name: "User",
             email: "email@email.com",
-            avatarURL: "http://url.com"),
+            avatarURL: nil),
             signOutTapped: {}
         )
         .tabItem {
