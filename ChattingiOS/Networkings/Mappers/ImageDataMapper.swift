@@ -10,6 +10,8 @@ import Foundation
 enum ImageDataMapper: ResponseMapper {
     static func map(_ data: Data, response: HTTPURLResponse) throws(MapperError) -> Data {
         try validate(response, with: data)
+        guard !data.isEmpty else { throw .mapping }
+        
         return data
     }
 }
