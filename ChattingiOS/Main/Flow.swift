@@ -140,7 +140,7 @@ final class Flow {
     }
     
     private func profileView(user: User) -> ProfileView {
-        let viewModel = ProfileViewModel(user: user, loadImageData: dependencies.loadImageData)
+        let viewModel = ProfileViewModel(user: user, loadImageData: dependencies.decoratedLoadImageDataWithCache)
         return ProfileView(viewModel: viewModel, signOutTapped: { [unowned self] in
             Task {
                 try? await currentUserVault.deleteCurrentUser()
@@ -160,7 +160,7 @@ final class Flow {
                 getContacts: dependencies.decoratedGetContactsWithCache,
                 blockContact: dependencies.decoratedBlockContactWithCache,
                 unblockContact: dependencies.decoratedUnblockContactWithCache,
-                loadImageData: dependencies.loadImageData
+                loadImageData: dependencies.decoratedLoadImageDataWithCache
             )
             contactListViewModel = viewModel
             return viewModel
@@ -200,7 +200,7 @@ final class Flow {
             getMessages: dependencies.decoratedGetMessagesWithCaching,
             messageChannel: dependencies.decoratedMessageChannelWithCaching,
             readMessages: dependencies.decoratedReadMessagesAndCache,
-            loadImageData: dependencies.loadImageData
+            loadImageData: dependencies.decoratedLoadImageDataWithCache
         )
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
         navigationControl.show(next: destination)

@@ -19,8 +19,8 @@ final class LoadImageDataWithCacheDecorator: LoadImageData {
     }
     
     func load(for url: URL) async throws(UseCaseError) -> Data {
-        if let cachedData = try? await loadCachedImageData.load(for: url) {
-            return cachedData
+        if let cached = try? await loadCachedImageData.load(for: url) {
+            return cached
         }
         
         let data = try await loadImageData.load(for: url)

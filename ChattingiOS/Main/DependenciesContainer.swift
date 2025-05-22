@@ -26,7 +26,13 @@ final class DependenciesContainer {
     
     private(set) lazy var userSignIn = UserSignIn(client: httpClient) { try UserSignInEndpoint(params: $0).request }
     private(set) lazy var userSignUp = UserSignUp(client: httpClient) { UserSignUpEndpoint(params: $0).request }
-    private(set) lazy var loadImageData = DefaultLoadImageData(client: httpClient) { URLRequest(url: $0) }
+    private lazy var loadImageData = DefaultLoadImageData(client: httpClient) { URLRequest(url: $0) }
+    
+    private(set) lazy var decoratedLoadImageDataWithCache = LoadImageDataWithCacheDecorator(
+        loadImageData: loadImageData,
+        loadCachedImageData: LoadCachedImageData(store: messagesStore),
+        cacheImageData: CacheImageData(store: messagesStore)
+    )
     
     private lazy var refreshToken = DefaultRefreshToken(client: httpClient) {
         RefreshTokenEndpoint(refreshToken: $0).request
