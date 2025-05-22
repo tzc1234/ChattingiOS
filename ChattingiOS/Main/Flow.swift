@@ -140,7 +140,8 @@ final class Flow {
     }
     
     private func profileView(user: User) -> ProfileView {
-        ProfileView(user: user, signOutTapped: { [unowned self] in
+        let viewModel = ProfileViewModel(user: user, loadImageData: dependencies.loadImageData)
+        return ProfileView(viewModel: viewModel, signOutTapped: { [unowned self] in
             Task {
                 try? await currentUserVault.deleteCurrentUser()
                 await contentViewModel.set(signInState: .userInitiatedSignOut)
