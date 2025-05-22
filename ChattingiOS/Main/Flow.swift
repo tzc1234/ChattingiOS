@@ -199,7 +199,8 @@ final class Flow {
             contact: contact,
             getMessages: dependencies.decoratedGetMessagesWithCaching,
             messageChannel: dependencies.decoratedMessageChannelWithCaching,
-            readMessages: dependencies.decoratedReadMessagesAndCache
+            readMessages: dependencies.decoratedReadMessagesAndCache,
+            loadImageData: dependencies.loadImageData
         )
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
         navigationControl.show(next: destination)

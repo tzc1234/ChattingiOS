@@ -22,7 +22,7 @@ final class MessageListViewModelTests: XCTestCase {
         let (sut, _) = makeSUT(contact: contact, getMessagesStubs: [])
         
         XCTAssertEqual(sut.username, contact.responder.name)
-        XCTAssertEqual(sut.avatarURL, avatarURL)
+        XCTAssertNil(sut.avatarData)
         XCTAssertEqual(sut.isBlocked, contact.blockedByUserID != nil)
     }
     
@@ -688,7 +688,8 @@ final class MessageListViewModelTests: XCTestCase {
             contact: contact,
             getMessages: spy,
             messageChannel: spy,
-            readMessages: spy
+            readMessages: spy,
+            loadImageData: spy
         )
         trackMemoryLeak(spy, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)

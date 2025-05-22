@@ -68,7 +68,7 @@ struct ProfileContentView: View {
         .ignoresSafeArea(.all, edges: .top)
         .task {
             let data = await loadAvatarData()
-            avatar = data.flatMap { UIImage(data: $0) }
+            avatar = data.flatMap(UIImage.init)
         }
     }
 }

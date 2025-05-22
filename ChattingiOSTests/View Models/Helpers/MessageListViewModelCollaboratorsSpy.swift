@@ -91,6 +91,12 @@ extension MessageListViewModelCollaboratorsSpy: ReadMessages {
     }
 }
 
+extension MessageListViewModelCollaboratorsSpy: LoadImageData {
+    func load(for url: URL) async throws(UseCaseError) -> Data {
+        Data()
+    }
+}
+
 extension MessageListViewModelCollaboratorsSpy: MessageChannelConnection {
     nonisolated var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
         streamMessageStubs.forEach { stub in
