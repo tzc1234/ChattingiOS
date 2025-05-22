@@ -14,6 +14,16 @@ final class ManagedImageData: NSManagedObject {
 }
 
 extension ManagedImageData {
+    static func findOrNewInstance(for url: URL, in context: NSManagedObjectContext) throws -> ManagedImageData {
+        if let imageData = try find(for: url, in: context) {
+            return imageData
+        }
+        
+        let newImageData = ManagedImageData(context: context)
+        newImageData.url = url
+        return newImageData
+    }
+    
     static func find(for url: URL, in context: NSManagedObjectContext) throws -> ManagedImageData? {
         let request = NSFetchRequest<ManagedImageData>(entityName: String(describing: Self.self))
         request.fetchLimit = 1
