@@ -63,7 +63,7 @@ final class NotificationService: UNNotificationServiceExtension {
         } else {
             update(
                 with: senderName,
-                senderImage: INImage(systemName: "person.circle"),
+                senderImage: .defaultSenderImage,
                 conversationID: conversationID,
                 on: content,
                 contentHandler: contentHandler
@@ -116,7 +116,7 @@ final class NotificationService: UNNotificationServiceExtension {
         // Supports background download.
         URLSession.shared.downloadTask(with: url) { tempURL, _, error in
             guard let tempURL, error == nil, let imageData = try? Data(contentsOf: tempURL) else {
-                return completion(nil)
+                return completion(.defaultSenderImage)
             }
             
             completion(INImage(imageData: imageData))
@@ -136,5 +136,9 @@ private extension INImage {
         guard let imageData = UIImage(systemName: systemName)?.pngData() else { return nil }
         
         self.init(imageData: imageData)
+    }
+    
+    static var defaultSenderImage: INImage? {
+        INImage(systemName: "person.circle")
     }
 }
