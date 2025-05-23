@@ -20,8 +20,9 @@ final class DependenciesContainer {
         return URLSessionHTTPClient(session: URLSession(configuration: configuration))
     }()
     
-    private let messagesStoreURL = NSPersistentContainer.defaultDirectoryURL().appending(path: "messages-store.sqlite")
-    private lazy var messagesStore = try! CoreDataMessagesStore(url: messagesStoreURL)
+    // Using force unwrap is easier to debug in development environment.
+    // Better not to do this in release app.
+    private lazy var messagesStore = try! CoreDataMessagesStore(url: DefaultMessageStoreURL.url)
     private lazy var cacheMessages = CacheMessages(store: messagesStore, currentUserID: currentUserID)
     
     private(set) lazy var userSignIn = UserSignIn(client: httpClient) { try UserSignInEndpoint(params: $0).request }

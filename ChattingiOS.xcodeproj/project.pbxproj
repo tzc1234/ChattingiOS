@@ -67,6 +67,17 @@
 			);
 			target = BE206E862D088DDC007530E1 /* ChattingiOS */;
 		};
+		BEC5E7F02DE070230044EA42 /* Exceptions for "ChattingiOS" folder in "NotificationService" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Cachings/CoreDataMessagesStore.swift,
+				"Cachings/CoreDataMessagesStore+ImageData.swift",
+				Cachings/ManagedImageData.swift,
+				Cachings/MessagesStore.xcdatamodeld,
+				Main/Helpers/DefaultMessageStoreURL.swift,
+			);
+			target = BE8D0E6F2DA18AC8005FD4C2 /* NotificationService */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -74,6 +85,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				BEC1D76F2D9C28310062411E /* Exceptions for "ChattingiOS" folder in "ChattingiOS" target */,
+				BEC5E7F02DE070230044EA42 /* Exceptions for "ChattingiOS" folder in "NotificationService" target */,
 			);
 			path = ChattingiOS;
 			sourceTree = "<group>";
