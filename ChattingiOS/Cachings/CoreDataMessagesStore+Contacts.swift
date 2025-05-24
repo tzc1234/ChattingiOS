@@ -29,4 +29,11 @@ extension CoreDataMessagesStore {
                 .toContacts(in: context)
         }
     }
+    
+    func messageCount(for userID: Int, contactID: Int) async throws -> Int {
+        let context = container.newBackgroundContext()
+        return try await context.perform {
+            try ManagedMessage.messageCount(in: context, contactID: contactID, userID: userID)
+        }
+    }
 }

@@ -118,6 +118,15 @@ extension ManagedMessage {
         return try context.fetch(request).first
     }
     
+    static func messageCount(in context: NSManagedObjectContext, contactID: Int, userID: Int) throws -> Int {
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: ManagedMessage.entityName)
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            contactPredicate(with: contactID),
+            userPredicate(with: userID)
+        ])
+        return try context.count(for: request)
+    }
+    
     static func unreadMessageCount(in context: NSManagedObjectContext, contactID: Int, userID: Int) throws -> Int {
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: ManagedMessage.entityName)
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
