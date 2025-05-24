@@ -267,9 +267,9 @@ final class MessageChannelTests: XCTestCase {
     
     @MainActor
     private final class MessagesLogger {
-        private(set) var messages = [WebSocketMessage]()
+        private(set) var messages = [MessageWithMetadata]()
         
-        func append(_ message: WebSocketMessage) {
+        func append(_ message: MessageWithMetadata) {
             messages.append(message)
         }
     }

@@ -27,7 +27,7 @@ final class CachingForMessageChannelDecorator: MessageChannel {
             self.cache = cache
         }
         
-        var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
+        var messageStream: AsyncThrowingStream<MessageWithMetadata, Error> {
             AsyncThrowingStream { continuation in
                 let task = Task {
                     do {

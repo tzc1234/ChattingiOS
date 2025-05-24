@@ -80,7 +80,7 @@ struct ContactListContentView: View {
                     responderName: contact.responder.name,
                     unreadCount: contact.unreadMessageCount,
                     isBlocked: contact.blockedByUserID != nil,
-                    lastMessageText: contact.lastMessage?.text,
+                    lastMessageText: contact.lastMessage?.message.text,
                     loadAvatar: {
                         guard let url = contact.responder.avatarURL, let data = await loadAvatarData(url) else {
                             return nil
@@ -186,7 +186,10 @@ struct ContactListContentView: View {
                     unreadMessageCount: 100,
                     createdAt: .now,
                     lastUpdate: .now,
-                    lastMessage: Message(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now)
+                    lastMessage: MessageWithMetadata(
+                        message: .init(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now),
+                        metadata: .init(previousID: nil)
+                    )
                 )
             ],
             generalError: .constant(nil),

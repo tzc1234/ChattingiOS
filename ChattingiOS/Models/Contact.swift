@@ -14,5 +14,5 @@ struct Contact: Identifiable, Equatable {
     let unreadMessageCount: Int
     let createdAt: Date
     let lastUpdate: Date
-    let lastMessage: Message?
+    let lastMessage: MessageWithMetadata?
 }

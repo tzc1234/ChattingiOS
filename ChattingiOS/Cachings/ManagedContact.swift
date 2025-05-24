@@ -87,6 +87,12 @@ extension ManagedContact {
     func toContact(in context: NSManagedObjectContext) throws -> Contact? {
         guard let responder else { return nil }
         
+        let lastMessage = if let lastMessage = try lastMessage(in: context)?.toMessage() {
+            MessageWithMetadata(message: lastMessage, metadata: .init(previousID: nil))
+        } else {
+            MessageWithMetadata?.none
+        }
+        
         return Contact(
             id: id,
             responder: responder.toResponder(),
@@ -94,7 +100,7 @@ extension ManagedContact {
             unreadMessageCount: try unreadMessageCount(in: context),
             createdAt: createdAt,
             lastUpdate: lastUpdate,
-            lastMessage: try lastMessage(in: context)?.toMessage()
+            lastMessage: lastMessage
         )
     }
     

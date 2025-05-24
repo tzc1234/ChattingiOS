@@ -23,7 +23,7 @@ enum MessageChannelError: Error {
 }
 
 protocol MessageChannelConnection: Sendable {
-    var messageStream: AsyncThrowingStream<WebSocketMessage, Error> { get }
+    var messageStream: AsyncThrowingStream<MessageWithMetadata, Error> { get }
     
     func send(text: String) async throws
     func close() async throws
