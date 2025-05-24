@@ -31,7 +31,7 @@ final class GetContactsWithCacheDecorator: GetContacts {
             let contacts = try await getContacts.get(with: params)
             try? await cache.cache(contacts)
             
-            // Since there may be not sync between the cache and the remote data.
+            // Since there may not be sync between the cache and the remote data.
             // Prevent loading same ids contact from next cache loading.
             exceptContactIDs.formUnion(contacts.map(\.id))
             

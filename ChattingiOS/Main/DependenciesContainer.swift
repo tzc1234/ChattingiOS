@@ -132,7 +132,7 @@ final class DependenciesContainer {
         cache: cacheContacts
     )
     
-    private lazy var cacheContacts = CacheContacts(store: messagesStore, currentUserID: currentUserID)
+    private(set) lazy var cacheContacts = CacheContacts(store: messagesStore, currentUserID: currentUserID)
     
     private var currentUserID: (@Sendable () async -> Int?) {
         { [currentUserVault] in

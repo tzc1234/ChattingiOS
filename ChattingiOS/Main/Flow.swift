@@ -62,10 +62,10 @@ final class Flow {
     
     private func observeNewContactAddedNotification() {
         pushNotificationHandler.onReceiveNewContactNotification = { [unowned self] userID, contact in
-            let currentUserID = contentViewModel.user?.id
-            guard currentUserID == userID else { return }
+            guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
             
             contactListViewModel?.addToTop(contact: contact, message: "\(contact.responder.name) added you.")
+            cache(contact)
         }
     }
     
@@ -77,6 +77,8 @@ final class Flow {
             if contentViewModel.selectedTab == .contacts, navigationControl.path.count < 1 {
                 showMessageListView(currentUserID: currentUserID, contact: contact)
             }
+            
+            cache(contact)
         }
     }
     
@@ -85,7 +87,12 @@ final class Flow {
             guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
             
             contactListViewModel?.replaceTo(newContact: contact)
+            cache(contact)
         }
+    }
+    
+    private func cache(_ contact: Contact) {
+        Task { try? await dependencies.cacheContacts.cache([contact]) }
     }
     
     func startView() -> some View {

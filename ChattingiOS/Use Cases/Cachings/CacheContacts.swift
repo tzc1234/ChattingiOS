@@ -23,15 +23,12 @@ actor CacheContacts {
         
         for contact in contacts {
             if let lastMessage = contact.lastMessage {
-                let noMessagesExisted = try await store.messageCount(for: currentUserID, contactID: contact.id) == 0
-                let previousMessageExisted = if let previousID = lastMessage.metadata.previousID {
-                    try await store.retrieveMessage(by: previousID, userID: currentUserID) != nil
-                } else {
-                    false
-                }
-                
                 // Keep messages data intact. Prevent there are missing messages in the middle.
-                if previousMessageExisted || noMessagesExisted {
+                if let previousID = lastMessage.metadata.previousID,
+                   try await store.retrieveMessage(by: previousID, userID: currentUserID) != nil {
+                    try await store.saveMessages([lastMessage.message], for: contact.id, userID: currentUserID)
+                // Just cache it if no messages in store.
+                } else if try await store.messageCount(for: currentUserID, contactID: contact.id) == 0 {
                     try await store.saveMessages([lastMessage.message], for: contact.id, userID: currentUserID)
                 }
             }
