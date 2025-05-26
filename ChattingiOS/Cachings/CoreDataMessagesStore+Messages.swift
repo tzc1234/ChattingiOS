@@ -49,7 +49,10 @@ extension CoreDataMessagesStore {
                 return try ManagedMessage
                     .find(before: id, in: context, contactID: contactID, userID: userID, limit: limit)
                     .toMessages()
-            case .after: return []
+            case let .after(id):
+                return try ManagedMessage
+                    .find(after: id, in: context, contactID: contactID, userID: userID, limit: limit)
+                    .toMessages()
             case .none:
                 let managedMessages = try ManagedMessage
                     .findByFirstUnreadMessage(in: context, contactID: contactID, userID: userID, limit: limit)

@@ -79,15 +79,9 @@ struct MessageListContentView: View {
                             .id(message.id)
                             .listRowSeparator(.hidden)
                             .onAppear {
-                                if message == messages.first {
-                                    loadPreviousMessages()
-                                } else if message == messages.last {
-                                    loadMoreMessages()
-                                }
-                                
-                                if message.isUnread {
-                                    readMessages(message.id)
-                                }
+                                if message == messages.first { loadPreviousMessages() }
+                                if message == messages.last { loadMoreMessages() }
+                                if message.isUnread { readMessages(message.id) }
                             }
                     }
                     .listStyle(.plain)

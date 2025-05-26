@@ -34,6 +34,21 @@ extension ManagedMessage {
         return try context.fetch(request).sorted { $0.id < $1.id }
     }
     
+    static func find(after id: Int,
+                     in context: NSManagedObjectContext,
+                     contactID: Int,
+                     userID: Int,
+                     limit: Int) throws -> [ManagedMessage] {
+        let request = fetchRequest(limit: limit)
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            contactPredicate(with: contactID),
+            userPredicate(with: userID),
+            NSPredicate(format: "id > %d", id)
+        ])
+        request.sortDescriptors = idSortByAscendingDescriptors()
+        return try context.fetch(request)
+    }
+    
     static func findByFirstUnreadMessage(in context: NSManagedObjectContext,
                                          contactID: Int,
                                          userID: Int,
@@ -118,13 +133,14 @@ extension ManagedMessage {
         return try context.fetch(request).first
     }
     
-    static func messageCount(in context: NSManagedObjectContext, contactID: Int, userID: Int) throws -> Int {
+    static func atLeastOneMessage(in context: NSManagedObjectContext, contactID: Int, userID: Int) throws -> Bool {
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: ManagedMessage.entityName)
+        request.fetchLimit = 1
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             contactPredicate(with: contactID),
             userPredicate(with: userID)
         ])
-        return try context.count(for: request)
+        return try context.count(for: request) > 0
     }
     
     static func unreadMessageCount(in context: NSManagedObjectContext, contactID: Int, userID: Int) throws -> Int {

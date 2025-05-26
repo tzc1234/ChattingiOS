@@ -30,10 +30,10 @@ extension CoreDataMessagesStore {
         }
     }
     
-    func messageCount(for userID: Int, contactID: Int) async throws -> Int {
+    func atLeastOneMessage(for userID: Int, contactID: Int) async throws -> Bool {
         let context = container.newBackgroundContext()
         return try await context.perform {
-            try ManagedMessage.messageCount(in: context, contactID: contactID, userID: userID)
+            try ManagedMessage.atLeastOneMessage(in: context, contactID: contactID, userID: userID)
         }
     }
 }
