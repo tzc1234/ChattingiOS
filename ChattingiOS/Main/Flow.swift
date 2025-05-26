@@ -19,7 +19,11 @@ final class Flow {
     private var contactListViewModel: ContactListViewModel?
     
     private var newContactTask: Task<Void, Never>?
-    var deviceToken: String?
+    var deviceToken: String? {
+        didSet {
+            Task { await updateDeviceToken() }
+        }
+    }
     
     private let dependencies: DependenciesContainer
     

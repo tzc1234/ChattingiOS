@@ -136,6 +136,7 @@ final class MessageListViewModel: ObservableObject {
                 messageID: .betweenExcluded(from: currentLastID, to: newLastID),
                 limit: .endLimit
             )
+        // The message last id is nil, that means the current messages array is empty, load the previous messages.
         } else {
             .init(contactID: contactID, messageID: .before(newLastID), limit: .endLimit)
         }
