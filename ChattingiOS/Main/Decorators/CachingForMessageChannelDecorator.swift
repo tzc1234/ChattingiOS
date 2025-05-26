@@ -35,6 +35,7 @@ final class CachingForMessageChannelDecorator: MessageChannel {
                             try? await cache.cache(
                                 [message.message],
                                 previousID: message.metadata.previousID,
+                                nextID: nil,
                                 for: contactID
                             )
                             continuation.yield(message)

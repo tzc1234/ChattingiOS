@@ -27,9 +27,6 @@ actor CacheContacts {
                 if let previousID = lastMessage.metadata.previousID,
                    try await store.retrieveMessage(by: previousID, userID: currentUserID) != nil {
                     try await store.saveMessages([lastMessage.message], for: contact.id, userID: currentUserID)
-                // Just cache it if no messages in store.
-                } else if try await !store.atLeastOneMessage(for: currentUserID, contactID: contact.id) {
-                    try await store.saveMessages([lastMessage.message], for: contact.id, userID: currentUserID)
                 }
             }
         }

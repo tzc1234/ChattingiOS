@@ -35,6 +35,11 @@ final class GetMessagesWithCacheDecorator: GetMessages {
     }
     
     private func cache(_ messages: Messages, with params: GetMessagesParams) async {
-        try? await cacheMessages.cache(messages.items, previousID: messages.metadata?.previousID, for: params.contactID)
+        try? await cacheMessages.cache(
+            messages.items,
+            previousID: messages.metadata?.previousID,
+            nextID: messages.metadata?.nextID,
+            for: params.contactID
+        )
     }
 }
