@@ -80,6 +80,13 @@ extension CoreDataMessagesStore {
             try ManagedMessage.read(until: id, contactID: contactID, userID: userID, in: context)
         }
     }
+    
+    func atLeastOneMessage(for userID: Int, contactID: Int) async throws -> Bool {
+        let context = container.newBackgroundContext()
+        return try await context.perform {
+            try ManagedMessage.atLeastOneMessage(in: context, contactID: contactID, userID: userID)
+        }
+    }
 }
 
 private extension Message {

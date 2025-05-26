@@ -29,11 +29,4 @@ extension CoreDataMessagesStore {
                 .toContacts(in: context)
         }
     }
-    
-    func atLeastOneMessage(for userID: Int, contactID: Int) async throws -> Bool {
-        let context = container.newBackgroundContext()
-        return try await context.perform {
-            try ManagedMessage.atLeastOneMessage(in: context, contactID: contactID, userID: userID)
-        }
-    }
 }
