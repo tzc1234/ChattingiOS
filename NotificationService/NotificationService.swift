@@ -13,6 +13,8 @@ final class NotificationService: UNNotificationServiceExtension {
     var contentHandler: ((UNNotificationContent) -> Void)?
     var bestAttemptContent: UNMutableNotificationContent?
     
+    private lazy var cacheStore = try? CoreDataMessagesStore(url: DefaultMessageStoreURL.url)
+    
     override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         self.contentHandler = contentHandler
         bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
@@ -51,7 +53,7 @@ final class NotificationService: UNNotificationServiceExtension {
                         on content: UNMutableNotificationContent,
                         contentHandler: @escaping (UNNotificationContent) -> Void) {
         if let avatarURLString, let avatarURL = URL(string: avatarURLString) {
-            downloadImage(from: avatarURL) { [weak self] senderImage in
+            retrieveImage(from: avatarURL) { [weak self] senderImage in
                 self?.update(
                     with: senderName,
                     senderImage: senderImage,
@@ -63,7 +65,7 @@ final class NotificationService: UNNotificationServiceExtension {
         } else {
             update(
                 with: senderName,
-                senderImage: INImage(systemName: "person.circle"),
+                senderImage: .defaultSenderImage,
                 conversationID: conversationID,
                 on: content,
                 contentHandler: contentHandler
@@ -112,16 +114,34 @@ final class NotificationService: UNNotificationServiceExtension {
         }
     }
     
-    private func downloadImage(from url: URL, completion: @escaping (INImage?) -> Void) {
-        // Supports background download.
-        URLSession.shared.downloadTask(with: url) { tempURL, _, error in
-            guard let tempURL, error == nil, let imageData = try? Data(contentsOf: tempURL) else {
-                return completion(nil)
+    private func retrieveImage(from url: URL, completion: @escaping (INImage?) -> Void) {
+        Task { [weak self] in
+            guard let self else { return }
+            guard let cachedImageData = try? await cacheStore?.retrieveImageData(for: url) else {
+                return downloadImage(from: url, completion: completion)
             }
             
+            completion(INImage(imageData: cachedImageData))
+        }
+    }
+    
+    private func downloadImage(from url: URL, completion: @escaping (INImage?) -> Void) {
+        // Supports background download.
+        URLSession.shared.downloadTask(with: url) { [weak self] tempURL, _, error in
+            guard let tempURL, error == nil, let imageData = try? Data(contentsOf: tempURL) else {
+                return completion(.defaultSenderImage)
+            }
+            
+            self?.cacheImageData(imageData, for: url)
             completion(INImage(imageData: imageData))
         }
         .resume()
+    }
+    
+    private func cacheImageData(_ data: Data, for url: URL) {
+        guard !data.isEmpty, let cacheStore else { return }
+        
+        Task { try? await cacheStore.saveImageData(data, for: url) }
     }
     
     override func serviceExtensionTimeWillExpire() {
@@ -136,5 +156,9 @@ private extension INImage {
         guard let imageData = UIImage(systemName: systemName)?.pngData() else { return nil }
         
         self.init(imageData: imageData)
+    }
+    
+    static var defaultSenderImage: INImage? {
+        INImage(systemName: "person.circle")
     }
 }

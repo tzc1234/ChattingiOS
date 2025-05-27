@@ -47,11 +47,11 @@ final class ContactListViewModelTests: XCTestCase {
             makeContact(
                 id: 0,
                 responderID: 1,
-                avatarURL: "http://avatar-url.com",
+                avatarURL: URL(string: "http://avatar-url.com")!,
                 blockedByUserID: 0,
                 unreadMessageCount: 10,
                 lastUpdate: .distantFuture,
-                lastMessage: makeMessage(
+                lastMessage: makeMessageWithMeta(
                     id: 1,
                     text: "message 1",
                     senderID: 1,
@@ -64,9 +64,21 @@ final class ContactListViewModelTests: XCTestCase {
                 responderID: 2,
                 responderEmail: "responder2@email.com",
                 unreadMessageCount: 1,
-                lastUpdate: .distantPast
+                lastUpdate: .now
             ),
-            makeContact(id: 2, responderID: 3, responderEmail: "responder3@email.com")
+            makeContact(id: 2, responderID: 3, responderEmail: "responder3@email.com", lastUpdate: .now),
+            makeContact(
+                id: 3,
+                responderID: 4,
+                responderEmail: "responder4@email.com",
+                lastUpdate: .distantPast,
+                lastMessage: makeMessageWithMeta(
+                    id: 99,
+                    text: "message 99",
+                    senderID: 4,
+                    previousID: 98
+                )
+            )
         ]
         let (sut, _) = makeSUT(getContactsStubs: [.success(contacts)])
         
@@ -421,7 +433,9 @@ final class ContactListViewModelTests: XCTestCase {
             currentUserID: currentUserID,
             getContacts: spy,
             blockContact: spy,
-            unblockContact: spy)
+            unblockContact: spy,
+            loadImageData: spy
+        )
         trackMemoryLeak(spy, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)
         return (sut, spy)
@@ -454,7 +468,7 @@ final class ContactListViewModelTests: XCTestCase {
     }
     
     @MainActor
-    private final class CollaboratorsSpy: GetContacts, BlockContact, UnblockContact {
+    private final class CollaboratorsSpy: GetContacts, BlockContact, UnblockContact, LoadImageData {
         enum Message: Equatable {
             case get(with: GetContactsParams)
             case block(for: Int)
@@ -488,6 +502,10 @@ final class ContactListViewModelTests: XCTestCase {
         func unblock(for contactID: Int) async throws(UseCaseError) -> Contact {
             messages.append(.unblock(for: contactID))
             return try unblockContactStubs.removeFirst().get()
+        }
+        
+        func load(for url: URL) async throws(UseCaseError) -> Data {
+            Data()
         }
     }
 }

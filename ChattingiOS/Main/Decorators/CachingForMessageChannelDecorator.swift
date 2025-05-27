@@ -27,12 +27,17 @@ final class CachingForMessageChannelDecorator: MessageChannel {
             self.cache = cache
         }
         
-        var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
+        var messageStream: AsyncThrowingStream<MessageWithMetadata, Error> {
             AsyncThrowingStream { continuation in
                 let task = Task {
                     do {
                         for try await message in connection.messageStream {
-                            try? await cache.cache([message.message], for: contactID)
+                            try? await cache.cache(
+                                [message.message],
+                                previousID: message.metadata.previousID,
+                                nextID: nil,
+                                for: contactID
+                            )
                             continuation.yield(message)
                         }
                         continuation.finish()

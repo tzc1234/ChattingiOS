@@ -15,7 +15,7 @@ struct MessageListView: View {
     var body: some View {
         MessageListContentView(
             responderName: viewModel.username,
-            avatarURL: viewModel.avatarURL,
+            avatarData: viewModel.avatarData,
             messages: viewModel.messages,
             isLoading: viewModel.isLoading,
             isBlocked: viewModel.isBlocked,
@@ -31,6 +31,7 @@ struct MessageListView: View {
             isConnecting: viewModel.isConnecting
         )
         .toolbar(.hidden, for: .tabBar)
+        .task { await viewModel.loadAvatarData() }
         .onAppear { viewModel.setupMessageList() }
         .onDisappear { viewModel.closeMessageChannel() }
         .onChange(of: scenePhase) { phase in
@@ -45,7 +46,7 @@ struct MessageListView: View {
 
 struct MessageListContentView: View {
     let responderName: String
-    let avatarURL: URL?
+    let avatarData: Data?
     let messages: [DisplayedMessage]
     let isLoading: Bool
     let isBlocked: Bool
@@ -78,15 +79,9 @@ struct MessageListContentView: View {
                             .id(message.id)
                             .listRowSeparator(.hidden)
                             .onAppear {
-                                if message == messages.first {
-                                    loadPreviousMessages()
-                                } else if message == messages.last {
-                                    loadMoreMessages()
-                                }
-                                
-                                if message.isUnread {
-                                    readMessages(message.id)
-                                }
+                                if message == messages.first { loadPreviousMessages() }
+                                if message == messages.last { loadMoreMessages() }
+                                if message.isUnread { readMessages(message.id) }
                             }
                     }
                     .listStyle(.plain)
@@ -140,16 +135,18 @@ struct MessageListContentView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 HStack {
-                    AsyncImage(url: avatarURL) { image in
-                        image
+                    if let avatar = avatarData.flatMap(UIImage.init) {
+                        Image(uiImage: avatar)
                             .resizable()
                             .scaledToFill()
-                    } placeholder: {
+                            .frame(width: 30, height: 30)
+                            .clipShape(.circle)
+                    } else {
                         Image(systemName: "person.circle")
                             .font(.system(size: 25))
+                            .frame(width: 30, height: 30)
+                            .clipShape(.circle)
                     }
-                    .frame(width: 30, height: 30)
-                    .clipShape(.circle)
                     
                     Text(responderName)
                         .font(.headline)
@@ -203,7 +200,7 @@ struct MessageListContentView: View {
     NavigationStack {
         MessageListContentView(
             responderName: "Jack",
-            avatarURL: nil,
+            avatarData: nil,
             messages: [
                 DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, date: "01/01/2025, 10:00"),
                 DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: "01/01/2025, 10:01")

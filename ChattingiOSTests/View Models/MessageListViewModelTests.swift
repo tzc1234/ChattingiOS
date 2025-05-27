@@ -18,11 +18,11 @@ final class MessageListViewModelTests: XCTestCase {
     
     func test_init_deliversContactInfoCorrectly() {
         let avatarURL = URL(string: "http://avatar-url.com")!
-        let contact = makeContact(responderName: "a name", avatarURL: avatarURL.absoluteString, blockedByUserID: 0)
+        let contact = makeContact(responderName: "a name", avatarURL: avatarURL, blockedByUserID: 0)
         let (sut, _) = makeSUT(contact: contact, getMessagesStubs: [])
         
         XCTAssertEqual(sut.username, contact.responder.name)
-        XCTAssertEqual(sut.avatarURL, avatarURL)
+        XCTAssertNil(sut.avatarData)
         XCTAssertEqual(sut.isBlocked, contact.blockedByUserID != nil)
     }
     
@@ -98,7 +98,7 @@ final class MessageListViewModelTests: XCTestCase {
         let (sut, spy) = makeSUT(
             currentUserID: currentUserID,
             establishChannelStubs: [.success(())],
-            streamMessageStubs: messages.models.map { .success(WebSocketMessage($0)) }
+            streamMessageStubs: messages.models.map { .success(MessageWithMetadata($0)) }
         )
         
         XCTAssertFalse(sut.isConnecting)
@@ -131,9 +131,9 @@ final class MessageListViewModelTests: XCTestCase {
             currentUserID: currentUserID,
             establishChannelStubs: [.success(())],
             streamMessageStubs: [
-                .success(WebSocketMessage(messageBeforeError.model)),
+                .success(MessageWithMetadata(messageBeforeError.model)),
                 .failure(anyNSError()),
-                .success(WebSocketMessage(messageAfterError.model)),
+                .success(MessageWithMetadata(messageAfterError.model)),
             ]
         )
         
@@ -157,8 +157,8 @@ final class MessageListViewModelTests: XCTestCase {
                 .success([makeMessage(id: previousMessageID).model]),
             ],
             streamMessageStubs: [
-                .success(WebSocketMessage(makeMessage(id: firstStreamMessageID).model, previousID: previousMessageID)),
-                .success(WebSocketMessage(makeMessage(id: lastStreamMessageID).model)), // no previousID, will not trigger loadMessages
+                .success(MessageWithMetadata(makeMessage(id: firstStreamMessageID).model, previousID: previousMessageID)),
+                .success(MessageWithMetadata(makeMessage(id: lastStreamMessageID).model)), // no previousID, will not trigger loadMessages
             ]
         )
         await setupMessageList(on: sut, spy: spy)
@@ -182,7 +182,7 @@ final class MessageListViewModelTests: XCTestCase {
                 .success([]),
             ],
             streamMessageStubs: [
-                .success(WebSocketMessage(makeMessage(id: streamMessageID).model, previousID: previousMessageID)),
+                .success(MessageWithMetadata(makeMessage(id: streamMessageID).model, previousID: previousMessageID)),
             ]
         )
         await setupMessageList(on: sut, spy: spy)
@@ -210,7 +210,7 @@ final class MessageListViewModelTests: XCTestCase {
                 .success(missingMessages.models),
             ],
             streamMessageStubs: [
-                .success(WebSocketMessage(streamMessage.model, previousID: previousMessageID)),
+                .success(MessageWithMetadata(streamMessage.model, previousID: previousMessageID)),
             ]
         )
         await setupMessageList(on: sut, spy: spy)
@@ -670,7 +670,7 @@ final class MessageListViewModelTests: XCTestCase {
                          getMessagesStubs: [Result<[Message], UseCaseError>] = [.success([])],
                          getMessagesDelayInSeconds: [Double] = [],
                          establishChannelStubs: [Result<Void, MessageChannelError>] = [.success(())],
-                         streamMessageStubs: [Result<WebSocketMessage, Error>] = [],
+                         streamMessageStubs: [Result<MessageWithMetadata, Error>] = [],
                          sendMessageError: Error? = nil,
                          file: StaticString = #filePath,
                          line: UInt = #line) -> (sut: MessageListViewModel, spy: MessageListViewModelCollaboratorsSpy) {
@@ -688,7 +688,8 @@ final class MessageListViewModelTests: XCTestCase {
             contact: contact,
             getMessages: spy,
             messageChannel: spy,
-            readMessages: spy
+            readMessages: spy,
+            loadImageData: spy
         )
         trackMemoryLeak(spy, file: file, line: line)
         trackMemoryLeak(sut, file: file, line: line)
@@ -818,7 +819,7 @@ private extension [MessagePair] {
     var displays: [DisplayedMessage] { map(\.display) }
 }
 
-private extension WebSocketMessage {
+private extension MessageWithMetadata {
     init(_ message: Message, previousID: Int? = nil) {
         self.init(message: message, metadata: .init(previousID: previousID))
     }

@@ -22,8 +22,8 @@ actor GetCachedMessages {
         guard let currentUserID = await currentUserID() else { return [] }
         
         do {
-            return try await store.retrieve(
-                for: .init(params.messageID),
+            return try await store.retrieveMessages(
+                by: .init(params.messageID),
                 contactID: params.contactID,
                 userID: currentUserID,
                 limit: params.limit ?? defaultLimit
@@ -36,7 +36,7 @@ actor GetCachedMessages {
     func isMessageExisted(id: Int) async -> Bool {
         guard let currentUserID = await currentUserID() else { return false }
         
-        let message = try? await store.retrieve(by: id, userID: currentUserID)
+        let message = try? await store.retrieveMessage(by: id, userID: currentUserID)
         return message != nil
     }
 }

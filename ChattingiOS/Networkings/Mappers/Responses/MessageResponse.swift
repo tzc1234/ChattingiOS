@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MessagesResponse {
+struct MessagesResponse: Response {
     struct Metadata: Decodable {
         let previousID: Int?
         let nextID: Int?
@@ -24,15 +24,13 @@ struct MessagesResponse {
     
     let messages: [MessageResponse]
     let metadata: Metadata
-}
-
-extension MessagesResponse: Response {
+    
     var toModel: Messages {
         Messages(items: messages.map(\.toModel), metadata: metadata.toModel)
     }
 }
 
-struct MessageResponse {
+struct MessageResponse: Response {
     let id: Int
     let text: String
     let senderID: Int
@@ -46,10 +44,29 @@ struct MessageResponse {
         case isRead = "is_read"
         case createdAt = "created_at"
     }
-}
-
-extension MessageResponse: Response {
+    
     var toModel: Message {
         Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt)
+    }
+}
+
+struct MessageResponseWithMetadata: Response {
+    struct Metadata: Decodable {
+        let previousID: Int?
+        
+        enum CodingKeys: String, CodingKey {
+            case previousID = "previous_id"
+        }
+        
+        var toModel: MessageWithMetadata.Metadata {
+            .init(previousID: previousID)
+        }
+    }
+    
+    let message: MessageResponse
+    let metadata: Metadata
+    
+    var toModel: MessageWithMetadata {
+        MessageWithMetadata(message: message.toModel, metadata: metadata.toModel)
     }
 }

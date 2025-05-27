@@ -25,15 +25,22 @@ final class ContactListViewModel: ObservableObject {
     private let getContacts: GetContacts
     private let blockContact: BlockContact
     private let unblockContact: UnblockContact
+    private let loadImageData: LoadImageData
     
-    init(currentUserID: Int, getContacts: GetContacts, blockContact: BlockContact, unblockContact: UnblockContact) {
+    init(currentUserID: Int,
+         getContacts: GetContacts,
+         blockContact: BlockContact,
+         unblockContact: UnblockContact,
+         loadImageData: LoadImageData) {
         self.currentUserID = currentUserID
         self.getContacts = getContacts
         self.blockContact = blockContact
         self.unblockContact = unblockContact
+        self.loadImageData = loadImageData
     }
     
     func loadContacts() async {
+        contacts = []
         do {
             let params = GetContactsParams(before: nil)
             contacts = try await getContacts.get(with: params)
@@ -44,9 +51,11 @@ final class ContactListViewModel: ObservableObject {
     }
     
     func loadMoreContacts() {
-        guard canLoadMore else { return }
+        guard canLoadMore, loadMoreTask == nil else { return }
         
         loadMoreTask = Task {
+            defer { loadMoreTask = nil }
+            
             do throws(UseCaseError) {
                 let lastUpdate = contacts.last?.lastUpdate
                 let params = GetContactsParams(before: lastUpdate)
@@ -119,5 +128,9 @@ final class ContactListViewModel: ObservableObject {
     
     func canUnblock(blockedBy userID: Int) -> Bool {
         currentUserID == userID
+    }
+    
+    func loadAvatarData(url: URL) async -> Data? {
+        try? await loadImageData.load(for: url)
     }
 }

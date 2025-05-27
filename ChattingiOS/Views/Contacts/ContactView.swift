@@ -8,31 +8,32 @@
 import SwiftUI
 
 struct ContactView: View {
-    let responder: User
+    let responderName: String
     let unreadCount: Int
     let isBlocked: Bool
     let lastMessageText: String?
+    let loadAvatar: () async -> UIImage?
     
-    private var avatarURL: URL? {
-        responder.avatarURL.map { URL(string: $0) } ?? nil
-    }
+    @State private var image: UIImage?
     
     var body: some View {
         HStack {
-            AsyncImage(url: avatarURL) { image in
-                image
+            if let image {
+                Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
-            } placeholder: {
+                    .frame(width: 45, height: 45)
+                    .clipShape(.circle)
+            } else {
                 Image(systemName: "person.circle")
                     .foregroundStyle(.primary.opacity(0.6))
                     .font(.system(size: 45))
+                    .frame(width: 45, height: 45)
+                    .clipShape(.circle)
             }
-            .frame(width: 45, height: 45)
-            .clipShape(.circle)
             
             VStack(alignment: .leading) {
-                Text(responder.name)
+                Text(responderName)
                     .font(.headline)
                 
                 if let lastMessageText {
@@ -59,14 +60,16 @@ struct ContactView: View {
                     .opacity(unreadCount > 0 ? 1 : 0)
             }
         }
+        .task { image = await loadAvatar() }
     }
 }
 
 #Preview {
     ContactView(
-        responder: .init(id: 0, name: "abc", email: "abc@email.com", avatarURL: nil),
+        responderName: "abc",
         unreadCount: 100,
         isBlocked: true,
-        lastMessageText: nil
+        lastMessageText: nil,
+        loadAvatar: { nil }
     )
 }

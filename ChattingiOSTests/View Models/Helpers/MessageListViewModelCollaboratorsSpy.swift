@@ -20,12 +20,12 @@ final class MessageListViewModelCollaboratorsSpy {
     private(set) var textsSent = [String]()
     private(set) var closeCallCount = 0
     
-    private let stream: AsyncThrowingStream<WebSocketMessage, Error>
-    private let continuation: AsyncThrowingStream<WebSocketMessage, Error>.Continuation
+    private let stream: AsyncThrowingStream<MessageWithMetadata, Error>
+    private let continuation: AsyncThrowingStream<MessageWithMetadata, Error>.Continuation
     private var getMessagesStubs: [Result<[Message], UseCaseError>]
     private var getMessagesDelayInSeconds: [Double]
     private var establishChannelStubs: [Result<Void, MessageChannelError>]
-    private let streamMessageStubs: [Result<WebSocketMessage, Error>]
+    private let streamMessageStubs: [Result<MessageWithMetadata, Error>]
     private let sendMessageError: Error?
     private let file: StaticString
     private let line: UInt
@@ -33,7 +33,7 @@ final class MessageListViewModelCollaboratorsSpy {
     init(getMessagesStubs: [Result<[Message], UseCaseError>],
          getMessagesDelayInSeconds: [Double],
          establishChannelStubs: [Result<Void, MessageChannelError>],
-         streamMessageStubs: [Result<WebSocketMessage, Error>],
+         streamMessageStubs: [Result<MessageWithMetadata, Error>],
          sendMessageError: Error?,
          file: StaticString,
          line: UInt) {
@@ -91,8 +91,14 @@ extension MessageListViewModelCollaboratorsSpy: ReadMessages {
     }
 }
 
+extension MessageListViewModelCollaboratorsSpy: LoadImageData {
+    func load(for url: URL) async throws(UseCaseError) -> Data {
+        Data()
+    }
+}
+
 extension MessageListViewModelCollaboratorsSpy: MessageChannelConnection {
-    nonisolated var messageStream: AsyncThrowingStream<WebSocketMessage, Error> {
+    nonisolated var messageStream: AsyncThrowingStream<MessageWithMetadata, Error> {
         streamMessageStubs.forEach { stub in
             switch stub {
             case let .success(message):

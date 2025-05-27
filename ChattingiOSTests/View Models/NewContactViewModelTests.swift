@@ -51,7 +51,7 @@ final class NewContactViewModelTests: XCTestCase {
     }
     
     func test_addContact_addsNewContactSuccessfully() async {
-        let contact = makeContact(lastMessage: makeMessage())
+        let contact = makeContact(lastMessage: makeMessageWithMeta())
         let (sut, _) = makeSUT(stubs: [.success(contact)])
         
         sut.emailInput = anyEmail

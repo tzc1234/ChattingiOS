@@ -15,10 +15,10 @@ final class MessageListViewModel: ObservableObject {
     @Published var inputMessage = ""
     @Published private(set) var isLoading = false
     @Published var messageIDForListPosition: Int?
+    @Published private(set) var avatarData: Data?
     
     private var contactID: Int { contact.id }
     var username: String { contact.responder.name }
-    var avatarURL: URL? { contact.responder.avatarURL.map(URL.init) ?? nil }
     var isBlocked: Bool { contact.blockedByUserID != nil }
     var isConnecting: Bool { connection != nil }
     private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
@@ -42,17 +42,20 @@ final class MessageListViewModel: ObservableObject {
     private let getMessages: GetMessages
     private let messageChannel: MessageChannel
     private let readMessages: ReadMessages
+    private let loadImageData: LoadImageData
     
     init(currentUserID: Int,
          contact: Contact,
          getMessages: GetMessages,
          messageChannel: MessageChannel,
-         readMessages: ReadMessages) {
+         readMessages: ReadMessages,
+         loadImageData: LoadImageData) {
         self.currentUserID = currentUserID
         self.contact = contact
         self.getMessages = getMessages
         self.messageChannel = messageChannel
         self.readMessages = readMessages
+        self.loadImageData = loadImageData
     }
     
     func setupMessageList() {
@@ -133,6 +136,7 @@ final class MessageListViewModel: ObservableObject {
                 messageID: .betweenExcluded(from: currentLastID, to: newLastID),
                 limit: .endLimit
             )
+        // The message last id is nil, that means the current messages array is empty, load the previous messages.
         } else {
             .init(contactID: contactID, messageID: .before(newLastID), limit: .endLimit)
         }
@@ -239,6 +243,12 @@ final class MessageListViewModel: ObservableObject {
     
     func closeMessageChannel() {
         messageStreamTask?.cancel()
+    }
+    
+    func loadAvatarData() async {
+        guard let url = contact.responder.avatarURL else { return }
+        
+        avatarData = try? await loadImageData.load(for: url)
     }
 }
 

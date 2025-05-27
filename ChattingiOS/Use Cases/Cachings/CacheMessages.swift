@@ -16,11 +16,22 @@ actor CacheMessages {
         self.currentUserID = currentUserID
     }
     
-    func cache(_ messages: [Message], for contactID: Int) async throws(UseCaseError) {
-        guard let currentUserID = await currentUserID() else { return }
+    func cache(_ messages: [Message], previousID: Int?, nextID: Int?, for contactID: Int) async throws(UseCaseError) {
+        guard let currentUserID = await currentUserID(), !messages.isEmpty else { return }
         
         do {
-            try await store.save(messages, for: contactID, userID: currentUserID)
+            // Keep messages data intact. Prevent missing message(s) in the middle.
+            if let previousID, try await store.retrieveMessage(by: previousID, userID: currentUserID) != nil {
+                return try await store.saveMessages(messages, for: contactID, userID: currentUserID)
+            }
+            if let nextID, try await store.retrieveMessage(by: nextID, userID: currentUserID) != nil {
+                return try await store.saveMessages(messages, for: contactID, userID: currentUserID)
+            }
+            
+            // Just cache messages if no messages in store.
+            if try await !store.atLeastOneMessage(for: currentUserID, contactID: contactID) {
+                return try await store.saveMessages(messages, for: contactID, userID: currentUserID)
+            }
         } catch {
             throw .invalidData
         }

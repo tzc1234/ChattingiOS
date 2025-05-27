@@ -12,14 +12,14 @@ enum MessageStreamError: Error {
 }
 
 enum MessageChannelReceivedMessageMapper {
-    static func map(_ data: Data) throws(MessageStreamError) -> WebSocketMessage {
+    static func map(_ data: Data) throws(MessageStreamError) -> MessageWithMetadata {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         guard let response = try? decoder.decode(WebSocketMessageResponse.self, from: data) else {
             throw .invalidData
         }
         
-        return WebSocketMessage(
+        return MessageWithMetadata(
             message: response.message.toModel,
             metadata: .init(previousID: response.metadata.previousID)
         )

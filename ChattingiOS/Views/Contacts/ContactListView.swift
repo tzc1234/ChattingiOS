@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ContactListView<AlertContent: View>: View {
     @State private var alertState = AlertState()
-    @State private var lastContact: Contact?
     
     @ObservedObject var viewModel: ContactListViewModel
     @ViewBuilder let alertContent: (Binding<AlertState>) -> AlertContent
@@ -18,26 +17,18 @@ struct ContactListView<AlertContent: View>: View {
     var body: some View {
         ContactListContentView(
             contacts: viewModel.contacts,
-            lastContact: $lastContact,
             generalError: $viewModel.generalError,
             message: $viewModel.message,
             isLoading: viewModel.isLoading,
+            loadMoreContacts: viewModel.loadMoreContacts,
             blockContact: viewModel.blockContact,
             unblockContact: viewModel.unblockContact,
             canUnblock: viewModel.canUnblock,
-            rowTapped: rowTapped
+            rowTapped: rowTapped,
+            loadAvatarData: viewModel.loadAvatarData
         )
-        .task {
-            await viewModel.loadContacts()
-        }
-        .refreshable {
-            await viewModel.loadContacts()
-        }
-        .onChange(of: viewModel.contacts) { contacts in
-            if let lastContact, contacts.last != lastContact {
-                viewModel.loadMoreContacts()
-            }
-        }
+        .task { await viewModel.loadContacts() }
+        .refreshable { await viewModel.loadContacts() }
         .toolbar {
             Button {
                 alertState.present()
@@ -53,14 +44,15 @@ struct ContactListView<AlertContent: View>: View {
 
 struct ContactListContentView: View {
     let contacts: [Contact]
-    @Binding var lastContact: Contact?
     @Binding var generalError: String?
     @Binding var message: String?
     let isLoading: Bool
+    let loadMoreContacts: () -> Void
     let blockContact: (Int) -> Void
     let unblockContact: (Int) -> Void
     let canUnblock: (Int) -> Bool
     let rowTapped: (Contact) -> Void
+    let loadAvatarData: (URL) async -> Data?
     
     @State private var isFullScreenCoverPresenting = false
     @State private var messageDisplayed = ""
@@ -85,19 +77,24 @@ struct ContactListContentView: View {
             
             List(contacts) { contact in
                 ContactView(
-                    responder: contact.responder,
+                    responderName: contact.responder.name,
                     unreadCount: contact.unreadMessageCount,
                     isBlocked: contact.blockedByUserID != nil,
-                    lastMessageText: contact.lastMessage?.text
+                    lastMessageText: contact.lastMessage?.message.text,
+                    loadAvatar: {
+                        guard let url = contact.responder.avatarURL, let data = await loadAvatarData(url) else {
+                            return nil
+                        }
+                        
+                        return UIImage(data: data)
+                    }
                 )
                 .background(.white.opacity(0.01))
                 .onTapGesture {
                     rowTapped(contact)
                 }
                 .onAppear {
-                    if contacts.last == contact {
-                        lastContact = contact
-                    }
+                    if contacts.last == contact { loadMoreContacts() }
                 }
                 .swipeActions {
                     swipeAction(contact: contact)
@@ -173,7 +170,8 @@ struct ContactListContentView: View {
                     ),
                     blockedByUserID: 0,
                     unreadMessageCount: 0,
-                    lastUpdate: Date(),
+                    createdAt: .now,
+                    lastUpdate: .now,
                     lastMessage: nil
                 ),
                 Contact(
@@ -186,18 +184,23 @@ struct ContactListContentView: View {
                     ),
                     blockedByUserID: nil,
                     unreadMessageCount: 100,
-                    lastUpdate: Date(),
-                    lastMessage: Message(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now)
+                    createdAt: .now,
+                    lastUpdate: .now,
+                    lastMessage: MessageWithMetadata(
+                        message: .init(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now),
+                        metadata: .init(previousID: nil)
+                    )
                 )
             ],
-            lastContact: .constant(nil),
             generalError: .constant(nil),
             message: .constant("New contact added."),
             isLoading: false,
+            loadMoreContacts: {},
             blockContact: { _ in },
             unblockContact: { _ in },
             canUnblock: { _ in true },
-            rowTapped: { _ in }
+            rowTapped: { _ in },
+            loadAvatarData: { _ in nil }
         )
     }
 }

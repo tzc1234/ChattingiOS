@@ -8,11 +8,11 @@
 import Foundation
 @testable import ChattingiOS
 
-func makeWebSocketMessage(_ message: Message, previousID: Int?) -> WebSocketMessage {
-    WebSocketMessage(message: message, metadata: .init(previousID: nil))
+func makeWebSocketMessage(_ message: Message, previousID: Int?) -> MessageWithMetadata {
+    MessageWithMetadata(message: message, metadata: .init(previousID: nil))
 }
 
-extension WebSocketMessage {
+extension MessageWithMetadata {
     private struct WebSocketMessageResponseForTest: Encodable {
         struct Metadata: Encodable {
             let previous_id: Int?

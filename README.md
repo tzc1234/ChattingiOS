@@ -13,7 +13,7 @@
 5. SwiftUI
 6. AsyncStream
 7. APNs
-8. Core Data for messages caching
+8. Core Data
 
 ### Goals to achieve
 1. Learn webSocket
@@ -22,4 +22,4 @@
 4. MVVM
 5. Build server side with Swift Vapor
 6. Use decorator for refresh token logic
-7. Use decorator loading cached messages
+7. Use decorator for caching

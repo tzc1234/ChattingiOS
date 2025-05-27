@@ -19,7 +19,11 @@ final class Flow {
     private var contactListViewModel: ContactListViewModel?
     
     private var newContactTask: Task<Void, Never>?
-    var deviceToken: String?
+    var deviceToken: String? {
+        didSet {
+            Task { await updateDeviceToken() }
+        }
+    }
     
     private let dependencies: DependenciesContainer
     
@@ -62,10 +66,10 @@ final class Flow {
     
     private func observeNewContactAddedNotification() {
         pushNotificationHandler.onReceiveNewContactNotification = { [unowned self] userID, contact in
-            let currentUserID = contentViewModel.user?.id
-            guard currentUserID == userID else { return }
+            guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
             
             contactListViewModel?.addToTop(contact: contact, message: "\(contact.responder.name) added you.")
+            cache(contact)
         }
     }
     
@@ -77,6 +81,8 @@ final class Flow {
             if contentViewModel.selectedTab == .contacts, navigationControl.path.count < 1 {
                 showMessageListView(currentUserID: currentUserID, contact: contact)
             }
+            
+            cache(contact)
         }
     }
     
@@ -85,7 +91,12 @@ final class Flow {
             guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
             
             contactListViewModel?.replaceTo(newContact: contact)
+            cache(contact)
         }
+    }
+    
+    private func cache(_ contact: Contact) {
+        Task { try? await dependencies.cacheContacts.cache([contact]) }
     }
     
     func startView() -> some View {
@@ -140,7 +151,8 @@ final class Flow {
     }
     
     private func profileView(user: User) -> ProfileView {
-        ProfileView(user: user, signOutTapped: { [unowned self] in
+        let viewModel = ProfileViewModel(user: user, loadImageData: dependencies.decoratedLoadImageDataWithCache)
+        return ProfileView(viewModel: viewModel, signOutTapped: { [unowned self] in
             Task {
                 try? await currentUserVault.deleteCurrentUser()
                 await contentViewModel.set(signInState: .userInitiatedSignOut)
@@ -156,9 +168,10 @@ final class Flow {
             
             let viewModel = ContactListViewModel(
                 currentUserID: currentUserID,
-                getContacts: dependencies.getContacts,
-                blockContact: dependencies.blockContact,
-                unblockContact: dependencies.unblockContact
+                getContacts: dependencies.decoratedGetContactsWithCache,
+                blockContact: dependencies.decoratedBlockContactWithCache,
+                unblockContact: dependencies.decoratedUnblockContactWithCache,
+                loadImageData: dependencies.decoratedLoadImageDataWithCache
             )
             contactListViewModel = viewModel
             return viewModel
@@ -197,7 +210,8 @@ final class Flow {
             contact: contact,
             getMessages: dependencies.decoratedGetMessagesWithCaching,
             messageChannel: dependencies.decoratedMessageChannelWithCaching,
-            readMessages: dependencies.decoratedReadMessagesAndCache
+            readMessages: dependencies.decoratedReadMessagesAndCache,
+            loadImageData: dependencies.decoratedLoadImageDataWithCache
         )
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
         navigationControl.show(next: destination)

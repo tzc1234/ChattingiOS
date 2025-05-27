@@ -18,6 +18,7 @@ enum PasswordValidator: Validator {
         return .valid
     }
     
+    // Since this App is for practice purpose, so I make the password restriction loose.
     private static var minCharacterCount: Int { 3 }
 }
 
