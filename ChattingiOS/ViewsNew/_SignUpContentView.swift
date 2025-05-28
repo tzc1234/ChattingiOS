@@ -131,9 +131,9 @@ struct _SignUpContentView: View {
                     }
                     .frame(width: 100, height: 100)
                 }
-                .scaleEffect(isAnimating ? 1.05 : 1.0)
+                .scaleEffect(isAnimating ? 1.05 : 1)
                 .animation(
-                    Animation.easeInOut(duration: 2.5).repeatForever(autoreverses: true),
+                    .easeInOut(duration: 2.5).repeatForever(autoreverses: true),
                     value: isAnimating
                 )
             }

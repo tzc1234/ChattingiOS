@@ -14,6 +14,7 @@ struct _SignInContentView: View {
     
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var focused: FocusedField?
+    @State private var isAnimating = false
     
     @Binding var email: String
     @Binding var password: String
@@ -35,6 +36,7 @@ struct _SignInContentView: View {
                 Spacer()
             }
         }
+        .onAppear { isAnimating = true }
     }
     
     private var title: some View {
@@ -46,6 +48,11 @@ struct _SignInContentView: View {
             }
             .frame(width: 80, height: 80)
             .defaultShadow(color: style.common.shadowColor)
+            .scaleEffect(isAnimating ? 0.95 : 1)
+            .animation(
+                .easeInOut(duration: 2).repeatForever(autoreverses: true),
+                value: isAnimating
+            )
             
             VStack(spacing: 8) {
                 Text("ChattingiOS")
