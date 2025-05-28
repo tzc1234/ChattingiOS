@@ -30,11 +30,11 @@ struct _SignInView: View {
                     
                     VStack(spacing: 8) {
                         Text("ChattingiOS")
-                            .font(.system(size: 36, weight: .bold, design: .rounded))
+                            .font(.largeTitle.bold())
                             .foregroundColor(Style.mainTextColor)
                         
                         Text("Connect with friends instantly")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.subheadline)
                             .foregroundColor(Style.subTextColor)
                     }
                 }
@@ -72,7 +72,7 @@ struct _SignInView: View {
                             .frame(height: 1)
                         
                         Text("or")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.caption)
                             .foregroundColor(Style.mainTextColor.opacity(0.7))
                             .padding(.horizontal, 16)
                         

@@ -18,7 +18,7 @@ struct CTButton: View {
                 Image(systemName: icon)
                     .font(.system(size: 20))
                 Text(title)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.body.bold())
             }
             .frame(maxWidth: .infinity)
             .foregroundColor(Style.Button.foregroundColor)
