@@ -83,25 +83,40 @@ struct _SignInContentView: View {
             .textContentType(.password)
             .focused($focused, equals: .password)
             
-            CTButton(icon: "arrow.right.circle.fill", title: "Sign In", action: signInTapped)
-                .frame(height: 56)
-                .background(style.button.gradient, in: .rect(cornerRadius: style.button.cornerRadius))
-                .defaultShadow(color: style.common.shadowColor)
-                .opacity(canSignIn ? 1 : 0.7)
-                .scaleEffect(canSignIn ? 1 : 0.98)
-                .defaultAnimation(value: canSignIn)
-                .disabled(!canSignIn)
+            CTButton(
+                icon: "arrow.right.circle.fill",
+                title: "Sign In",
+                background: {
+                    CTButtonBackground(
+                        cornerRadius: style.button.cornerRadius,
+                        backgroundStyle: style.button.gradient
+                    )
+                    .frame(height: 56)
+                },
+                action: signInTapped
+            )
+            .defaultShadow(color: style.common.shadowColor)
+            .opacity(canSignIn ? 1 : 0.7)
+            .scaleEffect(canSignIn ? 1 : 0.98)
+            .defaultAnimation(value: canSignIn)
+            .disabled(!canSignIn)
             
             divider
                 .padding(.vertical, 6)
             
-            CTButton(icon: "arrow.up.circle.fill", title: "Sign Up", action: signUpTapped)
-                .frame(height: 56)
-                .defaultButtonStyle(
-                    cornerRadius: style.button.cornerRadius,
-                    strokeColor: style.button.strokeColor,
-                    backgroundColor: style.button.backgroundColor
-                )
+            CTButton(
+                icon: "arrow.up.circle.fill",
+                title: "Sign Up",
+                background: {
+                    CTButtonBackground(
+                        cornerRadius: style.button.cornerRadius,
+                        strokeColor: style.button.strokeColor,
+                        backgroundStyle: style.button.backgroundColor
+                    )
+                    .frame(height: 56)
+                },
+                action: signUpTapped
+            )
         }
         .padding(.horizontal, 32)
         .disabled(isLoading)

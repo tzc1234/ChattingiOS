@@ -7,23 +7,27 @@
 
 import SwiftUI
 
-struct CTButton: View {
+struct CTButton<Background: View>: View {
     @EnvironmentObject private var style: ViewStyleManager
     
     let icon: String
     let title: String
+    @ViewBuilder let background: () -> Background
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                Text(title)
-                    .font(.body.bold())
+            ZStack {
+                background()
+                HStack {
+                    Image(systemName: icon)
+                        .font(.system(size: 20))
+                    Text(title)
+                        .font(.body.bold())
+                }
+                .frame(maxWidth: .infinity)
+                .foregroundColor(style.button.foregroundColor)
             }
-            .frame(maxWidth: .infinity)
-            .foregroundColor(style.button.foregroundColor)
         }
     }
 }
