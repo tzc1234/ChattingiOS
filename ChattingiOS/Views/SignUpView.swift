@@ -14,13 +14,12 @@ struct SignUpView: View {
     @ObservedObject var viewModel: SignUpViewModel
     
     var body: some View {
-        SignUpContentView(
+        _SignUpContentView(
             name: $viewModel.nameInput,
             email: $viewModel.emailInput,
             password: $viewModel.passwordInput,
             confirmPassword: $viewModel.confirmPasswordInput,
             avatarData: $viewModel.avatarData,
-            generalError: $viewModel.generalError,
             nameError: viewModel.username.errorMessage,
             emailError: viewModel.email.errorMessage,
             passwordError: viewModel.password.errorMessage,
@@ -34,6 +33,11 @@ struct SignUpView: View {
             if isSignUpSuccess {
                 dismiss()
             }
+        }
+        .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(viewModel.generalError ?? "")
         }
     }
 }
@@ -51,7 +55,6 @@ struct SignUpContentView: View {
     @Binding var password: String
     @Binding var confirmPassword: String
     @Binding var avatarData: Data?
-    @Binding var generalError: String?
     let nameError: String?
     let emailError: String?
     let passwordError: String?
@@ -141,11 +144,6 @@ struct SignUpContentView: View {
             .brightness(isLoading ? -0.1 : 0)
         }
         .ignoresSafeArea()
-        .alert("⚠️Oops!", isPresented: $generalError.toBool) {
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(generalError ?? "")
-        }
     }
     
     @ViewBuilder
@@ -169,7 +167,6 @@ struct SignUpContentView: View {
         password: .constant(""),
         confirmPassword: .constant(""),
         avatarData: .constant(nil),
-        generalError: .constant(nil),
         nameError: nil,
         emailError: nil,
         passwordError: nil,
