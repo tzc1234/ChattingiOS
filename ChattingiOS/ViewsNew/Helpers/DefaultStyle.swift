@@ -85,14 +85,6 @@ extension View {
         shadow(color: color, radius: 15, x: 0, y: 8)
     }
     
-    func defaultButtonStyle(cornerRadius: CGFloat, strokeColor: Color, backgroundColor: Color) -> some View {
-        background {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .stroke(strokeColor, lineWidth: 2)
-                .background(backgroundColor, in: .rect(cornerRadius: cornerRadius))
-        }
-    }
-    
     func defaultAnimation<V: Equatable>(duration: TimeInterval = 0.2, value: V) -> some View {
         animation(.easeInOut(duration: duration), value: value)
     }

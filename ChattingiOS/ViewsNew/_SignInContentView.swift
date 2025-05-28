@@ -91,10 +91,10 @@ struct _SignInContentView: View {
                         cornerRadius: style.button.cornerRadius,
                         backgroundStyle: style.button.gradient
                     )
-                    .frame(height: 56)
                 },
                 action: signInTapped
             )
+            .frame(height: 56)
             .defaultShadow(color: style.common.shadowColor)
             .opacity(canSignIn ? 1 : 0.7)
             .scaleEffect(canSignIn ? 1 : 0.98)
@@ -102,7 +102,6 @@ struct _SignInContentView: View {
             .disabled(!canSignIn)
             
             divider
-                .padding(.vertical, 6)
             
             CTButton(
                 icon: "arrow.up.circle.fill",
@@ -113,10 +112,10 @@ struct _SignInContentView: View {
                         strokeColor: style.button.strokeColor,
                         backgroundStyle: style.button.backgroundColor
                     )
-                    .frame(height: 56)
                 },
                 action: signUpTapped
             )
+            .frame(height: 56)
         }
         .padding(.horizontal, 32)
         .disabled(isLoading)
@@ -137,6 +136,7 @@ struct _SignInContentView: View {
                 .fill(style.common.dividerColor)
                 .frame(height: 1)
         }
+        .padding(.vertical, 6)
     }
 }
 

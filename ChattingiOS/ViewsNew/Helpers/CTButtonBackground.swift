@@ -22,6 +22,5 @@ struct CTButtonBackground<S: ShapeStyle>: View {
         RoundedRectangle(cornerRadius: cornerRadius)
             .stroke(strokeColor, lineWidth: 2)
             .background(backgroundStyle, in: .rect(cornerRadius: cornerRadius))
-            .frame(maxHeight: .infinity)
     }
 }
