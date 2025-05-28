@@ -31,17 +31,6 @@ enum Style {
         )
     }
     
-    static var buttonBackground: LinearGradient {
-        LinearGradient(
-            colors: [
-                Color.blue,
-                Color.purple
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-    
     static var defaultShadow: Color { .blue.opacity(0.3) }
     static var mainTextColor: Color { .white }
     static var subTextColor: Color { .white.opacity(0.8) }
@@ -67,8 +56,42 @@ extension Style {
     }
 }
 
+extension Style {
+    enum Button {
+        static var foregroundColor: Color { .white }
+        static var cornerRadius: CGFloat { 16 }
+        static var gradientStyle: LinearGradient {
+            LinearGradient(
+                colors: [
+                    Color.blue,
+                    Color.purple
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        static var defaultStrokeColor: Color { .white.opacity(0.3) }
+        static var defaultBackgroundColor: Color { .white.opacity(0.1) }
+    }
+}
+
 extension View {
     func defaultShadow(color: Color = Style.defaultShadow) -> some View {
         shadow(color: color, radius: 15, x: 0, y: 8)
+    }
+    
+    func defaultButtonStyle() -> some View {
+        background {
+            RoundedRectangle(cornerRadius: Style.Button.cornerRadius)
+                .stroke(Style.Button.defaultStrokeColor, lineWidth: 2)
+                .background(
+                    Style.Button.defaultBackgroundColor,
+                    in: .rect(cornerRadius: Style.Button.cornerRadius)
+                )
+        }
+    }
+    
+    func submitButtonStyle() -> some View {
+        background(Style.Button.gradientStyle, in: .rect(cornerRadius: Style.Button.cornerRadius))
     }
 }

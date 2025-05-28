@@ -56,24 +56,12 @@ struct _SignInView: View {
                     )
                     .textContentType(.password)
                     
-                    Button(action: {
+                    CTButton(icon: "arrow.right.circle.fill", title: "Sign In") {
                         
-                    }) {
-                        HStack {
-                            Image(systemName: "arrow.right.circle.fill")
-                                .font(.system(size: 20))
-                            Text("Sign In")
-                                .font(.system(size: 18, weight: .semibold))
-                        }
-                        .foregroundColor(Style.mainTextColor)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Style.buttonBackground)
-                        )
                     }
-                    .defaultShadow(color: .blue.opacity(0.3))
+                    .frame(height: 56)
+                    .submitButtonStyle()
+                    .defaultShadow()
                     .opacity(email.isEmpty || password.isEmpty ? 0.7 : 1)
                     .scaleEffect(email.isEmpty || password.isEmpty ? 0.98 : 1)
                     .animation(.easeInOut(duration: 0.2), value: email.isEmpty || password.isEmpty)
@@ -92,29 +80,13 @@ struct _SignInView: View {
                             .fill(Style.dividerColor)
                             .frame(height: 1)
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 6)
                     
-                    Button(action: {
+                    CTButton(icon: "arrow.up.circle.fill", title: "Sign Up") {
                         showSignUp = true
-                    }) {
-                        HStack {
-                            Image(systemName: "arrow.up.circle.fill")
-                                .font(.system(size: 20))
-                            Text("Sign Up")
-                                .font(.system(size: 18, weight: .semibold))
-                        }
-                        .foregroundColor(Style.mainTextColor)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .fill(Color.white.opacity(0.1))
-                                )
-                        )
                     }
+                    .frame(height: 56)
+                    .defaultButtonStyle()
                 }
                 .padding(.horizontal, 32)
                 
