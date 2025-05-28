@@ -12,17 +12,21 @@ struct SignInView: View {
     let signUpTapped: () -> Void
     
     var body: some View {
-        SignInContentView(
+        _SignInContentView(
             email: $viewModel.emailInput,
             password: $viewModel.passwordInput,
             emailError: viewModel.email.errorMessage,
             passwordError: viewModel.password.errorMessage,
-            generalError: $viewModel.generalError,
             isLoading: viewModel.isLoading,
             canSignIn: viewModel.canSignIn,
             signInTapped: viewModel.signIn,
             signUpTapped: signUpTapped
         )
+        .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(viewModel.generalError ?? "")
+        }
     }
 }
 
@@ -35,7 +39,6 @@ struct SignInContentView: View {
     @Binding var password: String
     let emailError: String?
     let passwordError: String?
-    @Binding var generalError: String?
     let isLoading: Bool
     let canSignIn: Bool
     let signInTapped: () -> Void
@@ -97,11 +100,6 @@ struct SignInContentView: View {
             .brightness(isLoading ? -0.1 : 0)
         }
         .ignoresSafeArea()
-        .alert("⚠️Oops!", isPresented: $generalError.toBool) {
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(generalError ?? "")
-        }
     }
 }
 
@@ -111,7 +109,6 @@ struct SignInContentView: View {
         password: .constant(""),
         emailError: nil,
         passwordError: nil,
-        generalError: .constant(nil),
         isLoading: false,
         canSignIn: false,
         signInTapped: {},
