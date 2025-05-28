@@ -8,5 +8,9 @@
 import SwiftUI
 
 final class ViewStyleManager: ObservableObject {
-    let style = DefaultStyle()
+    private let style = DefaultStyle()
+    
+    var common: DefaultStyle.Common { style.common }
+    var textField: DefaultStyle.TextField { style.textField }
+    var button: DefaultStyle.Button { style.button }
 }

@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct CTBackgroundView: View {
-    @EnvironmentObject private var viewStyle: ViewStyleManager
-    private var style: DefaultStyle { viewStyle.style }
+    @EnvironmentObject private var style: ViewStyleManager
     @State private var isAnimating: Bool = false
     
     var body: some View {
