@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct CTButton: View {
+    @EnvironmentObject private var viewStyle: ViewStyleManager
+    private var style: DefaultStyle { viewStyle.style }
+    
     let icon: String
     let title: String
     let action: () -> Void
@@ -21,7 +24,7 @@ struct CTButton: View {
                     .font(.body.bold())
             }
             .frame(maxWidth: .infinity)
-            .foregroundColor(Style.Button.foregroundColor)
+            .foregroundColor(style.button.foregroundColor)
         }
     }
 }

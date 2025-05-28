@@ -12,6 +12,8 @@ struct _SignInContentView: View {
         case email, password
     }
     
+    @EnvironmentObject private var viewStyle: ViewStyleManager
+    private var style: DefaultStyle { viewStyle.style }
     @FocusState private var focused: FocusedField?
     
     @Binding var email: String
@@ -44,16 +46,16 @@ struct _SignInContentView: View {
                     .foregroundColor(.white)
             }
             .frame(width: 80, height: 80)
-            .defaultShadow()
+            .defaultShadow(color: style.common.shadowColor)
             
             VStack(spacing: 8) {
                 Text("ChattingiOS")
                     .font(.largeTitle.bold())
-                    .foregroundColor(Style.mainTextColor)
+                    .foregroundColor(style.common.textColor)
                 
                 Text("Connect with friends instantly")
                     .font(.subheadline)
-                    .foregroundColor(Style.subTextColor)
+                    .foregroundColor(style.common.subTextColor)
             }
         }
     }
@@ -84,11 +86,11 @@ struct _SignInContentView: View {
             
             CTButton(icon: "arrow.right.circle.fill", title: "Sign In", action: signInTapped)
                 .frame(height: 56)
-                .submitButtonStyle()
-                .defaultShadow()
+                .background(style.button.gradient, in: .rect(cornerRadius: style.button.cornerRadius))
+                .defaultShadow(color: style.common.shadowColor)
                 .opacity(canSignIn ? 1 : 0.7)
                 .scaleEffect(canSignIn ? 1 : 0.98)
-                .animation(.easeInOut(duration: 0.2), value: canSignIn)
+                .defaultAnimation(value: canSignIn)
                 .disabled(!canSignIn)
             
             divider
@@ -96,7 +98,11 @@ struct _SignInContentView: View {
             
             CTButton(icon: "arrow.up.circle.fill", title: "Sign Up", action: signUpTapped)
                 .frame(height: 56)
-                .defaultButtonStyle()
+                .defaultButtonStyle(
+                    cornerRadius: style.button.cornerRadius,
+                    strokeColor: style.button.strokeColor,
+                    backgroundColor: style.button.backgroundColor
+                )
         }
         .padding(.horizontal, 32)
         .disabled(isLoading)
@@ -105,16 +111,16 @@ struct _SignInContentView: View {
     private var divider: some View {
         HStack {
             Rectangle()
-                .fill(Style.dividerColor)
+                .fill(style.common.dividerColor)
                 .frame(height: 1)
             
             Text("or")
                 .font(.caption)
-                .foregroundColor(Style.mainTextColor.opacity(0.7))
+                .foregroundColor(style.common.textColor.opacity(0.8))
                 .padding(.horizontal, 16)
             
             Rectangle()
-                .fill(Style.dividerColor)
+                .fill(style.common.dividerColor)
                 .frame(height: 1)
         }
     }
@@ -131,4 +137,5 @@ struct _SignInContentView: View {
         signInTapped: {},
         signUpTapped: {}
     )
+    .environmentObject(ViewStyleManager())
 }

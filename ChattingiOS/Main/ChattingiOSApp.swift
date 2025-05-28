@@ -27,6 +27,7 @@ struct ChattingiOSApp: App {
         WindowGroup {
             flow.startView()
                 .environmentObject(appDelegate)
+                .environmentObject(ViewStyleManager())
         }
     }
 }

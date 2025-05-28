@@ -9,6 +9,8 @@
 import SwiftUI
 
 struct CTCustomTextField: View {
+    @EnvironmentObject private var viewStyle: ViewStyleManager
+    private var style: DefaultStyle { viewStyle.style }
     @State private var isPasswordInvisible = true
     
     @Binding private var text: String
@@ -30,12 +32,12 @@ struct CTCustomTextField: View {
             HStack(spacing: 16) {
                 Image(systemName: icon)
                     .font(.system(size: 20))
-                    .foregroundColor(Style.TextField.iconColor)
+                    .foregroundColor(style.textField.iconColor)
                     .frame(width: 24)
                 
                 textField
                     .font(.body.weight(.medium))
-                    .foregroundColor(Style.TextField.textColor)
+                    .foregroundColor(style.textField.textColor)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
                 
@@ -45,23 +47,23 @@ struct CTCustomTextField: View {
                     }) {
                         Image(systemName: isPasswordInvisible ? "eye.fill" : "eye.slash.fill")
                             .font(.system(size: 18))
-                            .foregroundColor(Style.TextField.iconColor)
+                            .foregroundColor(style.textField.iconColor)
                     }
                 }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
             .background {
-                RoundedRectangle(cornerRadius: Style.TextField.cornerRadius)
-                    .fill(Style.TextField.backgroundColor)
+                RoundedRectangle(cornerRadius: style.textField.cornerRadius)
+                    .fill(style.textField.backgroundColor)
                     .background(
-                        RoundedRectangle(cornerRadius: Style.TextField.cornerRadius)
-                            .stroke(Style.TextField.defaultStrokeColor, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: style.textField.cornerRadius)
+                            .stroke(style.textField.defaultStrokeColor, lineWidth: 1)
                     )
             }
             .overlay {
-                RoundedRectangle(cornerRadius: Style.TextField.cornerRadius)
-                    .stroke(Style.TextField.outerStrokeStyle(isActive: !text.isEmpty), lineWidth: 2)
+                RoundedRectangle(cornerRadius: style.textField.cornerRadius)
+                    .stroke(style.textField.outerStrokeStyle(isActive: !text.isEmpty), lineWidth: 2)
             }
             
             if let error {
@@ -86,6 +88,6 @@ struct CTCustomTextField: View {
     private var prompt: Text {
         Text(placeholder)
             .font(.body.weight(.medium))
-            .foregroundColor(Style.TextField.placeholderColor)
+            .foregroundColor(style.textField.placeholderColor)
     }
 }
