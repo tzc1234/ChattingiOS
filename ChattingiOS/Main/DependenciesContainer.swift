@@ -21,7 +21,7 @@ final class DependenciesContainer {
     }()
     
     // Using force unwrap is easier to debug in development environment.
-    // Better not to do this in release app.
+    // Better not to do this in a release app.
     private lazy var messagesStore = try! CoreDataMessagesStore(url: DefaultMessageStoreURL.url)
     private lazy var cacheMessages = CacheMessages(store: messagesStore, currentUserID: currentUserID)
     
