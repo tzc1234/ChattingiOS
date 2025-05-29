@@ -22,26 +22,24 @@ struct _ContactListContentView: View {
     let loadAvatarData: (URL) async -> Data?
     
     var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                CTBackgroundView()
-                    .id(backgroundViewID)
-                
-                VStack(spacing: 0) {
-                    if let message {
-                        CTNotice(
-                            text: message,
-                            backgroundColor: style.notice.defaultBackgroundColor
-                        )
-                        .padding(.horizontal, 8)
-                    }
-                    
-                    contactsList
+        ZStack {
+            CTBackgroundView()
+                .id(backgroundViewID)
+            
+            VStack(spacing: 0) {
+                if let message {
+                    CTNotice(
+                        text: message,
+                        backgroundColor: style.notice.defaultBackgroundColor
+                    )
+                    .padding(.horizontal, 8)
                 }
                 
-                if isLoading {
-                    LoadingView()
-                }
+                contactsList
+            }
+            
+            if isLoading {
+                LoadingView()
             }
         }
         .onAppear { backgroundViewID = UUID() }
@@ -84,28 +82,20 @@ struct _ContactListContentView: View {
     @ViewBuilder
     private func swipeAction(contact: Contact) -> some View {
         if contact.blockedByUserID == nil {
-            blockAction(contactID: contact.id)
+            Button {
+                blockContact(contact.id)
+            } label: {
+                Label("Block", systemImage: "person.slash.fill")
+            }
+            .tint(.red)
         } else if let blockedByID = contact.blockedByUserID, canUnblock(blockedByID) {
-            unblockAction(contactID: contact.id)
+            Button {
+                unblockContact(contact.id)
+            } label: {
+                Label("Unblock", systemImage: "person.fill")
+            }
+            .tint(.green)
         }
-    }
-    
-    private func blockAction(contactID: Int) -> some View {
-        Button {
-            blockContact(contactID)
-        } label: {
-            Label("Block", systemImage: "person.slash.fill")
-        }
-        .tint(.red)
-    }
-    
-    private func unblockAction(contactID: Int) -> some View {
-        Button {
-            unblockContact(contactID)
-        } label: {
-            Label("Unblock", systemImage: "person.fill")
-        }
-        .tint(.green)
     }
 }
 
