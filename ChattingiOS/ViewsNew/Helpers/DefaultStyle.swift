@@ -40,17 +40,6 @@ extension DefaultStyle {
             )
         }
         
-        var navigationBackground: LinearGradient {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.1, green: 0.1, blue: 0.3).opacity(0.9),
-                    Color(red: 0.2, green: 0.1, blue: 0.4).opacity(0.9)
-                ],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-        }
-        
         var shadowColor: Color { .blue.opacity(0.3) }
         var textColor: Color { .white }
         var subTextColor: Color { .white.opacity(0.8) }

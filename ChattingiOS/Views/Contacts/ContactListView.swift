@@ -35,6 +35,7 @@ struct ContactListView<AlertContent: View>: View {
                     alertState.present()
                 } label: {
                     Image(systemName: "plus")
+                        .font(.system(size: 18, weight: .medium))
                         .foregroundColor(style.button.foregroundColor)
                 }
             }

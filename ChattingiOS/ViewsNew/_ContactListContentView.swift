@@ -47,8 +47,6 @@ struct _ContactListContentView: View {
         .onAppear { backgroundViewID = UUID() }
         .disabled(isLoading)
         .navigationTitle("Contacts")
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarBackground(style.common.navigationBackground, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .defaultAnimation(value: message)
         .onChange(of: message) { _ in
@@ -62,7 +60,8 @@ struct _ContactListContentView: View {
                 ContactRow(
                     contact: contact,
                     loadAvatar: {
-                        guard let url = contact.responder.avatarURL, let data = await loadAvatarData(url) else {
+                        guard let url = contact.responder.avatarURL,
+                              let data = await loadAvatarData(url) else {
                             return nil
                         }
                         
@@ -75,9 +74,7 @@ struct _ContactListContentView: View {
                 .onAppear {
                     if contacts.last == contact { loadMoreContacts() }
                 }
-                .swipeActions {
-                    swipeAction(contact: contact)
-                }
+                .swipeActions { swipeAction(contact: contact) }
             }
             .listRowInsets(.init(top: 5, leading: 10, bottom: 5, trailing: 10))
         }
@@ -88,7 +85,7 @@ struct _ContactListContentView: View {
     private func swipeAction(contact: Contact) -> some View {
         if contact.blockedByUserID == nil {
             blockAction(contactID: contact.id)
-        } else if let blockedBy = contact.blockedByUserID, canUnblock(blockedBy) {
+        } else if let blockedByID = contact.blockedByUserID, canUnblock(blockedByID) {
             unblockAction(contactID: contact.id)
         }
     }
@@ -251,4 +248,5 @@ struct ContactRow: View {
         )
     }
     .environmentObject(ViewStyleManager())
+    .preferredColorScheme(.dark)
 }
