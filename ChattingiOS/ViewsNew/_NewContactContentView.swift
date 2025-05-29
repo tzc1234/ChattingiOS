@@ -41,7 +41,7 @@ struct _NewContactContentView: View {
                 
                 Text("Add Contact")
                     .font(.title.bold())
-                    .foregroundColor(.white)
+                    .foregroundColor(style.common.textColor)
                 
                 CTCustomTextField(
                     text: $email,
