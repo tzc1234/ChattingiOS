@@ -24,24 +24,30 @@ struct _ContactListContentView: View {
     let loadAvatarData: (URL) async -> Data?
     
     var body: some View {
-        ZStack {
-            CTBackgroundView()
-                .id(backgroundViewID)
-            
-            if isLoading {
-                LoadingView()
-            } else {
+        GeometryReader { proxy in
+            ZStack {
+                CTBackgroundView()
+                    .id(backgroundViewID)
+                
                 VStack(spacing: 0) {
                     if !messageDisplayed.isEmpty {
-                        CTNotice(text: messageDisplayed, backgroundColor: style.notice.defaultBackgroundColor)
-                            .padding(.horizontal, 8)
+                        CTNotice(
+                            text: messageDisplayed,
+                            backgroundColor: style.notice.defaultBackgroundColor
+                        )
+                        .padding(.horizontal, 8)
                     }
                     
                     contactsList
                 }
+                
+                if isLoading {
+                    LoadingView()
+                }
             }
         }
         .onAppear { backgroundViewID = UUID() }
+        .disabled(isLoading)
         .navigationTitle("Contacts")
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarBackground(style.common.navigationBackground, for: .navigationBar)
