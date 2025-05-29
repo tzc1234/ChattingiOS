@@ -116,7 +116,8 @@ extension DefaultStyle {
         var cornerRadius: CGFloat { 16 }
         var textColor: Color { .white }
         var spinnerColor: Color { .orange }
-        var backgroundColor: Color { .white.opacity(0.2) }
+        var backgroundColor: Color { .white.opacity(0.08) }
+        var strokeColor: Color { .white.opacity(0.1) }
     }
 }
 

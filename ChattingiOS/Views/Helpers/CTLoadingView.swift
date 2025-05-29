@@ -24,6 +24,10 @@ struct CTLoadingView: View {
             style.loadingView.backgroundColor
                 .frame(width: 160, height: 160)
                 .clipShape(.rect(cornerRadius: style.loadingView.cornerRadius))
+                .overlay(
+                    style.loadingView.strokeColor,
+                    in: .rect(cornerRadius: style.loadingView.cornerRadius).stroke(lineWidth: 1)
+                )
         }
     }
 }
