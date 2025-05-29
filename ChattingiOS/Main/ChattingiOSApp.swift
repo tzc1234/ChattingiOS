@@ -28,7 +28,7 @@ struct ChattingiOSApp: App {
             flow.startView()
                 .preferredColorScheme(.dark)
                 .environmentObject(appDelegate)
-                .environmentObject(ViewStyleManager())
+                .environmentObject(dependencies.viewStyleManager)
         }
     }
 }

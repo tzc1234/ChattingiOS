@@ -13,6 +13,7 @@ final class Flow {
     private var currentUserVault: CurrentUserVault { dependencies.currentUserVault }
     private var pushNotificationHandler: PushNotificationsHandler { dependencies.pushNotificationHandler }
     private var navigationControl: NavigationControlViewModel { contentViewModel.navigationControl }
+    private var style: ViewStyleManager { dependencies.viewStyleManager }
     
     // Let Flow manage the lifetime of the ContactListViewModel instance. Since there's a weird behaviour,
     // the ContactListView sometime will not update if let it manage its own ContactListViewModel.
@@ -116,9 +117,8 @@ final class Flow {
                     }
                     .tag(TabItem.profile)
             }
-            .toolbarBackground(.visible, for: .tabBar)
             .toolbarColorScheme(.dark, for: .tabBar)
-            .tint(.white)
+            .tint(style.common.tarBarTintColor)
         } signInContent: { [unowned self] in
             signInView()
         } sheet: { [unowned self] in
@@ -189,7 +189,7 @@ final class Flow {
             .navigationDestinationFor(MessageListView.self)
     }
     
-    private func newContactView(with alertState: Binding<AlertState>) -> NewContactView {
+    private func newContactView(with alertState: Binding<AlertState>) -> some View {
         let viewModel = NewContactViewModel(newContact: dependencies.newContact)
         newContactTask?.cancel()
         newContactTask = Task { [unowned self] in
@@ -204,6 +204,7 @@ final class Flow {
             newContactTask?.cancel()
             newContactTask = nil
         })
+        .environmentObject(style)
     }
     
     private func showMessageListView(currentUserID: Int, contact: Contact) {

@@ -13,6 +13,7 @@ struct DefaultStyle {
     let button = Button()
     let listRow = ListRow()
     let notice = Notice()
+    let popup = Popup()
 }
 
 extension DefaultStyle {
@@ -44,6 +45,7 @@ extension DefaultStyle {
         var textColor: Color { .white }
         var subTextColor: Color { .white.opacity(0.8) }
         var dividerColor: Color { .white.opacity(0.3) }
+        var tarBarTintColor: Color { .white }
     }
 }
 
@@ -97,6 +99,14 @@ extension DefaultStyle {
         var cornerRadius: CGFloat { 16 }
         var textColor: Color { .white }
         var defaultBackgroundColor: Color { .orange.opacity(0.9) }
+    }
+}
+
+extension DefaultStyle {
+    struct Popup {
+        var cornerRadius: CGFloat { 16 }
+        var textColor: Color { .white }
+        var strokeColor: Color { .white.opacity(0.2) }
     }
 }
 

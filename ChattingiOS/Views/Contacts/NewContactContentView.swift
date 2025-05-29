@@ -13,11 +13,16 @@ struct NewContactView: View {
     let onDisappear: (() -> Void)?
     
     var body: some View {
-        NewContactContentView(
+        _NewContactContentView(
             email: $viewModel.emailInput,
             error: viewModel.error,
             isLoading: viewModel.isLoading,
             canSubmit: viewModel.canSubmit,
+            dismiss: {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation { alertState.dismiss() }
+                }
+            },
             submitTapped: viewModel.addNewContact
         )
         .onDisappear(perform: onDisappear)
@@ -25,9 +30,7 @@ struct NewContactView: View {
             if contact != nil {
                 // Fix animation when closing the custom alert.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation {
-                        alertState.dismiss()
-                    }
+                    withAnimation { alertState.dismiss() }
                 }
             }
         }

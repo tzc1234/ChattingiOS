@@ -13,6 +13,7 @@ final class DependenciesContainer {
     let currentUserVault = DefaultCurrentUserVault()
     let contentViewModel = ContentViewModel()
     let pushNotificationHandler = PushNotificationsHandler()
+    let viewStyleManager = ViewStyleManager()
     
     private let httpClient: URLSessionHTTPClient = {
         let configuration = URLSessionConfiguration.default
