@@ -26,9 +26,7 @@ struct ChattingiOSApp: App {
     var body: some Scene {
         WindowGroup {
             flow.startView()
-                .preferredColorScheme(.dark)
                 .environmentObject(appDelegate)
-                .environmentObject(dependencies.viewStyleManager)
         }
     }
 }

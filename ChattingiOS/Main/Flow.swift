@@ -124,6 +124,8 @@ final class Flow {
         } sheet: { [unowned self] in
             signUpView()
         }
+        .preferredColorScheme(.dark)
+        .environmentObject(dependencies.viewStyleManager)
     }
     
     private func signInView() -> SignInView {
