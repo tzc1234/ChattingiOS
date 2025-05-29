@@ -50,6 +50,8 @@ struct _NewContactContentView: View {
                     error: error
                 )
                 .keyboardType(.emailAddress)
+                .submitLabel(.send)
+                .onSubmit(submitTapped)
                 
                 CTButton(
                     icon: "arrow.up.circle.fill",
