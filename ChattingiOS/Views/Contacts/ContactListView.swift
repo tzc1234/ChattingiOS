@@ -30,7 +30,7 @@ struct ContactListView<AlertContent: View>: View {
         .task { await viewModel.loadContacts() }
         .refreshable { await viewModel.loadContacts() }
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     alertState.present()
                 } label: {

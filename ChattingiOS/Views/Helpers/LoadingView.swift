@@ -11,20 +11,20 @@ struct LoadingView: View {
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
             ProgressView()
                 .controlSize(.large)
                 .tint(.ctOrange)
             
             Text("Loading...")
-                .font(.title3)
+                .font(.title3.weight(.medium))
                 .foregroundStyle(.white)
         }
-        .background(
+        .background {
             background
-                .frame(width: 160, height: 170)
-                .clipShape(.rect(cornerRadius: 12))
-        )
+                .frame(width: 160, height: 160)
+                .clipShape(.rect(cornerRadius: 16))
+        }
     }
     
     private var background: some View {

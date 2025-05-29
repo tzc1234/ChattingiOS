@@ -9,7 +9,6 @@ import SwiftUI
 
 struct _ContactListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
-    @State private var backgroundViewID = UUID()
     
     let contacts: [Contact]
     @Binding var message: String?
@@ -24,7 +23,6 @@ struct _ContactListContentView: View {
     var body: some View {
         ZStack {
             CTBackgroundView()
-                .id(backgroundViewID)
             
             VStack(spacing: 0) {
                 if let message {
@@ -38,15 +36,14 @@ struct _ContactListContentView: View {
                 contactsList
             }
             
-            if isLoading {
-                LoadingView()
-            }
+            LoadingView()
+                .opacity(isLoading ? 1 : 0)
         }
-        .onAppear { backgroundViewID = UUID() }
         .disabled(isLoading)
         .navigationTitle("Contacts")
         .toolbarColorScheme(.dark, for: .navigationBar)
         .defaultAnimation(value: message)
+        .defaultAnimation(duration: 0.3, value: isLoading)
         .onChange(of: message) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { message = nil }
         }
