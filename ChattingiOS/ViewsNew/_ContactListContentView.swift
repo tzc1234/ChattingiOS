@@ -11,12 +11,7 @@ struct _ContactListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @State private var isFullScreenCoverPresenting = false
     @State private var messageDisplayed = ""
-    
-    private let transaction = {
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        return transaction
-    }()
+    @State private var backgroundViewID = UUID()
     
     let contacts: [Contact]
     @Binding var message: String?
@@ -31,29 +26,26 @@ struct _ContactListContentView: View {
     var body: some View {
         ZStack {
             CTBackgroundView()
+                .id(backgroundViewID)
             
-            VStack(spacing: 0) {
-                if !messageDisplayed.isEmpty {
-                    CTNotice(text: messageDisplayed, backgroundColor: style.notice.defaultBackgroundColor)
-                        .padding(.horizontal, 8)
+            if isLoading {
+                LoadingView()
+            } else {
+                VStack(spacing: 0) {
+                    if !messageDisplayed.isEmpty {
+                        CTNotice(text: messageDisplayed, backgroundColor: style.notice.defaultBackgroundColor)
+                            .padding(.horizontal, 8)
+                    }
+                    
+                    contactsList
                 }
-                
-                contactsList
             }
         }
+        .onAppear { backgroundViewID = UUID() }
         .navigationTitle("Contacts")
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarBackground(style.common.navigationBackground, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        .fullScreenCover(isPresented: $isFullScreenCoverPresenting) {
-            LoadingView().presentationBackground(.clear)
-        }
-        .onAppear {
-            withTransaction(transaction) { isFullScreenCoverPresenting = false }
-        }
-        .onChange(of: isLoading) { newValue in
-            withTransaction(transaction) { isFullScreenCoverPresenting = newValue }
-        }
         .onChange(of: message) { newValue in
             withAnimation { messageDisplayed = newValue == nil ? "" : newValue! }
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { message = nil }
