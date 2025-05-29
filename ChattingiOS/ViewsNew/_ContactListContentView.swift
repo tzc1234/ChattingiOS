@@ -9,8 +9,6 @@ import SwiftUI
 
 struct _ContactListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
-    @State private var isFullScreenCoverPresenting = false
-    @State private var messageDisplayed = ""
     @State private var backgroundViewID = UUID()
     
     let contacts: [Contact]
@@ -30,9 +28,9 @@ struct _ContactListContentView: View {
                     .id(backgroundViewID)
                 
                 VStack(spacing: 0) {
-                    if !messageDisplayed.isEmpty {
+                    if let message {
                         CTNotice(
-                            text: messageDisplayed,
+                            text: message,
                             backgroundColor: style.notice.defaultBackgroundColor
                         )
                         .padding(.horizontal, 8)
@@ -52,8 +50,8 @@ struct _ContactListContentView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarBackground(style.common.navigationBackground, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        .onChange(of: message) { newValue in
-            withAnimation { messageDisplayed = newValue == nil ? "" : newValue! }
+        .defaultAnimation(value: message)
+        .onChange(of: message) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { message = nil }
         }
     }

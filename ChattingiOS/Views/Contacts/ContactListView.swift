@@ -31,11 +31,10 @@ struct ContactListView<AlertContent: View>: View {
         .refreshable { await viewModel.loadContacts() }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: {
+                Button {
                     alertState.present()
-                }) {
+                } label: {
                     Image(systemName: "plus")
-                        .font(.system(size: 20, weight: .medium))
                         .foregroundColor(style.button.foregroundColor)
                 }
             }
