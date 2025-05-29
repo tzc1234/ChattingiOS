@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContactListView<AlertContent: View>: View {
+    @EnvironmentObject private var style: ViewStyleManager
     @State private var alertState = AlertState()
     
     @ObservedObject var viewModel: ContactListViewModel
@@ -15,9 +16,8 @@ struct ContactListView<AlertContent: View>: View {
     let rowTapped: (Contact) -> Void
     
     var body: some View {
-        ContactListContentView(
+        _ContactListContentView(
             contacts: viewModel.contacts,
-            generalError: $viewModel.generalError,
             message: $viewModel.message,
             isLoading: viewModel.isLoading,
             loadMoreContacts: viewModel.loadMoreContacts,
@@ -30,21 +30,29 @@ struct ContactListView<AlertContent: View>: View {
         .task { await viewModel.loadContacts() }
         .refreshable { await viewModel.loadContacts() }
         .toolbar {
-            Button {
-                alertState.present()
-            } label: {
-                Image(systemName: "plus")
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    alertState.present()
+                }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(style.button.foregroundColor)
+                }
             }
         }
         .alert(alertState: $alertState) {
             alertContent($alertState)
+        }
+        .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(viewModel.generalError ?? "")
         }
     }
 }
 
 struct ContactListContentView: View {
     let contacts: [Contact]
-    @Binding var generalError: String?
     @Binding var message: String?
     let isLoading: Bool
     let loadMoreContacts: () -> Void
@@ -121,11 +129,7 @@ struct ContactListContentView: View {
             withAnimation { messageDisplayed = newValue == nil ? "" : newValue! }
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { message = nil }
         }
-        .alert("⚠️Oops!", isPresented: $generalError.toBool) {
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(generalError ?? "")
-        }
+        
     }
     
     @ViewBuilder
@@ -192,7 +196,6 @@ struct ContactListContentView: View {
                     )
                 )
             ],
-            generalError: .constant(nil),
             message: .constant("New contact added."),
             isLoading: false,
             loadMoreContacts: {},

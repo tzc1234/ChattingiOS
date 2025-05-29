@@ -11,6 +11,8 @@ struct DefaultStyle {
     let common = Common()
     let textField = TextField()
     let button = Button()
+    let listRow = ListRow()
+    let notice = Notice()
 }
 
 extension DefaultStyle {
@@ -38,10 +40,20 @@ extension DefaultStyle {
             )
         }
         
+        var navigationBackground: LinearGradient {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.1, green: 0.1, blue: 0.3).opacity(0.9),
+                    Color(red: 0.2, green: 0.1, blue: 0.4).opacity(0.9)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+        
         var shadowColor: Color { .blue.opacity(0.3) }
         var textColor: Color { .white }
         var subTextColor: Color { .white.opacity(0.8) }
-        var labelIconColor: Color { .white }
         var dividerColor: Color { .white.opacity(0.3) }
     }
 }
@@ -77,6 +89,25 @@ extension DefaultStyle {
         }
         var strokeColor: Color { .white.opacity(0.3) }
         var backgroundColor: Color { .white.opacity(0.1) }
+    }
+}
+
+extension DefaultStyle {
+    struct ListRow {
+        var foregroundColor: Color { .white }
+        var backgroundColor: Color { .white }
+        var cornerRadius: CGFloat { 16 }
+        var strokeColor: Color { .white.opacity(0.1) }
+        var badgeTextColor: Color { .white }
+        var badgeBackgroundColor: Color { .orange.opacity(0.9) }
+    }
+}
+
+extension DefaultStyle {
+    struct Notice {
+        var cornerRadius: CGFloat { 16 }
+        var textColor: Color { .white }
+        var defaultBackgroundColor: Color { .orange.opacity(0.9) }
     }
 }
 

@@ -14,7 +14,7 @@ struct CTBackgroundView: View {
     var body: some View {
         style.common.background
             .ignoresSafeArea()
-            .hueRotation(.degrees(isAnimating ? 20 : 0))
+            .hueRotation(.degrees(isAnimating ? 10 : 0))
             .animation(Animation.easeInOut(duration: 3).repeatForever(autoreverses: true), value: isAnimating)
             .onAppear { isAnimating = true }
     }

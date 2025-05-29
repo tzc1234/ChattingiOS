@@ -116,7 +116,9 @@ final class Flow {
                     }
                     .tag(TabItem.profile)
             }
-            .tint(.ctOrange)
+            .toolbarBackground(.visible, for: .tabBar)
+            .toolbarColorScheme(.dark, for: .tabBar)
+            .tint(.white)
         } signInContent: { [unowned self] in
             signInView()
         } sheet: { [unowned self] in
