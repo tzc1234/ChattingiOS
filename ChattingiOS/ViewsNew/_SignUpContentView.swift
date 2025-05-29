@@ -201,6 +201,7 @@ struct _SignUpContentView: View {
             CTButton(
                 icon: "arrow.up.circle.fill",
                 title: "Sign Up",
+                isLoading: isLoading,
                 background: {
                     CTButtonBackground(
                         cornerRadius: style.button.cornerRadius,

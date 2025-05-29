@@ -7,26 +7,44 @@
 
 import SwiftUI
 
-struct CTButton<Background: View>: View {
+struct CTButton<V: View>: View {
     @EnvironmentObject private var style: ViewStyleManager
     
-    let icon: String
-    let title: String
-    @ViewBuilder let background: () -> Background
-    let action: () -> Void
+    private let icon: String
+    private let title: String
+    private let isLoading: Bool
+    @ViewBuilder private let background: () -> V
+    private let action: () -> Void
+    
+    init(icon: String,
+         title: String,
+         isLoading: Bool = false,
+         background: @escaping () -> V,
+         action: @escaping () -> Void) {
+        self.icon = icon
+        self.title = title
+        self.isLoading = isLoading
+        self.background = background
+        self.action = action
+    }
     
     var body: some View {
         Button(action: action) {
             ZStack {
                 background()
-                HStack {
-                    Image(systemName: icon)
-                        .font(.system(size: 20))
-                    Text(title)
-                        .font(.body.bold())
+                
+                if isLoading {
+                    ProgressView()
+                        .tint(style.button.foregroundColor)
+                } else {
+                    HStack {
+                        Image(systemName: icon)
+                            .font(.system(size: 20))
+                        Text(title)
+                            .font(.body.bold())
+                    }
+                    .foregroundColor(style.button.foregroundColor)
                 }
-                .frame(maxWidth: .infinity)
-                .foregroundColor(style.button.foregroundColor)
             }
         }
     }
