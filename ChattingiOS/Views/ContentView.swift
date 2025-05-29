@@ -15,7 +15,7 @@ struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: Vie
     
     var body: some View {
         ZStack {
-            LoadingView()
+            CTLoadingView()
                 .opacity(viewModel.isLoading ? 1 : 0)
             
             content

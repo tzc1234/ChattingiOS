@@ -112,7 +112,7 @@ struct ContactListContentView: View {
         }
         .navigationTitle("Contacts")
         .fullScreenCover(isPresented: $isFullScreenCoverPresenting) {
-            LoadingView()
+            CTLoadingView()
                 .presentationBackground(.clear)
         }
         .onAppear {

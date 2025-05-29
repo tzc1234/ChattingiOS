@@ -36,7 +36,7 @@ struct _ContactListContentView: View {
                 contactsList
             }
             
-            LoadingView()
+            CTLoadingView()
                 .opacity(isLoading ? 1 : 0)
         }
         .disabled(isLoading)

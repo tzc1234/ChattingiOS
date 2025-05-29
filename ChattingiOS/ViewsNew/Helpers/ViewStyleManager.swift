@@ -16,4 +16,5 @@ final class ViewStyleManager: ObservableObject {
     var listRow: DefaultStyle.ListRow { style.listRow }
     var notice: DefaultStyle.Notice { style.notice }
     var popup: DefaultStyle.Popup { style.popup }
+    var loadingView: DefaultStyle.LoadingView { style.loadingView }
 }

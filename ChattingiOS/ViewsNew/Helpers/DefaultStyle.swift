@@ -14,6 +14,7 @@ struct DefaultStyle {
     let listRow = ListRow()
     let notice = Notice()
     let popup = Popup()
+    let loadingView = LoadingView()
 }
 
 extension DefaultStyle {
@@ -107,6 +108,15 @@ extension DefaultStyle {
         var cornerRadius: CGFloat { 16 }
         var textColor: Color { .white }
         var strokeColor: Color { .white.opacity(0.2) }
+    }
+}
+
+extension DefaultStyle {
+    struct LoadingView {
+        var cornerRadius: CGFloat { 16 }
+        var textColor: Color { .white }
+        var spinnerColor: Color { .orange }
+        var backgroundColor: Color { .white.opacity(0.2) }
     }
 }
 
