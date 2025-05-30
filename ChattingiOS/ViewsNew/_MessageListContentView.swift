@@ -59,12 +59,10 @@ struct _MessageListContentView: View {
                     
                     if let minIndex = visibleMessageIndex.min() {
                         VStack {
-                            Text(messages[minIndex].date)
-                                .font(.footnote)
-                                .foregroundStyle(style.common.textColor)
-                            
+                            messageDateView(messages[minIndex].date)
                             Spacer()
                         }
+                        .padding(.horizontal, 18)
                         .padding(.vertical, 8)
                     }
                 }
@@ -105,7 +103,7 @@ struct _MessageListContentView: View {
         ScrollViewReader { proxy in
             List {
                 ForEach(Array(messages.enumerated()), id: \.offset) { index, message in
-                    messageDate(message.date, index: index)
+                    messageDateHeader(message.date, index: index)
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     
@@ -141,17 +139,19 @@ struct _MessageListContentView: View {
     }
     
     @ViewBuilder
-    private func messageDate(_ dateText: String, index: Int) -> some View {
+    private func messageDateHeader(_ dateText: String, index: Int) -> some View {
         if index > 0 {
             if dateText != messages[index-1].date {
-                VStack(alignment: .center) {
-                    Text(dateText)
-                        .font(.footnote)
-                        .foregroundStyle(style.common.textColor)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                }
+                messageDateView(dateText)
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
         }
+    }
+    
+    private func messageDateView(_ dateText: String) -> some View {
+        Text(dateText)
+            .font(.footnote)
+            .foregroundStyle(style.common.textColor)
     }
     
     private var messageInputArea: some View {
