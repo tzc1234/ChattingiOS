@@ -12,7 +12,8 @@ struct DisplayedMessage: Identifiable, Equatable {
     let text: String
     let isMine: Bool
     let isRead: Bool
-    let date: Date
+    let date: String
+    let time: String
     
     var isUnread: Bool { !isMine && !isRead }
 }

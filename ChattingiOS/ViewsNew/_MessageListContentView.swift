@@ -59,11 +59,9 @@ struct _MessageListContentView: View {
                     
                     if let minIndex = visibleMessageIndex.min() {
                         VStack {
-                            Text(messages[minIndex].date
-                                .formatted(date: .abbreviated, time: .omitted)
-                            )
-                            .font(.footnote)
-                            .foregroundStyle(style.common.textColor)
+                            Text(messages[minIndex].date)
+                                .font(.footnote)
+                                .foregroundStyle(style.common.textColor)
                             
                             Spacer()
                         }
@@ -125,7 +123,7 @@ struct _MessageListContentView: View {
                 }
                 .listRowInsets(.init(top: 8, leading: 20, bottom: 8, trailing: 20))
             }
-            .padding(.top, 16)
+            .padding(.top, 20)
             .onChange(of: messages) { newValue in
                 if messages.isEmpty { visibleMessageIndex.removeAll() }
             }
@@ -143,11 +141,9 @@ struct _MessageListContentView: View {
     }
     
     @ViewBuilder
-    private func messageDate(_ date: Date, index: Int) -> some View {
+    private func messageDate(_ dateText: String, index: Int) -> some View {
         if index > 0 {
-            let dateText = date.formatted(date: .abbreviated, time: .omitted)
-            let previousDateText = messages[index-1].date.formatted(date: .abbreviated, time: .omitted)
-            if previousDateText != dateText {
+            if dateText != messages[index-1].date {
                 VStack(alignment: .center) {
                     Text(dateText)
                         .font(.footnote)
@@ -245,7 +241,7 @@ struct MessageBubble: View {
                     )
                 
                 HStack(spacing: 4) {
-                    Text(message.date.formatted(date: .omitted, time: .shortened))
+                    Text(message.time)
                         .font(.caption)
                         .foregroundColor(style.messageBubble.foregroundColor.opacity(0.6))
                     
@@ -270,8 +266,11 @@ struct MessageBubble: View {
             responderName: "Jack",
             avatarData: nil,
             messages: [
-                DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, date: .distantPast),
-                DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: .distantFuture)
+                .init(id: 0, text: "Hi!", isMine: false, isRead: true, date:  "1 Jan 2025", time: "10:00"),
+                .init(id: 1, text: "How are you?", isMine: false, isRead: true, date:  "1 Jan 2025", time: "10:05"),
+                .init(id: 2, text: "Not bad.", isMine: true, isRead: true, date: "2 Jan 2025", time: "12:45"),
+                .init(id: 3, text: "Long time no see", isMine: true, isRead: true, date: "2 Jan 2025", time: "13:00"),
+                .init(id: 4, text: "What are you doing now?", isMine: false, isRead: true, date:  "3 Jan 2025", time: "11:00"),
             ],
             isLoading: false,
             isBlocked: false,

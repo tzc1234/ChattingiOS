@@ -259,7 +259,8 @@ private extension Message {
             text: text,
             isMine: senderID == currentUserID,
             isRead: isRead,
-            date: createdAt
+            date: createdAt.formatted(date: .abbreviated, time: .omitted),
+            time: createdAt.formatted(date: .omitted, time: .shortened)
         )
     }
 }

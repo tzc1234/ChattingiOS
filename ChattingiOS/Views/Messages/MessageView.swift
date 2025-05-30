@@ -29,7 +29,7 @@ struct MessageView: View {
                 Text(message.text)
                     .font(.callout)
                 
-                Text(message.date.formatted())
+                Text(message.time)
                     .font(.system(size: 10))
             }
             .foregroundStyle(.white)
@@ -49,7 +49,8 @@ struct MessageView: View {
             text: "Hello, mate👋.\nHow are you, long time no see?",
             isMine: true,
             isRead: true,
-            date: .now
+            date: "01/01/2025",
+            time: "10:00"
         )
     )
 }
@@ -62,7 +63,8 @@ struct MessageView: View {
             text: "Hello, mate👋.",
             isMine: false,
             isRead: false,
-            date: .now
+            date: "01/01/2025",
+            time: "10:00"
         )
     )
 }
