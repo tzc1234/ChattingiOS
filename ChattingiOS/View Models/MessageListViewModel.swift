@@ -259,7 +259,7 @@ private extension Message {
             text: text,
             isMine: senderID == currentUserID,
             isRead: isRead,
-            date: createdAt.formatted()
+            date: createdAt
         )
     }
 }

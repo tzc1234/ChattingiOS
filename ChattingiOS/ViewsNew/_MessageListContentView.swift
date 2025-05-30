@@ -11,6 +11,7 @@ struct _MessageListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var textEditorFocused: Bool
     @State private var scrollToMessageID: Int?
+    @State private var visibleMessageIndex = Set<Int>()
     
     private var sendButtonActive: Bool {
         !isLoading && !inputMessage.isEmpty && isConnecting
@@ -53,7 +54,22 @@ struct _MessageListContentView: View {
                     .padding(.vertical, 8)
                 }
                 
-                messagesScrollView
+                ZStack {
+                    messageList
+                    
+                    if let minIndex = visibleMessageIndex.min() {
+                        VStack {
+                            Text(messages[minIndex].date
+                                .formatted(date: .abbreviated, time: .omitted)
+                            )
+                            .font(.footnote)
+                            .foregroundStyle(style.common.textColor)
+                            
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
+                    }
+                }
                 
                 if !isBlocked {
                     messageInputArea
@@ -86,22 +102,32 @@ struct _MessageListContentView: View {
             }
         }
     }
-
-    private var messagesScrollView: some View {
+    
+    private var messageList: some View {
         ScrollViewReader { proxy in
             List {
-                ForEach(messages) { message in
+                ForEach(Array(messages.enumerated()), id: \.offset) { index, message in
+                    messageDate(message.date, index: index)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                    
                     MessageBubble(message: message)
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                         .id(message.id)
                         .onAppear {
+                            visibleMessageIndex.insert(index)
                             if message == messages.first { loadPreviousMessages() }
                             if message == messages.last { loadMoreMessages() }
                             if message.isUnread { readMessages(message.id) }
                         }
+                        .onDisappear { visibleMessageIndex.remove(index) }
                 }
-                .listRowInsets(.init(top: 16, leading: 20, bottom: 16, trailing: 20))
+                .listRowInsets(.init(top: 8, leading: 20, bottom: 8, trailing: 20))
+            }
+            .padding(.top, 16)
+            .onChange(of: messages) { newValue in
+                if messages.isEmpty { visibleMessageIndex.removeAll() }
             }
             .onChange(of: listPositionMessageID) { messageID in
                 if let messageID {
@@ -113,6 +139,22 @@ struct _MessageListContentView: View {
                 proxy.scrollTo(messageID, anchor: .top)
             }
             .listStyle(.plain)
+        }
+    }
+    
+    @ViewBuilder
+    private func messageDate(_ date: Date, index: Int) -> some View {
+        if index > 0 {
+            let dateText = date.formatted(date: .abbreviated, time: .omitted)
+            let previousDateText = messages[index-1].date.formatted(date: .abbreviated, time: .omitted)
+            if previousDateText != dateText {
+                VStack(alignment: .center) {
+                    Text(dateText)
+                        .font(.footnote)
+                        .foregroundStyle(style.common.textColor)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
         }
     }
     
@@ -203,7 +245,7 @@ struct MessageBubble: View {
                     )
                 
                 HStack(spacing: 4) {
-                    Text(message.date)
+                    Text(message.date.formatted(date: .omitted, time: .shortened))
                         .font(.caption)
                         .foregroundColor(style.messageBubble.foregroundColor.opacity(0.6))
                     
@@ -228,8 +270,8 @@ struct MessageBubble: View {
             responderName: "Jack",
             avatarData: nil,
             messages: [
-                DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, date: "01/01/2025, 10:00"),
-                DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: "01/01/2025, 10:01")
+                DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, date: .distantPast),
+                DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: .distantFuture)
             ],
             isLoading: false,
             isBlocked: false,

@@ -201,8 +201,8 @@ struct MessageListContentView: View {
             responderName: "Jack",
             avatarData: nil,
             messages: [
-                DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, date: "01/01/2025, 10:00"),
-                DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: "01/01/2025, 10:01")
+                DisplayedMessage(id: 0, text: "Hi!", isMine: false, isRead: true, date: .distantPast),
+                DisplayedMessage(id: 1, text: "Yo!", isMine: true, isRead: true, date: .distantFuture)
             ],
             isLoading: false,
             isBlocked: false,
