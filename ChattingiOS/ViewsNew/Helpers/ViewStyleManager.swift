@@ -17,4 +17,6 @@ final class ViewStyleManager: ObservableObject {
     var notice: DefaultStyle.Notice { style.notice }
     var popup: DefaultStyle.Popup { style.popup }
     var loadingView: DefaultStyle.LoadingView { style.loadingView }
+    var messageInput: DefaultStyle.MessageInput { style.messageInput }
+    var messageBubble: DefaultStyle.MessageBubble { style.messageBubble }
 }

@@ -118,7 +118,7 @@ final class Flow {
                     .tag(TabItem.profile)
             }
             .toolbarColorScheme(.dark, for: .tabBar)
-            .tint(style.common.tarBarTintColor)
+            
         } signInContent: { [unowned self] in
             signInView()
         } sheet: { [unowned self] in

@@ -13,13 +13,12 @@ struct MessageListView: View {
     @ObservedObject var viewModel: MessageListViewModel
     
     var body: some View {
-        MessageListContentView(
+        _MessageListContentView(
             responderName: viewModel.username,
             avatarData: viewModel.avatarData,
             messages: viewModel.messages,
             isLoading: viewModel.isLoading,
             isBlocked: viewModel.isBlocked,
-            generalError: $viewModel.generalError,
             setupError: $viewModel.setupError,
             inputMessage: $viewModel.inputMessage,
             listPositionMessageID: $viewModel.messageIDForListPosition,
@@ -41,6 +40,11 @@ struct MessageListView: View {
                 viewModel.closeMessageChannel()
             }
         }
+        .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(viewModel.generalError ?? "")
+        }
     }
 }
 
@@ -50,7 +54,6 @@ struct MessageListContentView: View {
     let messages: [DisplayedMessage]
     let isLoading: Bool
     let isBlocked: Bool
-    @Binding var generalError: String?
     @Binding var setupError: String?
     @Binding var inputMessage: String
     @Binding var listPositionMessageID: Int?
@@ -153,11 +156,7 @@ struct MessageListContentView: View {
                 }
             }
         }
-        .alert("⚠️Oops!", isPresented: $generalError.toBool) {
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text(generalError ?? "")
-        }
+        
     }
     
     @ViewBuilder
@@ -207,7 +206,6 @@ struct MessageListContentView: View {
             ],
             isLoading: false,
             isBlocked: false,
-            generalError: .constant(nil),
             setupError: .constant(nil),
             inputMessage: .constant(""),
             listPositionMessageID: .constant(nil),

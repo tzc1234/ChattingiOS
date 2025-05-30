@@ -29,9 +29,11 @@ struct _ContactListContentView: View {
                 if let message {
                     CTNotice(
                         text: message,
-                        backgroundColor: style.notice.defaultBackgroundColor
+                        backgroundColor: style.notice.defaultBackgroundColor,
+                        strokeColor: style.notice.defaultStrokeColor
                     )
                     .padding(.horizontal, 18)
+                    .padding(.vertical, 8)
                 }
                 
                 contactsList

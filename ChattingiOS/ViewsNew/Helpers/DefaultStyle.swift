@@ -15,6 +15,8 @@ struct DefaultStyle {
     let notice = Notice()
     let popup = Popup()
     let loadingView = LoadingView()
+    let messageInput = MessageInput()
+    let messageBubble = MessageBubble()
 }
 
 extension DefaultStyle {
@@ -33,10 +35,7 @@ extension DefaultStyle {
         
         var iconBackground: LinearGradient {
             LinearGradient(
-                colors: [
-                    Color.blue.opacity(0.8),
-                    Color.purple.opacity(0.8)
-                ],
+                colors: [.blue.opacity(0.8), .purple.opacity(0.8)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -46,7 +45,6 @@ extension DefaultStyle {
         var textColor: Color { .white }
         var subTextColor: Color { .white.opacity(0.8) }
         var dividerColor: Color { .white.opacity(0.3) }
-        var tarBarTintColor: Color { .white }
     }
 }
 
@@ -74,7 +72,7 @@ extension DefaultStyle {
         var cornerRadius: CGFloat { 16 }
         var gradient: LinearGradient {
             LinearGradient(
-                colors: [Color.blue, Color.purple],
+                colors: [.blue, .purple],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -99,7 +97,10 @@ extension DefaultStyle {
     struct Notice {
         var cornerRadius: CGFloat { 16 }
         var textColor: Color { .white }
-        var defaultBackgroundColor: Color { .orange.opacity(0.9) }
+        var defaultBackgroundColor: Color { .green.opacity(0.3) }
+        var defaultStrokeColor: Color { .green.opacity(0.4) }
+        var errorBackgroundColor: Color { .red.opacity(0.3) }
+        var errorStrokeColor: Color { .red.opacity(0.3) }
     }
 }
 
@@ -118,6 +119,55 @@ extension DefaultStyle {
         var spinnerColor: Color { .orange }
         var backgroundColor: Color { .white.opacity(0.08) }
         var strokeColor: Color { .white.opacity(0.1) }
+    }
+}
+
+extension DefaultStyle {
+    struct MessageInput {
+        var foregroundColor: Color { .white }
+        var backgroundColor: Color { .white.opacity(0.1) }
+        var strokeColor: Color { .white.opacity(0.2) }
+        var spinnerColor: Color { .white }
+        var cornerRadius: CGFloat { 16 }
+        func sendButtonBackground(isActive: Bool) -> LinearGradient {
+            LinearGradient(
+                colors: isActive ?
+                [.blue, .purple] :
+                [.white.opacity(0.3), .white.opacity(0.2)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        var sectionBackground: some View {
+            Rectangle()
+                .fill(.white.opacity(0.05))
+                .blur(radius: 8)
+        }
+    }
+}
+
+extension DefaultStyle {
+    struct MessageBubble {
+        var foregroundColor: Color { .white }
+        var cornerRadius: CGFloat { 16 }
+        func background(isMine: Bool) -> LinearGradient {
+            isMine ?
+            LinearGradient(
+                colors: [.blue, .purple],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ) : LinearGradient(
+                colors: [.white.opacity(0.15), .white.opacity(0.1)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        func strokeColor(isMine: Bool) -> Color {
+            isMine ? .clear : .white.opacity(0.2)
+        }
+        func readIconColor(isRead: Bool) -> Color {
+            isRead ? .purple : .white.opacity(0.6)
+        }
     }
 }
 
