@@ -150,6 +150,7 @@ struct _MessageListContentView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
         .background { style.messageInput.sectionBackground }
+        .brightness(isLoading || !isConnecting ? -0.5 : 0)
         .disabled(isLoading || !isConnecting)
     }
     
@@ -212,7 +213,6 @@ struct MessageBubble: View {
                             .foregroundColor(style.messageBubble.readIconColor(isRead: message.isRead))
                     }
                 }
-                .padding(.horizontal, 4)
             }
             
             if !isMine {

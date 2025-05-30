@@ -258,7 +258,7 @@ private extension Message {
             id: id,
             text: text,
             isMine: senderID == currentUserID,
-            isRead: senderID == currentUserID || isRead,
+            isRead: isRead,
             date: createdAt.formatted()
         )
     }

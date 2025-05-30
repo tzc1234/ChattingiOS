@@ -142,6 +142,7 @@ extension DefaultStyle {
             Rectangle()
                 .fill(.white.opacity(0.05))
                 .blur(radius: 8)
+                .ignoresSafeArea(.all, edges: .bottom)
         }
     }
 }

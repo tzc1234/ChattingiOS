@@ -783,7 +783,7 @@ final class MessageListViewModelTests: XCTestCase {
             id: id,
             text: text,
             isMine: senderID == currentUserID,
-            isRead: senderID == currentUserID || isRead,
+            isRead: isRead,
             date: createdAt.formatted()
         )
         return MessagePair(model: model, display: display)
