@@ -87,7 +87,7 @@ extension DefaultStyle {
 extension DefaultStyle {
     struct ListRow {
         var foregroundColor: Color { .white }
-        var backgroundColor: Color { .white }
+        func backgroundColor(isActive: Bool) -> Color { .white.opacity(isActive ? 0.15 : 0.08) }
         var cornerRadius: CGFloat { 16 }
         var strokeColor: Color { .white.opacity(0.1) }
         var badgeTextColor: Color { .white }

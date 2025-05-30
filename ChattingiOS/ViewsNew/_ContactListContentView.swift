@@ -9,6 +9,7 @@ import SwiftUI
 
 struct _ContactListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
+    @State private var selectedContactID: Int?
     
     let contacts: [Contact]
     @Binding var message: String?
@@ -30,7 +31,7 @@ struct _ContactListContentView: View {
                         text: message,
                         backgroundColor: style.notice.defaultBackgroundColor
                     )
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 18)
                 }
                 
                 contactsList
@@ -54,6 +55,7 @@ struct _ContactListContentView: View {
             ForEach(contacts) { contact in
                 ContactRow(
                     contact: contact,
+                    isPressed: selectedContactID == contact.id,
                     loadAvatar: {
                         guard let url = contact.responder.avatarURL,
                               let data = await loadAvatarData(url) else {
@@ -61,9 +63,13 @@ struct _ContactListContentView: View {
                         }
                         
                         return UIImage(data: data)
-                    },
-                    rowTapped: rowTapped
+                    }
                 )
+                .onTapGesture {
+                    selectedContactID = contact.id
+                    rowTapped(contact)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { selectedContactID = nil }
+                }
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .onAppear {
@@ -71,7 +77,7 @@ struct _ContactListContentView: View {
                 }
                 .swipeActions { swipeAction(contact: contact) }
             }
-            .listRowInsets(.init(top: 5, leading: 10, bottom: 5, trailing: 10))
+            .listRowInsets(.init(top: 5, leading: 18, bottom: 5, trailing: 18))
         }
         .listStyle(.plain)
     }
@@ -98,11 +104,10 @@ struct _ContactListContentView: View {
 
 struct ContactRow: View {
     @EnvironmentObject private var style: ViewStyleManager
-    @State private var isPressed: Bool = false
     
     let contact: Contact
+    let isPressed: Bool
     let loadAvatar: () async -> UIImage?
-    let rowTapped: (Contact) -> Void
     
     private var lastUpdate: String {
         RelativeDateTimeFormatter().localizedString(for: contact.lastUpdate, relativeTo: .now)
@@ -172,18 +177,12 @@ struct ContactRow: View {
             RoundedRectangle(cornerRadius: style.listRow.cornerRadius)
                 .stroke(style.listRow.strokeColor, lineWidth: 1)
                 .background(
-                    style.listRow.backgroundColor.opacity(isPressed ? 0.15 : 0.08),
+                    style.listRow.backgroundColor(isActive: isPressed),
                     in: .rect(cornerRadius: style.listRow.cornerRadius)
                 )
         }
-        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .scaleEffect(isPressed ? 0.98 : 1)
         .defaultAnimation(duration: 0.1, value: isPressed)
-        .onLongPressGesture(
-            minimumDuration: 0,
-            maximumDistance: .infinity,
-            perform: { rowTapped(contact) },
-            onPressingChanged: { isPressed = $0 }
-        )
         .task { image = await loadAvatar() }
     }
 }
