@@ -256,7 +256,9 @@ final class MessageListViewModel: ObservableObject {
         
         for index in (0..<messages.count) {
             let message = messages[index]
-            if !message.isRead && message.isMine && message.id <= untilMessageID {
+            guard message.id <= untilMessageID else { return }
+            
+            if !message.isRead && message.isMine {
                 messages[index] = message.newReadInstance()
             }
         }
