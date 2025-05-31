@@ -74,10 +74,10 @@ extension CoreDataMessagesStore {
         }
     }
     
-    func updateMessageRead(until id: Int, contactID: Int, userID: Int) async throws {
+    func readMessagesNotSentByUser(userID: Int, until id: Int, contactID: Int) async throws {
         let context = container.newBackgroundContext()
         try await context.perform {
-            try ManagedMessage.read(until: id, contactID: contactID, userID: userID, in: context)
+            try ManagedMessage.readMessagesNotSentByUser(userID: userID, until: id, contactID: contactID, in: context)
         }
     }
     

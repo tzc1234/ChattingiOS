@@ -110,7 +110,7 @@ final class DependenciesContainer {
     
     private(set) lazy var decoratedReadMessagesAndCache = ReadMessageAndCacheDecorator(
         readMessages: readMessages,
-        readCachedMessages: ReadCachedMessages(store: messagesStore, currentUserID: currentUserID)
+        readCachedMessages: ReadCachedMessagesNotSentByCurrentUser(store: messagesStore, currentUserID: currentUserID)
     )
     
     private(set) lazy var decoratedGetContactsWithCache = GetContactsWithCacheDecorator(

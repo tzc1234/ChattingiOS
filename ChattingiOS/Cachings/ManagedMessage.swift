@@ -110,7 +110,7 @@ extension ManagedMessage {
         return request
     }
     
-    static func read(until id: Int, contactID: Int, userID: Int, in context: NSManagedObjectContext) throws {
+    static func readMessagesNotSentByUser(userID: Int, until id: Int, contactID: Int, in context: NSManagedObjectContext) throws {
         let request = NSBatchUpdateRequest(entityName: ManagedMessage.entityName)
         request.propertiesToUpdate = ["isRead": true]
         request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
@@ -119,6 +119,19 @@ extension ManagedMessage {
             isReadPredicate(isRead: false),
             NSPredicate(format: "id <= %d", id),
             NSPredicate(format: "senderID != %d", userID)
+        ])
+        try context.execute(request)
+    }
+    
+    static func readMessagesSentByUser(userID: Int, until id: Int, contactID: Int, in context: NSManagedObjectContext) throws {
+        let request = NSBatchUpdateRequest(entityName: ManagedMessage.entityName)
+        request.propertiesToUpdate = ["isRead": true]
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            contactPredicate(with: contactID),
+            userPredicate(with: userID),
+            isReadPredicate(isRead: false),
+            NSPredicate(format: "id <= %d", id),
+            NSPredicate(format: "senderID == %d", userID)
         ])
         try context.execute(request)
     }
