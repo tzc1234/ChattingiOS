@@ -21,7 +21,7 @@ struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: Vie
             content
                 .opacity(viewModel.isLoading ? 0 : 1)
         }
-        .defaultAnimation(duration: 0.3, value: viewModel.isLoading)
+        .defaultAnimation(duration: 0.1, value: viewModel.isLoading)
         .sheet(isPresented: $viewModel.showSheet, content: sheet)
         .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
             Button("Cancel", role: .cancel) {}

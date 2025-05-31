@@ -10,6 +10,7 @@ import SwiftUI
 struct _ContactListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @State private var selectedContactID: Int?
+    @State private var backgroundID = UUID()
     
     let contacts: [Contact]
     @Binding var message: String?
@@ -24,6 +25,7 @@ struct _ContactListContentView: View {
     var body: some View {
         ZStack {
             CTBackgroundView()
+                .id(backgroundID)
             
             VStack(spacing: 0) {
                 if let message {
@@ -50,6 +52,7 @@ struct _ContactListContentView: View {
         .onChange(of: message) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { message = nil }
         }
+        .onAppear { backgroundID = UUID() }
     }
     
     private var contactsList: some View {

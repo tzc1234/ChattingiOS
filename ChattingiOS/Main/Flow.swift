@@ -40,14 +40,14 @@ final class Flow {
         contentViewModel.isLoading = true
         
         Task {
+            defer { contentViewModel.isLoading = false }
+            
             await currentUserVault.observe { [unowned self] currentUser in
                 guard let user = currentUser?.user, await user != contentViewModel.user else { return }
                 
                 await resetStateAfterCurrentUserUpdated(user: user)
             }
             await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
-            
-            withAnimation { contentViewModel.isLoading = false }
         }
     }
     
