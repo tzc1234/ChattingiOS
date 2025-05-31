@@ -120,7 +120,7 @@ struct ContactRow: View {
         RelativeDateTimeFormatter().localizedString(for: contact.lastUpdate, relativeTo: .now)
     }
     private var isBlocked: Bool { contact.blockedByUserID != nil }
-    private var lastMessageText: String? { contact.responder.name }
+    private var lastMessageText: String? { contact.lastMessage?.message.text }
     private var unreadCount: Int { contact.unreadMessageCount }
     
     @State private var image: UIImage?
