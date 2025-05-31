@@ -12,9 +12,16 @@ struct _MessageListContentView: View {
     @FocusState private var textEditorFocused: Bool
     @State private var scrollToMessageID: Int?
     @State private var visibleMessageIndex = Set<Int>()
+    @State private var isScrollToBottom = false
     
     private var sendButtonActive: Bool {
         !isLoading && !inputMessage.isEmpty && isConnecting
+    }
+    
+    private var showScrollToBottomButton: Bool {
+        guard let maxIndex = visibleMessageIndex.max() else { return false }
+        
+        return maxIndex < messages.count-1
     }
     
     let responderName: String
@@ -65,6 +72,19 @@ struct _MessageListContentView: View {
                         .padding(.horizontal, 18)
                         .padding(.vertical, 8)
                     }
+                    
+                    VStack {
+                        Spacer()
+                        Button {
+                            isScrollToBottom = true
+                        } label: {
+                            Image(systemName: "chevron.down.circle")
+                                .font(.system(size: 25).weight(.medium))
+                                .foregroundStyle(style.button.foregroundColor.opacity(0.7))
+                                .padding(4)
+                        }
+                    }
+                    .opacity(showScrollToBottomButton ? 1 : 0)
                 }
                 
                 if !isBlocked {
@@ -73,6 +93,7 @@ struct _MessageListContentView: View {
             }
             .defaultAnimation(value: setupError == nil)
         }
+        .defaultAnimation(duration: 0.3, value: showScrollToBottomButton)
         .onTapGesture { textEditorFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -134,6 +155,12 @@ struct _MessageListContentView: View {
             }
             .onChange(of: scrollToMessageID) { messageID in
                 proxy.scrollTo(messageID, anchor: .top)
+            }
+            .onChange(of: isScrollToBottom) { newValue in
+                if newValue {
+                    withAnimation { proxy.scrollTo(messages.last?.id, anchor: .top) }
+                    isScrollToBottom = false
+                }
             }
             .listStyle(.plain)
         }

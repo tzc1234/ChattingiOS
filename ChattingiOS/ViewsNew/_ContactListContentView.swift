@@ -52,7 +52,9 @@ struct _ContactListContentView: View {
         .onChange(of: message) { _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { message = nil }
         }
-        .onAppear { backgroundID = UUID() }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { backgroundID = UUID() }
+        }
     }
     
     private var contactsList: some View {
