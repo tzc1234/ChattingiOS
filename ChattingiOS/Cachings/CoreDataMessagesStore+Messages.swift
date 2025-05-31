@@ -81,6 +81,13 @@ extension CoreDataMessagesStore {
         }
     }
     
+    func readMessagesSentByUser(userID: Int, until id: Int, contactID: Int) async throws {
+        let context = container.newBackgroundContext()
+        try await context.perform {
+            try ManagedMessage.readMessagesSentByUser(userID: userID, until: id, contactID: contactID, in: context)
+        }
+    }
+    
     func atLeastOneMessage(for userID: Int, contactID: Int) async throws -> Bool {
         let context = container.newBackgroundContext()
         return try await context.perform {

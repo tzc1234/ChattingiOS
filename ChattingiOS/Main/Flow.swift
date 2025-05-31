@@ -108,6 +108,8 @@ final class Flow {
             contactID: updateReadMessages.contactID,
             untilMessageID: updateReadMessages.untilMessageID
         )
+        
+        Task { try? await dependencies.readCachedMessagesSentByCurrentUser.read(with: updateReadMessages) }
     }
     
     func startView() -> some View {

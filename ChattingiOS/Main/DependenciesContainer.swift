@@ -141,4 +141,9 @@ final class DependenciesContainer {
         messageChannel: messageChannel,
         cacheMessages: cacheMessages
     )
+    
+    private(set) lazy var readCachedMessagesSentByCurrentUser = ReadCachedMessagesSentByCurrentUser(
+        store: messagesStore,
+        currentUserID: currentUserID
+    )
 }
