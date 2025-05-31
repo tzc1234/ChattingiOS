@@ -9,7 +9,8 @@ import SwiftUI
 
 struct _NewContactContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
-    @State private var isAnimating: Bool = false
+    @State private var isAnimating = false
+    @State private var keyboardHeight: CGFloat = 0
     
     @Binding var email: String
     let error: String?
@@ -72,7 +73,8 @@ struct _NewContactContentView: View {
                 .disabled(!canSubmit)
             }
         }
-        .padding(24)
+        .padding(.vertical, 24)
+        .padding(.horizontal, 18)
         .background {
             CTBackgroundView()
                 .clipShape(RoundedRectangle(cornerRadius: style.popup.cornerRadius))
@@ -84,6 +86,8 @@ struct _NewContactContentView: View {
         .padding(.horizontal, 32)
         .disabled(isLoading)
         .onAppear { isAnimating = true }
+        .keyboardHeight($keyboardHeight)
+        .offset(y: -keyboardHeight / 2)
     }
 }
 
