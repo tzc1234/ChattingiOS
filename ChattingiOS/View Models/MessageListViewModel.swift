@@ -250,6 +250,17 @@ final class MessageListViewModel: ObservableObject {
         
         avatarData = try? await loadImageData.load(for: url)
     }
+    
+    func updateReadMessages(contactID: Int, untilMessageID: Int) {
+        guard contact.id == contactID else { return }
+        
+        for index in (0..<messages.count) {
+            let message = messages[index]
+            if !message.isRead && message.isMine && message.id <= untilMessageID {
+                messages[index] = message.newReadInstance()
+            }
+        }
+    }
 }
 
 private extension Message {

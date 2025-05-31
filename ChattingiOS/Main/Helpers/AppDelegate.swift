@@ -10,6 +10,7 @@ import UIKit
 
 final class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     var onReceiveDeviceToken: ((String) -> Void)?
+    var onReceiveUpdateReadMessages: ((UserID, UpdateReadMessages) -> Void)?
     
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
@@ -28,5 +29,20 @@ final class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("Push notification registration error: \(error)")
+    }
+    
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        guard let action = userInfo["action"] as? String, action == "read_messages",
+              let forUserID = userInfo["for_user_id"] as? UserID,
+              let contactID = userInfo["contact_id"] as? Int,
+              let untilMessageID = userInfo["until_message_id"] as? Int else {
+            return completionHandler(.noData)
+        }
+        
+        onReceiveUpdateReadMessages?(forUserID, UpdateReadMessages(
+            contactID: contactID,
+            untilMessageID: untilMessageID
+        ))
+        completionHandler(.newData)
     }
 }

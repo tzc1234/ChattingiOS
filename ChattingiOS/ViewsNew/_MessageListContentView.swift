@@ -162,7 +162,7 @@ struct _MessageListContentView: View {
                 .foregroundColor(style.messageInput.foregroundColor)
                 .scrollContentBackground(.hidden)
                 .frame(minHeight: 35, maxHeight: 100)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 8)
                 .background {
                     RoundedRectangle(cornerRadius: style.messageInput.cornerRadius)
                         .fill(style.messageInput.backgroundColor)

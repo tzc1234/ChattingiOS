@@ -17,3 +17,16 @@ struct DisplayedMessage: Identifiable, Equatable {
     
     var isUnread: Bool { !isMine && !isRead }
 }
+
+extension DisplayedMessage {
+    func newReadInstance() -> Self {
+        DisplayedMessage(
+            id: id,
+            text: text,
+            isMine: isMine,
+            isRead: true,
+            date: date,
+            time: time
+        )
+    }
+}

@@ -17,6 +17,9 @@ struct ChattingiOSApp: App {
     init() {
         flow = Flow(dependencies: dependencies)
         appDelegate.onReceiveDeviceToken = { [weak flow] in flow?.deviceToken = $0 }
+        appDelegate.onReceiveUpdateReadMessages = { [weak flow] userID, updateReadMessages in
+            flow?.updateReadMessages(forUserID: userID, updateReadMessages: updateReadMessages)
+        }
         
         Task { [handler = dependencies.pushNotificationHandler] in
             await handler.setupPushNotifications()

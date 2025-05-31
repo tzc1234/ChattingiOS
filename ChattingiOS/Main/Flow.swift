@@ -18,6 +18,7 @@ final class Flow {
     // Let Flow manage the lifetime of the ContactListViewModel instance. Since there's a weird behaviour,
     // the ContactListView sometime will not update if let it manage its own ContactListViewModel.
     private var contactListViewModel: ContactListViewModel?
+    private weak var messageListViewModel: MessageListViewModel?
     
     private var newContactTask: Task<Void, Never>?
     var deviceToken: String? {
@@ -98,6 +99,15 @@ final class Flow {
     
     private func cache(_ contact: Contact) {
         Task { try? await dependencies.cacheContacts.cache([contact]) }
+    }
+    
+    func updateReadMessages(forUserID: Int, updateReadMessages: UpdateReadMessages) {
+        guard let currentUserID = contentViewModel.user?.id, currentUserID == forUserID else { return }
+        
+        messageListViewModel?.updateReadMessages(
+            contactID: updateReadMessages.contactID,
+            untilMessageID: updateReadMessages.untilMessageID
+        )
     }
     
     func startView() -> some View {
@@ -218,6 +228,8 @@ final class Flow {
             readMessages: dependencies.decoratedReadMessagesAndCache,
             loadImageData: dependencies.decoratedLoadImageDataWithCache
         )
+        messageListViewModel = viewModel
+        
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
         navigationControl.show(next: destination)
     }
