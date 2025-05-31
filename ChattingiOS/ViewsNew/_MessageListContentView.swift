@@ -73,6 +73,7 @@ struct _MessageListContentView: View {
             }
             .defaultAnimation(value: setupError == nil)
         }
+        .onTapGesture { textEditorFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
