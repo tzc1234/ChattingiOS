@@ -19,7 +19,7 @@ extension UseCaseError {
         case .invalidData:
             return "Invalid data received."
         case .connectivity:
-            return "Connection error occurred, please try it later."
+            return "Connection error."
         case .requestCreationFailed:
             return "Request creation error."
         case .accessTokenNotFound:

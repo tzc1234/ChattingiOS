@@ -7,6 +7,9 @@
 
 import Foundation
 
+// This decorator is for keeping cached messages sync with server,
+// update the messages' `isRead` sent by others (the reader is current user).
+// Although the `isRead` attribute is unused if the messages' sender is NOT current user (the reader is current user).
 final class ReadMessageAndCacheDecorator: ReadMessages {
     private let readMessages: ReadMessages
     private let readCachedMessages: ReadCachedMessages
