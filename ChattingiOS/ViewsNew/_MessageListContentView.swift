@@ -63,28 +63,8 @@ struct _MessageListContentView: View {
                 
                 ZStack {
                     messageList
-                    
-                    if let minIndex = visibleMessageIndex.min() {
-                        VStack {
-                            messageDateView(messages[minIndex].date)
-                            Spacer()
-                        }
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 8)
-                    }
-                    
-                    VStack {
-                        Spacer()
-                        Button {
-                            isScrollToBottom = true
-                        } label: {
-                            Image(systemName: "chevron.down.circle")
-                                .font(.system(size: 25).weight(.medium))
-                                .foregroundStyle(style.button.foregroundColor.opacity(0.7))
-                                .padding(4)
-                        }
-                    }
-                    .opacity(showScrollToBottomButton ? 1 : 0)
+                    minVisibleMessageDateView
+                    scrollToBottomButton
                 }
                 
                 if !isBlocked {
@@ -92,8 +72,8 @@ struct _MessageListContentView: View {
                 }
             }
             .defaultAnimation(value: setupError == nil)
+            .defaultAnimation(duration: 0.3, value: showScrollToBottomButton)
         }
-        .defaultAnimation(duration: 0.3, value: showScrollToBottomButton)
         .onTapGesture { textEditorFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -119,6 +99,33 @@ struct _MessageListContentView: View {
                 }
             }
         }
+    }
+    
+    @ViewBuilder
+    private var minVisibleMessageDateView: some View {
+        if let minIndex = visibleMessageIndex.min() {
+            VStack {
+                messageDateView(messages[minIndex].date)
+                Spacer()
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private var scrollToBottomButton: some View {
+        VStack {
+            Spacer()
+            Button {
+                isScrollToBottom = true
+            } label: {
+                Image(systemName: "chevron.down.circle")
+                    .font(.system(size: 25).weight(.medium))
+                    .foregroundStyle(style.button.foregroundColor.opacity(0.7))
+                    .padding(4)
+            }
+        }
+        .opacity(showScrollToBottomButton ? 1 : 0)
     }
     
     private var messageList: some View {
