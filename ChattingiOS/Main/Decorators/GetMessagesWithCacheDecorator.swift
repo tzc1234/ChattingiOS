@@ -19,18 +19,22 @@ final class GetMessagesWithCacheDecorator: GetMessages {
     }
     
     func get(with params: GetMessagesParams) async throws(UseCaseError) -> Messages {
-        switch params.messageID {
-        case .before, .none,
-                .after where params.limit != .endLimit:
-            if let cached = try? await getCachedMessages.get(with: params), !cached.isEmpty {
-                return Messages(items: cached, metadata: nil)
-            }
-            
-            fallthrough
-        case .betweenExcluded, .after:
+        do {
             let messages = try await getMessages.get(with: params)
             await cache(messages, with: params)
             return messages
+        } catch {
+            switch params.messageID {
+            case .before, .none,
+                 .after where params.limit != .endLimit:
+                if let cached = try? await getCachedMessages.get(with: params), !cached.isEmpty {
+                    return Messages(items: cached, metadata: nil)
+                }
+                
+                fallthrough
+            case .betweenExcluded, .after:
+                throw error
+            }
         }
     }
     
