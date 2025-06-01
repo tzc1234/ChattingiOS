@@ -13,10 +13,11 @@ final class ManagedResponder: NSManagedObject {
     @NSManaged var name: String
     @NSManaged var email: String
     @NSManaged var avatarURL: URL?
+    @NSManaged var createdAt: Date
 }
 
 extension ManagedResponder {
     func toResponder() -> User {
-        User(id: id, name: name, email: email, avatarURL: avatarURL)
+        User(id: id, name: name, email: email, avatarURL: avatarURL, createdAt: createdAt)
     }
 }

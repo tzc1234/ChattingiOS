@@ -204,7 +204,8 @@ struct ContactRow: View {
                         id: 0,
                         name: "Harry",
                         email: "harry@email.com",
-                        avatarURL: nil
+                        avatarURL: nil,
+                        createdAt: .now
                     ),
                     blockedByUserID: 0,
                     unreadMessageCount: 0,
@@ -218,7 +219,8 @@ struct ContactRow: View {
                         id: 1,
                         name: "Jo",
                         email: "jo@email.com",
-                        avatarURL: nil
+                        avatarURL: nil,
+                        createdAt: .now
                     ),
                     blockedByUserID: nil,
                     unreadMessageCount: 100,

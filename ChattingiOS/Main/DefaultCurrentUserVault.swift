@@ -36,16 +36,18 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         let name: String
         let email: String
         let avatarURL: URL?
+        let createdAt: Date
         
         init(_ user: User) {
             self.id = user.id
             self.name = user.name
             self.email = user.email
             self.avatarURL = user.avatarURL
+            self.createdAt = user.createdAt
         }
         
         var model: User {
-            User(id: id, name: name, email: email, avatarURL: avatarURL)
+            User(id: id, name: name, email: email, avatarURL: avatarURL, createdAt: createdAt)
         }
     }
     

@@ -75,6 +75,7 @@ extension ManagedContact {
         managedResponder.name = user.name
         managedResponder.email = user.email
         managedResponder.avatarURL = user.avatarURL
+        managedResponder.createdAt = user.createdAt
         self.responder = managedResponder
     }
     
