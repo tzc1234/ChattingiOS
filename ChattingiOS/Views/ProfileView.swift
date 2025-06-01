@@ -9,14 +9,17 @@ import SwiftUI
 
 struct ProfileView: View {
     @ObservedObject var viewModel: ProfileViewModel
-    let signOutTapped: () -> Void
+    let signOutAction: () -> Void
     
     var body: some View {
-        ProfileContentView(
-            username: viewModel.username,
-            email: viewModel.email,
-            signOutTapped: signOutTapped,
-            loadAvatarData: viewModel.loadAvatarData
+        _ProfileContentView(
+            user: viewModel.user,
+            loadAvatar: {
+                guard let data = await viewModel.loadAvatarData() else { return nil }
+                
+                return UIImage(data: data)
+            },
+            signOutAction: signOutAction
         )
     }
 }

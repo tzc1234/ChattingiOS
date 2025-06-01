@@ -17,6 +17,7 @@ struct DefaultStyle {
     let loadingView = LoadingView()
     let messageInput = MessageInput()
     let messageBubble = MessageBubble()
+    let profile = Profile()
 }
 
 extension DefaultStyle {
@@ -168,6 +169,37 @@ extension DefaultStyle {
         }
         func readIconColor(isRead: Bool) -> Color {
             isRead ? .purple : .white.opacity(0.6)
+        }
+    }
+}
+
+extension DefaultStyle {
+    struct Profile {
+        struct SignOut {
+            var cornerRadius: CGFloat { 16 }
+            var backgroundColor: Color { .red.opacity(0.1) }
+            var strokeColor: Color { .red.opacity(0.5)}
+        }
+        
+        struct InfoCard {
+            var cornerRadius: CGFloat { 16 }
+            var backgroundColor: Color { .white.opacity(0.1) }
+            var strokeColor: Color { .white.opacity(0.2) }
+            var titleColor: Color { .white.opacity(0.7) }
+            var valueColor: Color { .white }
+        }
+        
+        let signOut = SignOut()
+        let infoCard = InfoCard()
+        var outerAvatarRing: some View {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
         }
     }
 }

@@ -19,4 +19,5 @@ final class ViewStyleManager: ObservableObject {
     var loadingView: DefaultStyle.LoadingView { style.loadingView }
     var messageInput: DefaultStyle.MessageInput { style.messageInput }
     var messageBubble: DefaultStyle.MessageBubble { style.messageBubble }
+    var profile: DefaultStyle.Profile { style.profile }
 }

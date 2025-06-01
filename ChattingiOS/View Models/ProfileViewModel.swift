@@ -9,11 +9,8 @@ import Foundation
 
 @MainActor
 final class ProfileViewModel: ObservableObject {
-    private let user: User
+    let user: User
     private let loadImageData: LoadImageData
-    
-    var username: String { user.name }
-    var email: String { user.email }
     
     init(user: User, loadImageData: LoadImageData) {
         self.user = user
