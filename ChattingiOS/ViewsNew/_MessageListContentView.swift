@@ -48,7 +48,7 @@ struct _MessageListContentView: View {
                 
                 ZStack {
                     messageList
-                    minVisibleMessageDateView
+                    minVisibleMessageDateHeader
                     scrollToBottomButton
                 }
                 
@@ -107,10 +107,10 @@ struct _MessageListContentView: View {
     }
     
     @ViewBuilder
-    private var minVisibleMessageDateView: some View {
+    private var minVisibleMessageDateHeader: some View {
         if let minIndex = visibleMessageIndex.min() {
             VStack {
-                messageDateView(messages[minIndex].date)
+                messageDateHeader(messages[minIndex].date)
                 Spacer()
             }
             .padding(.horizontal, 18)
@@ -126,7 +126,7 @@ struct _MessageListContentView: View {
             } label: {
                 Image(systemName: "chevron.down.circle")
                     .font(.system(size: 25).weight(.medium))
-                    .foregroundStyle(style.button.foregroundColor.opacity(0.8))
+                    .foregroundStyle(style.message.scrollToBottomIconColor)
                     .padding(4)
             }
         }
@@ -182,16 +182,16 @@ struct _MessageListContentView: View {
     private func messageDateHeader(_ dateText: String, index: Int) -> some View {
         if index > 0 {
             if dateText != messages[index-1].date {
-                messageDateView(dateText)
+                messageDateHeader(dateText)
                     .frame(maxWidth: .infinity, alignment: .center)
             }
         }
     }
     
-    private func messageDateView(_ dateText: String) -> some View {
+    private func messageDateHeader(_ dateText: String) -> some View {
         Text(dateText)
             .font(.footnote)
-            .foregroundStyle(style.common.textColor)
+            .foregroundStyle(style.message.dateHeaderColor)
     }
     
     private var messageInputArea: some View {
@@ -199,16 +199,16 @@ struct _MessageListContentView: View {
             TextEditor(text: $inputMessage)
                 .focused($textEditorFocused)
                 .font(.callout)
-                .foregroundColor(style.messageInput.foregroundColor)
+                .foregroundColor(style.message.input.foregroundColor)
                 .scrollContentBackground(.hidden)
                 .frame(minHeight: 35, maxHeight: 100)
                 .padding(.horizontal, 8)
                 .background {
-                    RoundedRectangle(cornerRadius: style.messageInput.cornerRadius)
-                        .fill(style.messageInput.backgroundColor)
+                    RoundedRectangle(cornerRadius: style.message.input.cornerRadius)
+                        .fill(style.message.input.backgroundColor)
                         .overlay(
-                            style.messageInput.strokeColor,
-                            in: .rect(cornerRadius: style.messageInput.cornerRadius).stroke(lineWidth: 1)
+                            style.message.input.strokeColor,
+                            in: .rect(cornerRadius: style.message.input.cornerRadius).stroke(lineWidth: 1)
                         )
                 }
                 .fixedSize(horizontal: false, vertical: true)
@@ -219,7 +219,7 @@ struct _MessageListContentView: View {
             } label: {
                 loadingButtonLabel
                     .frame(width: 35, height: 35)
-                    .background(style.messageInput.sendButtonBackground(isActive: sendButtonActive), in: .circle)
+                    .background(style.message.input.sendButtonBackground(isActive: sendButtonActive), in: .circle)
                     .scaleEffect(sendButtonActive ? 1 : 0.9)
                     .defaultAnimation(value: sendButtonActive)
             }
@@ -227,7 +227,7 @@ struct _MessageListContentView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
-        .background { style.messageInput.sectionBackground }
+        .background { style.message.input.sectionBackground }
         .brightness(isLoading || !isConnecting ? -0.5 : 0)
         .disabled(isLoading || !isConnecting)
     }
@@ -236,10 +236,10 @@ struct _MessageListContentView: View {
     private var loadingButtonLabel: some View {
         if isLoading {
             ProgressView()
-                .tint(style.messageInput.foregroundColor)
+                .tint(style.message.input.foregroundColor)
         } else {
             Image(systemName: "paperplane.fill")
-                .foregroundColor(style.messageInput.foregroundColor)
+                .foregroundColor(style.message.input.foregroundColor)
                 .font(.system(size: 18))
         }
     }
@@ -250,10 +250,10 @@ struct MessageBubble: View {
     private var isMine: Bool { message.isMine }
     private var cornerRadii: RectangleCornerRadii {
         RectangleCornerRadii(
-            topLeading: style.messageBubble.cornerRadius,
-            bottomLeading: isMine ? style.messageBubble.cornerRadius : 0,
-            bottomTrailing: isMine ? 0 : style.messageBubble.cornerRadius,
-            topTrailing: style.messageBubble.cornerRadius
+            topLeading: style.message.bubble.cornerRadius,
+            bottomLeading: isMine ? style.message.bubble.cornerRadius : 0,
+            bottomTrailing: isMine ? 0 : style.message.bubble.cornerRadius,
+            topTrailing: style.message.bubble.cornerRadius
         )
     }
     
@@ -268,27 +268,27 @@ struct MessageBubble: View {
             VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
                 Text(message.text)
                     .font(.callout)
-                    .foregroundColor(style.messageBubble.foregroundColor)
+                    .foregroundColor(style.message.bubble.foregroundColor)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .background(
-                        style.messageBubble.background(isMine: isMine),
+                        style.message.bubble.background(isMine: isMine),
                         in: .rect(cornerRadii: cornerRadii)
                     )
                     .overlay(
-                        style.messageBubble.strokeColor(isMine: isMine),
+                        style.message.bubble.strokeColor(isMine: isMine),
                         in: .rect(cornerRadii: cornerRadii).stroke(lineWidth: 1)
                     )
                 
                 HStack(spacing: 4) {
                     Text(message.time)
                         .font(.caption)
-                        .foregroundColor(style.messageBubble.foregroundColor.opacity(0.6))
+                        .foregroundColor(style.message.bubble.foregroundColor.opacity(0.6))
                     
                     if isMine {
                         Image(systemName: message.isRead ? "checkmark.circle.fill" : "checkmark.circle")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(style.messageBubble.readIconColor(isRead: message.isRead))
+                            .foregroundColor(style.message.bubble.readIconColor(isRead: message.isRead))
                     }
                 }
             }

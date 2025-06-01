@@ -15,8 +15,7 @@ struct DefaultStyle {
     let notice = Notice()
     let popup = Popup()
     let loadingView = LoadingView()
-    let messageInput = MessageInput()
-    let messageBubble = MessageBubble()
+    let message = Message()
     let profile = Profile()
 }
 
@@ -125,52 +124,57 @@ extension DefaultStyle {
 }
 
 extension DefaultStyle {
-    struct MessageInput {
-        var foregroundColor: Color { .white }
-        var backgroundColor: Color { .white.opacity(0.1) }
-        var strokeColor: Color { .white.opacity(0.2) }
-        var spinnerColor: Color { .white }
-        var cornerRadius: CGFloat { 16 }
-        func sendButtonBackground(isActive: Bool) -> LinearGradient {
-            LinearGradient(
-                colors: isActive ?
-                [.blue, .purple] :
-                [.white.opacity(0.3), .white.opacity(0.2)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+    struct Message {
+        struct Input {
+            var foregroundColor: Color { .white }
+            var backgroundColor: Color { .white.opacity(0.1) }
+            var strokeColor: Color { .white.opacity(0.2) }
+            var spinnerColor: Color { .white }
+            var cornerRadius: CGFloat { 16 }
+            func sendButtonBackground(isActive: Bool) -> LinearGradient {
+                LinearGradient(
+                    colors: isActive ?
+                    [.blue, .purple] :
+                    [.white.opacity(0.3), .white.opacity(0.2)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+            var sectionBackground: some View {
+                Rectangle()
+                    .fill(.white.opacity(0.05))
+                    .blur(radius: 8)
+                    .ignoresSafeArea(.all, edges: .bottom)
+            }
         }
-        var sectionBackground: some View {
-            Rectangle()
-                .fill(.white.opacity(0.05))
-                .blur(radius: 8)
-                .ignoresSafeArea(.all, edges: .bottom)
+        
+        struct Bubble {
+            var foregroundColor: Color { .white }
+            var cornerRadius: CGFloat { 16 }
+            func background(isMine: Bool) -> LinearGradient {
+                isMine ?
+                LinearGradient(
+                    colors: [.blue, .purple],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ) : LinearGradient(
+                    colors: [.white.opacity(0.15), .white.opacity(0.1)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+            func strokeColor(isMine: Bool) -> Color {
+                isMine ? .clear : .white.opacity(0.2)
+            }
+            func readIconColor(isRead: Bool) -> Color {
+                isRead ? .purple : .white.opacity(0.6)
+            }
         }
-    }
-}
-
-extension DefaultStyle {
-    struct MessageBubble {
-        var foregroundColor: Color { .white }
-        var cornerRadius: CGFloat { 16 }
-        func background(isMine: Bool) -> LinearGradient {
-            isMine ?
-            LinearGradient(
-                colors: [.blue, .purple],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            ) : LinearGradient(
-                colors: [.white.opacity(0.15), .white.opacity(0.1)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
-        func strokeColor(isMine: Bool) -> Color {
-            isMine ? .clear : .white.opacity(0.2)
-        }
-        func readIconColor(isRead: Bool) -> Color {
-            isRead ? .purple : .white.opacity(0.6)
-        }
+        
+        let input = Input()
+        let bubble = Bubble()
+        var scrollToBottomIconColor: Color { .white.opacity(0.8) }
+        var dateHeaderColor: Color { .white.opacity(0.9) }
     }
 }
 
