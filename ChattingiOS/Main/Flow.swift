@@ -39,7 +39,6 @@ final class Flow {
     
     private func observeUserSignIn() {
         contentViewModel.isLoading = true
-        
         Task {
             defer { contentViewModel.isLoading = false }
             
@@ -49,6 +48,7 @@ final class Flow {
                 await resetStateAfterCurrentUserUpdated(user: user)
             }
             await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
+            try? await Task.sleep(for: .seconds(0.3)) // A little bit loading buffer time.
         }
     }
     
@@ -130,14 +130,13 @@ final class Flow {
                     .tag(TabItem.profile)
             }
             .toolbarColorScheme(.dark, for: .tabBar)
-            
         } signInContent: { [unowned self] in
             signInView()
         } sheet: { [unowned self] in
             signUpView()
         }
         .preferredColorScheme(.dark)
-        .environmentObject(dependencies.viewStyleManager)
+        .environmentObject(style)
     }
     
     private func signInView() -> SignInView {

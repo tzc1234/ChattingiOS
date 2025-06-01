@@ -44,22 +44,7 @@ struct _MessageListContentView: View {
             CTBackgroundView()
             
             VStack(spacing: 0) {
-                if let setupError {
-                    CTNotice(
-                        text: setupError + " Switch to read-only mode.",
-                        backgroundColor: style.notice.errorBackgroundColor,
-                        strokeColor: style.notice.errorStrokeColor,
-                        buttonSetting: .init(
-                            title: "Connect",
-                            action: {
-                                self.setupError = nil
-                                setupList()
-                            }
-                        )
-                    )
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 8)
-                }
+                setupErrorNotice
                 
                 ZStack {
                     messageList
@@ -102,6 +87,26 @@ struct _MessageListContentView: View {
     }
     
     @ViewBuilder
+    private var setupErrorNotice: some View {
+        if let setupError {
+            CTNotice(
+                text: setupError + " Switch to read-only mode.",
+                backgroundColor: style.notice.errorBackgroundColor,
+                strokeColor: style.notice.errorStrokeColor,
+                buttonSetting: .init(
+                    title: "Connect",
+                    action: {
+                        self.setupError = nil
+                        setupList()
+                    }
+                )
+            )
+            .padding(.horizontal, 18)
+            .padding(.vertical, 8)
+        }
+    }
+    
+    @ViewBuilder
     private var minVisibleMessageDateView: some View {
         if let minIndex = visibleMessageIndex.min() {
             VStack {
@@ -121,7 +126,7 @@ struct _MessageListContentView: View {
             } label: {
                 Image(systemName: "chevron.down.circle")
                     .font(.system(size: 25).weight(.medium))
-                    .foregroundStyle(style.button.foregroundColor.opacity(0.7))
+                    .foregroundStyle(style.button.foregroundColor.opacity(0.8))
                     .padding(4)
             }
         }

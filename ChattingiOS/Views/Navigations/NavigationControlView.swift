@@ -30,7 +30,8 @@ struct NavigationControlView<Content: View>: View {
     
     var body: some View {
         NavigationStack(path: $viewModel.path) {
-            content()?.id(viewModel.contentID)
+            content()?
+                .id(viewModel.contentID)
         }
     }
 }
