@@ -46,6 +46,7 @@ extension DefaultStyle {
         var textColor: Color { .white }
         var subTextColor: Color { .white.opacity(0.8) }
         var dividerColor: Color { .white.opacity(0.3) }
+        var tintColor: Color { .white }
     }
 }
 

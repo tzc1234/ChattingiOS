@@ -44,7 +44,7 @@ struct _ProfileContentView: View {
         VStack(spacing: 24) {
             ZStack {
                 style.profile.outerAvatarRing
-                    .frame(width: 140, height: 140)
+                    .frame(width: 130, height: 130)
                     .blur(radius: 15)
                 
                 CTIconView {
@@ -52,7 +52,7 @@ struct _ProfileContentView: View {
                         Image(uiImage: avatar)
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 90, height: 90)
+                            .frame(width: 105, height: 105)
                             .clipShape(.circle)
                     } else {
                         Image(systemName: "person.circle.fill")
@@ -61,7 +61,7 @@ struct _ProfileContentView: View {
                         
                     }
                 }
-                .frame(width: 120, height: 120)
+                .frame(width: 110, height: 110)
                 .defaultShadow(color: style.common.shadowColor)
             }
             .scaleEffect(isAnimating ? 1.05 : 1.0)

@@ -136,6 +136,7 @@ final class Flow {
             signUpView()
         }
         .preferredColorScheme(.dark)
+        .tint(style.common.tintColor)
         .environmentObject(style)
     }
     
