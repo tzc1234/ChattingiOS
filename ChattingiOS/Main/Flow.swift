@@ -101,15 +101,15 @@ final class Flow {
         Task { try? await dependencies.cacheContacts.cache([contact]) }
     }
     
-    func updateReadMessages(_ updateReadMessages: UpdateReadMessages, forUserID: Int) {
+    func updateReadMessages(_ updatedReadMessages: UpdatedReadMessages, forUserID: Int) {
         guard let currentUserID = contentViewModel.user?.id, currentUserID == forUserID else { return }
         
         messageListViewModel?.updateReadMessages(
-            contactID: updateReadMessages.contactID,
-            untilMessageID: updateReadMessages.untilMessageID
+            contactID: updatedReadMessages.contactID,
+            untilMessageID: updatedReadMessages.untilMessageID
         )
         
-        Task { try? await dependencies.readCachedMessagesSentByCurrentUser.read(with: updateReadMessages) }
+        Task { try? await dependencies.readCachedMessagesSentByCurrentUser.read(with: updatedReadMessages) }
     }
     
     func startView() -> some View {

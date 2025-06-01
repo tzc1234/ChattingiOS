@@ -16,14 +16,14 @@ actor ReadCachedMessagesSentByCurrentUser {
         self.currentUserID = currentUserID
     }
     
-    func read(with updateReadMessages: UpdateReadMessages) async throws(UseCaseError) {
+    func read(with updatedReadMessages: UpdatedReadMessages) async throws(UseCaseError) {
         guard let currentUserID = await currentUserID() else { return }
         
         do {
             try await store.readMessagesSentByUser(
                 userID: currentUserID,
-                until: updateReadMessages.untilMessageID,
-                contactID: updateReadMessages.contactID
+                until: updatedReadMessages.untilMessageID,
+                contactID: updatedReadMessages.contactID
             )
         } catch {
             throw .invalidData
