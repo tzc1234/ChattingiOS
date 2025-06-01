@@ -59,7 +59,7 @@ struct _SignInContentView: View {
                     .font(.largeTitle.bold())
                     .foregroundColor(style.common.textColor)
                 
-                Text("Connect with friends instantly")
+                Text("1 on 1 casual chat")
                     .font(.subheadline)
                     .foregroundColor(style.common.subTextColor)
             }

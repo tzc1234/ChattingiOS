@@ -59,7 +59,7 @@ final class ContentViewModel: ObservableObject {
         if user == nil {
             navigationControl.popToRoot()
         }
-        withAnimation { self.user = user }
+        self.user = user
     }
 }
 
