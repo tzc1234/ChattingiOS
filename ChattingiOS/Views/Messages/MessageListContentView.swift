@@ -66,7 +66,7 @@ struct MessageListContentView: View {
             .defaultAnimation(value: setupError == nil)
             .defaultAnimation(duration: 0.3, value: showScrollToBottomButton)
             
-            selectedMessageBubbleMenu
+            messageBubbleMenu
         }
         .defaultAnimation(duration: 0.3, value: selectedBubble == nil)
         .onAppear {
@@ -149,7 +149,7 @@ struct MessageListContentView: View {
     }
     
     @ViewBuilder
-    private var selectedMessageBubbleMenu: some View {
+    private var messageBubbleMenu: some View {
         if let selectedBubble {
             let message = selectedBubble.message
             let bubbleFrame = selectedBubble.frame
@@ -164,8 +164,8 @@ struct MessageListContentView: View {
                 let buttonHeight: CGFloat = 36
                 let buttonVerticalPadding: CGFloat = 8
                 let dividerHeight: CGFloat = 1
-                let buttonCount: CGFloat = 2
-                let totalMenuHeight = (buttonHeight + buttonVerticalPadding*2) * buttonCount +
+                let buttonCount: CGFloat = 1
+                let menuHeight = (buttonHeight + buttonVerticalPadding*2) * buttonCount +
                     dividerHeight * (buttonCount-1)
 
                 MessageBubbleContent(message: message)
@@ -173,27 +173,11 @@ struct MessageListContentView: View {
                     .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
                 
                 VStack(spacing: 0) {
-                    Button(action: {
-                        print("Button 1 tapped")
-                    }) {
-                        Text("Button 1")
-                            .font(.headline)
-                            .frame(height: buttonHeight)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, buttonVerticalPadding)
-                            .padding(.horizontal, 12)
-                            .foregroundColor(style.message.bubbleMenu.foregroundColor)
-                            .background(style.message.bubbleMenu.backgroundColor)
-                    }
-                    
-                    Rectangle()
-                        .foregroundColor(.clear)
-                        .frame(height: dividerHeight)
-                    
-                    Button(action: {
-                        print("Button 2 tapped")
-                    }) {
-                        Text("Button 2")
+                    Button {
+                        UIPasteboard.general.string = message.text
+                        self.selectedBubble = nil
+                    } label: {
+                        Text("Copy")
                             .font(.headline)
                             .frame(height: buttonHeight)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -213,8 +197,8 @@ struct MessageListContentView: View {
                         (screenSize.width+widthDiff)/2 - horizontalSpacing :
                         (screenSize.width-widthDiff)/2 + horizontalSpacing,
                     y: bubbleFrame.midY > screenSize.height/2 ?
-                        bubbleFrame.minY - (totalMenuHeight/2) - verticalSpacing :
-                        bubbleFrame.maxY + (totalMenuHeight/2) + verticalSpacing
+                        bubbleFrame.minY - (menuHeight/2) - verticalSpacing :
+                        bubbleFrame.maxY + (menuHeight/2) + verticalSpacing
                 )
                 .opacity(self.selectedBubble == nil ? 0 : 1)
             }
