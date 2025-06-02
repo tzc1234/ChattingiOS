@@ -175,7 +175,7 @@ struct MessageListContentView: View {
                 let menuHeight = (buttonHeight + buttonVerticalPadding*2) * buttonCount +
                     dividerHeight * (buttonCount-1)
                 
-                let menuY = if bubbleFrame.maxY + menuHeight + verticalSpacing < screenSize.height - bottomInset {
+                let menuPositionY = if bubbleFrame.maxY + menuHeight + verticalSpacing < screenSize.height - bottomInset {
                     bubbleFrame.maxY + menuHeight/2 + verticalSpacing
                 } else {
                     bubbleFrame.minY - menuHeight/2 - verticalSpacing
@@ -197,7 +197,7 @@ struct MessageListContentView: View {
                     }
                 }
                 .frame(width: menuWidth)
-                .clipShape(.rect(cornerRadius: 16))
+                .clipShape(.rect(cornerRadius: style.message.bubbleMenu.cornerRadius))
                 .overlay(
                     style.message.bubbleMenu.strokeColor,
                     in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1))
@@ -205,7 +205,7 @@ struct MessageListContentView: View {
                     x: message.isMine ?
                         (screenSize.width+widthDiff)/2 - horizontalSpacing :
                         (screenSize.width-widthDiff)/2 + horizontalSpacing,
-                    y: menuY
+                    y: menuPositionY
                 )
             }
             .ignoresSafeArea()
@@ -372,9 +372,7 @@ struct MessageBubble: View {
     
     var body: some View {
         HStack {
-            if isMine {
-                Spacer()
-            }
+            if isMine { Spacer() }
             
             VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
                 MessageBubbleContent(message: message)
@@ -409,9 +407,7 @@ struct MessageBubble: View {
                 }
             }
             
-            if !isMine {
-                Spacer()
-            }
+            if !isMine { Spacer() }
         }
     }
 }

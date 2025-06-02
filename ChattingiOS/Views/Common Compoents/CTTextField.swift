@@ -28,7 +28,7 @@ struct CTTextField: View {
     
     var body: some View {
         VStack(spacing: 6) {
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.system(size: 20))
                     .foregroundColor(style.textField.iconColor)
@@ -41,9 +41,9 @@ struct CTTextField: View {
                     .disableAutocorrection(true)
                 
                 if isSecure {
-                    Button(action: {
+                    Button {
                         isPasswordInvisible.toggle()
-                    }) {
+                    } label: {
                         Image(systemName: isPasswordInvisible ? "eye.fill" : "eye.slash.fill")
                             .font(.system(size: 18))
                             .foregroundColor(style.textField.iconColor)
@@ -56,14 +56,14 @@ struct CTTextField: View {
                 RoundedRectangle(cornerRadius: style.textField.cornerRadius)
                     .fill(style.textField.backgroundColor)
                     .background(
-                        RoundedRectangle(cornerRadius: style.textField.cornerRadius)
-                            .stroke(style.textField.defaultStrokeColor, lineWidth: 1)
+                        style.textField.defaultStrokeColor,
+                        in: .rect(cornerRadius: style.textField.cornerRadius).stroke(lineWidth: 1)
                     )
             }
-            .overlay {
-                RoundedRectangle(cornerRadius: style.textField.cornerRadius)
-                    .stroke(style.textField.outerStrokeStyle(isActive: !text.isEmpty), lineWidth: 2)
-            }
+            .overlay(
+                style.textField.outerStrokeStyle(isActive: !text.isEmpty),
+                in: .rect(cornerRadius: style.textField.cornerRadius).stroke(lineWidth: 2)
+            )
             
             if let error {
                 Text(error)
