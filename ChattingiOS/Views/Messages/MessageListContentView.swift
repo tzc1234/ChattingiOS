@@ -20,6 +20,7 @@ struct MessageListContentView: View {
     @State private var isScrollToBottom = false
     @State private var selectedBubble: SelectedBubble?
     @State private var screenSize: CGSize = .zero
+    @State private var bottomInset: CGFloat = .zero
     
     private var sendButtonActive: Bool {
         !isLoading && !inputMessage.isEmpty && isConnecting
@@ -70,8 +71,10 @@ struct MessageListContentView: View {
         }
         .defaultAnimation(duration: 0.3, value: selectedBubble == nil)
         .onAppear {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
                 screenSize = windowScene.screen.bounds.size
+                bottomInset = keyWindow.safeAreaInsets.bottom
             }
         }
         .onTapGesture { textEditorFocused = false }
@@ -157,6 +160,10 @@ struct MessageListContentView: View {
             ZStack {
                 Color.white.opacity(0.01)
                 
+                MessageBubbleContent(message: message)
+                    .frame(width: bubbleFrame.width, height: bubbleFrame.height)
+                    .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
+                
                 let menuWidth: CGFloat = 200
                 let widthDiff = screenSize.width - menuWidth
                 let horizontalSpacing: CGFloat = 20
@@ -167,10 +174,12 @@ struct MessageListContentView: View {
                 let buttonCount: CGFloat = 1
                 let menuHeight = (buttonHeight + buttonVerticalPadding*2) * buttonCount +
                     dividerHeight * (buttonCount-1)
-
-                MessageBubbleContent(message: message)
-                    .frame(width: bubbleFrame.width, height: bubbleFrame.height)
-                    .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
+                
+                let menuY = if bubbleFrame.maxY + menuHeight + verticalSpacing < screenSize.height - bottomInset {
+                    bubbleFrame.maxY + menuHeight/2 + verticalSpacing
+                } else {
+                    bubbleFrame.minY - menuHeight/2 - verticalSpacing
+                }
                 
                 VStack(spacing: 0) {
                     Button {
@@ -196,11 +205,8 @@ struct MessageListContentView: View {
                     x: message.isMine ?
                         (screenSize.width+widthDiff)/2 - horizontalSpacing :
                         (screenSize.width-widthDiff)/2 + horizontalSpacing,
-                    y: bubbleFrame.midY > screenSize.height/2 ?
-                        bubbleFrame.minY - (menuHeight/2) - verticalSpacing :
-                        bubbleFrame.maxY + (menuHeight/2) + verticalSpacing
+                    y: menuY
                 )
-                .opacity(self.selectedBubble == nil ? 0 : 1)
             }
             .ignoresSafeArea()
             .background(.ultraThinMaterial)
