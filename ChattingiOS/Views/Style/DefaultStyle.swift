@@ -171,8 +171,16 @@ extension DefaultStyle {
             }
         }
         
+        struct BubbleMenu {
+            var foregroundColor: Color { .white.opacity(0.9) }
+            var backgroundColor: Color { .white.opacity(0.08) }
+            var strokeColor: Color { .white.opacity(0.1) }
+            var cornerRadius: CGFloat { 16 }
+        }
+        
         let input = Input()
         let bubble = Bubble()
+        let bubbleMenu = BubbleMenu()
         var scrollToBottomIconColor: Color { .white.opacity(0.8) }
         var dateHeaderColor: Color { .white.opacity(0.9) }
     }

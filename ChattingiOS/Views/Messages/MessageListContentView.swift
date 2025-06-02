@@ -151,57 +151,72 @@ struct MessageListContentView: View {
     @ViewBuilder
     private var selectedMessageBubbleMenu: some View {
         if let selectedBubble {
+            let message = selectedBubble.message
+            let bubbleFrame = selectedBubble.frame
+            
             ZStack {
                 Color.white.opacity(0.01)
                 
-                let message = selectedBubble.message
-                let bubbleFrame = selectedBubble.frame
                 let menuWidth: CGFloat = 200
                 let widthDiff = screenSize.width - menuWidth
                 let horizontalSpacing: CGFloat = 20
+                let verticalSpacing: CGFloat = 12
                 let buttonHeight: CGFloat = 36
-                let buttonPadding: CGFloat = 8
-                let verticalSpacing: CGFloat = 8
-                
+                let buttonVerticalPadding: CGFloat = 8
+                let dividerHeight: CGFloat = 1
+                let buttonCount: CGFloat = 2
+                let totalMenuHeight = (buttonHeight + buttonVerticalPadding*2) * buttonCount +
+                    dividerHeight * (buttonCount-1)
+
                 MessageBubbleContent(message: message)
                     .frame(width: bubbleFrame.width, height: bubbleFrame.height)
                     .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
                 
                 VStack(spacing: 0) {
                     Button(action: {
-                        print("Option 1 tapped")
+                        print("Button 1 tapped")
                     }) {
-                        Text("Copy")
+                        Text("Button 1")
+                            .font(.headline)
                             .frame(height: buttonHeight)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(buttonPadding)
-                            .foregroundColor(.black)
-                            .background(.white.opacity(0.8))
+                            .padding(.vertical, buttonVerticalPadding)
+                            .padding(.horizontal, 12)
+                            .foregroundColor(style.message.bubbleMenu.foregroundColor)
+                            .background(style.message.bubbleMenu.backgroundColor)
                     }
                     
-                    Divider()
+                    Rectangle()
+                        .foregroundColor(.clear)
+                        .frame(height: dividerHeight)
                     
                     Button(action: {
-                        print("Option 2 tapped")
+                        print("Button 2 tapped")
                     }) {
-                        Text("Edit")
+                        Text("Button 2")
+                            .font(.headline)
                             .frame(height: buttonHeight)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(buttonPadding)
-                            .foregroundColor(.black)
-                            .background(.white.opacity(0.8))
+                            .padding(.vertical, buttonVerticalPadding)
+                            .padding(.horizontal, 12)
+                            .foregroundColor(style.message.bubbleMenu.foregroundColor)
+                            .background(style.message.bubbleMenu.backgroundColor)
                     }
                 }
                 .frame(width: menuWidth)
                 .clipShape(.rect(cornerRadius: 16))
+                .overlay(
+                    style.message.bubbleMenu.strokeColor,
+                    in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1))
                 .position(
                     x: message.isMine ?
                         (screenSize.width+widthDiff)/2 - horizontalSpacing :
                         (screenSize.width-widthDiff)/2 + horizontalSpacing,
                     y: bubbleFrame.midY > screenSize.height/2 ?
-                        bubbleFrame.minY - (buttonHeight+buttonPadding*2) - verticalSpacing :
-                        bubbleFrame.maxY + (buttonHeight+buttonPadding*2) + verticalSpacing
+                        bubbleFrame.minY - (totalMenuHeight/2) - verticalSpacing :
+                        bubbleFrame.maxY + (totalMenuHeight/2) + verticalSpacing
                 )
+                .opacity(self.selectedBubble == nil ? 0 : 1)
             }
             .ignoresSafeArea()
             .background(.ultraThinMaterial)
