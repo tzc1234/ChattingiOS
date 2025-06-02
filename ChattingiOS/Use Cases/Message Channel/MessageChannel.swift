@@ -23,7 +23,7 @@ enum MessageChannelError: Error {
 }
 
 protocol MessageChannelConnection: Sendable {
-    var messageStream: AsyncThrowingStream<MessageWithMetadata, Error> { get }
+    var messageStream: AsyncThrowingStream<MessageStreamResult, Error> { get }
     
     func send(text: String) async throws
     func close() async throws
@@ -33,4 +33,9 @@ enum MessageChannelConnectionError: Error {
     case disconnected
     case unsupportedData
     case other(Error)
+}
+
+enum MessageStreamResult {
+    case message(MessageWithMetadata)
+    case readMessages(UpdatedReadMessages)
 }

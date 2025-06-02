@@ -134,8 +134,13 @@ final class MessageChannelTests: XCTestCase {
         let logger = MessagesLogger()
         
         await assertThrowsError({
-            for try await message in connection.messageStream {
-                logger.append(message)
+            for try await result in connection.messageStream {
+                switch result {
+                case let .message(message):
+                    logger.append(message)
+                case .readMessages:
+                    break
+                }
             }
         }) { error in
             assertMessageChannelConnectionError(error, as: .unsupportedData)
@@ -163,8 +168,13 @@ final class MessageChannelTests: XCTestCase {
         let logger = MessagesLogger()
         
         await assertNoThrow({
-            for try await message in connection.messageStream {
-                logger.append(message)
+            for try await result in connection.messageStream {
+                switch result {
+                case let .message(message):
+                    logger.append(message)
+                case .readMessages:
+                    break
+                }
             }
         })
         XCTAssertEqual(logger.messages, messages)

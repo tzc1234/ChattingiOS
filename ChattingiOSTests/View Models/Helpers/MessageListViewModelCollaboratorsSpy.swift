@@ -20,8 +20,8 @@ final class MessageListViewModelCollaboratorsSpy {
     private(set) var textsSent = [String]()
     private(set) var closeCallCount = 0
     
-    private let stream: AsyncThrowingStream<MessageWithMetadata, Error>
-    private let continuation: AsyncThrowingStream<MessageWithMetadata, Error>.Continuation
+    private let stream: AsyncThrowingStream<MessageStreamResult, Error>
+    private let continuation: AsyncThrowingStream<MessageStreamResult, Error>.Continuation
     private var getMessagesStubs: [Result<[Message], UseCaseError>]
     private var getMessagesDelayInSeconds: [Double]
     private var establishChannelStubs: [Result<Void, MessageChannelError>]
@@ -98,11 +98,11 @@ extension MessageListViewModelCollaboratorsSpy: LoadImageData {
 }
 
 extension MessageListViewModelCollaboratorsSpy: MessageChannelConnection {
-    nonisolated var messageStream: AsyncThrowingStream<MessageWithMetadata, Error> {
+    nonisolated var messageStream: AsyncThrowingStream<MessageStreamResult, Error> {
         streamMessageStubs.forEach { stub in
             switch stub {
             case let .success(message):
-                continuation.yield(message)
+                continuation.yield(.message(message))
             case let .failure(error):
                 continuation.finish(throwing: error)
             }

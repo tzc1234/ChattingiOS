@@ -107,17 +107,26 @@ final class MessageListViewModel: ObservableObject {
             
             do {
                 for try await result in connection.messageStream {
-                    let message = result.message
-                    
-                    if let previousID = result.metadata.previousID, messages.last?.id != previousID {
-                        try await loadMissingMessages(to: message.id)
-                    }
-                    
-                    messages.append(message.toDisplayedModel(currentUserID: currentUserID))
-                    canLoadMore = false
-                    
-                    if messageIDForListPosition == nil {
-                        messageIDForListPosition = message.id
+                    switch result {
+                    case let .message(withMetadata):
+                        let message = withMetadata.message
+                        let metadata = withMetadata.metadata
+                        
+                        if let previousID = metadata.previousID, messages.last?.id != previousID {
+                            try await loadMissingMessages(to: message.id)
+                        }
+                        
+                        messages.append(message.toDisplayedModel(currentUserID: currentUserID))
+                        canLoadMore = false
+                        
+                        if messageIDForListPosition == nil {
+                            messageIDForListPosition = message.id
+                        }
+                    case let .readMessages(readMessages):
+                        updateReadMessages(
+                            contactID: readMessages.contactID,
+                            untilMessageID: readMessages.untilMessageID
+                        )
                     }
                 }
             } catch {
