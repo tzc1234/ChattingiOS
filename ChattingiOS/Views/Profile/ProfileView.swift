@@ -12,7 +12,7 @@ struct ProfileView: View {
     let signOutAction: () -> Void
     
     var body: some View {
-        _ProfileContentView(
+        ProfileContentView(
             user: viewModel.user,
             loadAvatar: {
                 guard let data = await viewModel.loadAvatarData() else { return nil }

@@ -12,7 +12,7 @@ struct SignInView: View {
     let signUpTapped: () -> Void
     
     var body: some View {
-        _SignInContentView(
+        SignInContentView(
             email: $viewModel.emailInput,
             password: $viewModel.passwordInput,
             emailError: viewModel.email.errorMessage,

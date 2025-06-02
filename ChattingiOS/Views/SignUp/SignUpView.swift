@@ -14,7 +14,7 @@ struct SignUpView: View {
     @ObservedObject var viewModel: SignUpViewModel
     
     var body: some View {
-        _SignUpContentView(
+        SignUpContentView(
             name: $viewModel.nameInput,
             email: $viewModel.emailInput,
             password: $viewModel.passwordInput,

@@ -1,5 +1,5 @@
 //
-//  _ProfileContentView.swift
+//  ProfileContentView.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 01/06/2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct _ProfileContentView: View {
+struct ProfileContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @State private var isAnimating = false
     @State private var showSignOutAlert = false
@@ -166,7 +166,7 @@ struct ProfileInfoCard: View {
 }
 
 #Preview {
-    _ProfileContentView(
+    ProfileContentView(
         user: User(
             id: 0,
             name: "Harry W.",

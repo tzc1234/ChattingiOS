@@ -1,5 +1,5 @@
 //
-//  _SignInContentView.swift
+//  SignInContentView.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 28/05/2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct _SignInContentView: View {
+struct SignInContentView: View {
     private enum FocusedField: CaseIterable {
         case email, password
     }
@@ -68,7 +68,7 @@ struct _SignInContentView: View {
     
     private var content: some View {
         VStack(spacing: 24) {
-            CTCustomTextField(
+            CTTextField(
                 text: $email,
                 placeholder: "Email",
                 icon: "envelope.fill",
@@ -80,7 +80,7 @@ struct _SignInContentView: View {
             .submitLabel(.next)
             .onSubmit { focused?.onNext() }
             
-            CTCustomTextField(
+            CTTextField(
                 text: $password,
                 placeholder: "Password",
                 icon: "lock.fill",
@@ -149,7 +149,7 @@ struct _SignInContentView: View {
 }
 
 #Preview {
-    _SignInContentView(
+    SignInContentView(
         email: .constant(""),
         password: .constant(""),
         emailError: nil,

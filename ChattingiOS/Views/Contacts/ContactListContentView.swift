@@ -1,5 +1,5 @@
 //
-//  _ContactListContentView.swift
+//  ContactListContentView.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 29/05/2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct _ContactListContentView: View {
+struct ContactListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @State private var selectedContactID: Int?
     @State private var backgroundID = UUID()
@@ -196,7 +196,7 @@ struct ContactRow: View {
 
 #Preview {
     NavigationView {
-        _ContactListContentView(
+        ContactListContentView(
             contacts: [
                 Contact(
                     id: 0,

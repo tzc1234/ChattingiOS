@@ -16,7 +16,7 @@ struct ContactListView<AlertContent: View>: View {
     let rowTapped: (Contact) -> Void
     
     var body: some View {
-        _ContactListContentView(
+        ContactListContentView(
             contacts: viewModel.contacts,
             message: $viewModel.message,
             isLoading: viewModel.isLoading,

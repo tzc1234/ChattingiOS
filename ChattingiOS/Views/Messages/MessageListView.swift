@@ -13,7 +13,7 @@ struct MessageListView: View {
     @ObservedObject var viewModel: MessageListViewModel
     
     var body: some View {
-        _MessageListContentView(
+        MessageListContentView(
             responderName: viewModel.username,
             avatarData: viewModel.avatarData,
             messages: viewModel.messages,

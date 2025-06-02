@@ -1,5 +1,5 @@
 //
-//  _MessageListContentView.swift
+//  MessageListContentView.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 30/05/2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct _MessageListContentView: View {
+struct MessageListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var textEditorFocused: Bool
     @State private var scrollToMessageID: Int?
@@ -302,7 +302,7 @@ struct MessageBubble: View {
 
 #Preview {
     NavigationView {
-        _MessageListContentView(
+        MessageListContentView(
             responderName: "Jack",
             avatarData: nil,
             messages: [

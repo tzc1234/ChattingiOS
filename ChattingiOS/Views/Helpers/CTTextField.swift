@@ -1,5 +1,5 @@
 //
-//  CTCustomTextField.swift
+//  CTTextField.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 28/05/2025.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct CTCustomTextField: View {
+struct CTTextField: View {
     @EnvironmentObject private var style: ViewStyleManager
     @State private var isPasswordInvisible = true
     
