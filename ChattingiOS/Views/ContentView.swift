@@ -15,10 +15,11 @@ struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: Vie
     
     var body: some View {
         ZStack {
-            content
-            
-            CTLoadingView()
-                .opacity(viewModel.isLoading ? 1 : 0)
+            if viewModel.isLoading {
+                CTLoadingView()
+            } else {
+                content
+            }
         }
         .defaultAnimation(value: viewModel.isLoading)
         .defaultAnimation(value: viewModel.user != nil)

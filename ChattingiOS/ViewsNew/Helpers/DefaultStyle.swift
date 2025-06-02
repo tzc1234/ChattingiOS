@@ -117,9 +117,9 @@ extension DefaultStyle {
     struct LoadingView {
         var cornerRadius: CGFloat { 16 }
         var textColor: Color { .white }
-        var spinnerColor: Color { .orange }
-        var backgroundColor: Color { .white.opacity(0.08) }
-        var strokeColor: Color { .white.opacity(0.1) }
+        var spinnerColor: Color { .white.opacity(0.9) }
+        var backgroundColor: Color { .white.opacity(0.1) }
+        var strokeColor: Color { .white.opacity(0.2) }
     }
 }
 
