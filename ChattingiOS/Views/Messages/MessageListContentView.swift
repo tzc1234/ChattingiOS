@@ -8,11 +8,18 @@
 import SwiftUI
 
 struct MessageListContentView: View {
+    struct SelectedBubble {
+        let frame: CGRect
+        let message: DisplayedMessage
+    }
+    
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var textEditorFocused: Bool
     @State private var scrollToMessageID: Int?
     @State private var visibleMessageIndex = Set<Int>()
     @State private var isScrollToBottom = false
+    @State private var selectedBubble: SelectedBubble?
+    @State private var screenSize: CGSize = .zero
     
     private var sendButtonActive: Bool {
         !isLoading && !inputMessage.isEmpty && isConnecting
@@ -58,6 +65,14 @@ struct MessageListContentView: View {
             }
             .defaultAnimation(value: setupError == nil)
             .defaultAnimation(duration: 0.3, value: showScrollToBottomButton)
+            
+            selectedMessageBubbleMenu
+        }
+        .defaultAnimation(duration: 0.3, value: selectedBubble == nil)
+        .onAppear {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                screenSize = windowScene.screen.bounds.size
+            }
         }
         .onTapGesture { textEditorFocused = false }
         .navigationBarTitleDisplayMode(.inline)
@@ -133,6 +148,68 @@ struct MessageListContentView: View {
         .opacity(showScrollToBottomButton ? 1 : 0)
     }
     
+    @ViewBuilder
+    private var selectedMessageBubbleMenu: some View {
+        if let selectedBubble {
+            ZStack {
+                Color.white.opacity(0.01)
+                
+                let message = selectedBubble.message
+                let bubbleFrame = selectedBubble.frame
+                let menuWidth: CGFloat = 200
+                let widthDiff = screenSize.width - menuWidth
+                let horizontalSpacing: CGFloat = 20
+                let buttonHeight: CGFloat = 36
+                let buttonPadding: CGFloat = 8
+                let verticalSpacing: CGFloat = 8
+                
+                MessageBubbleContent(message: message)
+                    .frame(width: bubbleFrame.width, height: bubbleFrame.height)
+                    .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
+                
+                VStack(spacing: 0) {
+                    Button(action: {
+                        print("Option 1 tapped")
+                    }) {
+                        Text("Copy")
+                            .frame(height: buttonHeight)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(buttonPadding)
+                            .foregroundColor(.black)
+                            .background(.white.opacity(0.8))
+                    }
+                    
+                    Divider()
+                    
+                    Button(action: {
+                        print("Option 2 tapped")
+                    }) {
+                        Text("Edit")
+                            .frame(height: buttonHeight)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(buttonPadding)
+                            .foregroundColor(.black)
+                            .background(.white.opacity(0.8))
+                    }
+                }
+                .frame(width: menuWidth)
+                .clipShape(.rect(cornerRadius: 16))
+                .position(
+                    x: message.isMine ?
+                        (screenSize.width+widthDiff)/2 - horizontalSpacing :
+                        (screenSize.width-widthDiff)/2 + horizontalSpacing,
+                    y: bubbleFrame.midY > screenSize.height/2 ?
+                        bubbleFrame.minY - (buttonHeight+buttonPadding*2) - verticalSpacing :
+                        bubbleFrame.maxY + (buttonHeight+buttonPadding*2) + verticalSpacing
+                )
+            }
+            .ignoresSafeArea()
+            .background(.ultraThinMaterial)
+            .onTapGesture { self.selectedBubble = nil }
+            .opacity(self.selectedBubble == nil ? 0 : 1)
+        }
+    }
+    
     private var messageList: some View {
         ScrollViewReader { proxy in
             List {
@@ -141,7 +218,7 @@ struct MessageListContentView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     
-                    MessageBubble(message: message)
+                    MessageBubble(message: message, selectedBubble: $selectedBubble)
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                         .id(message.id)
@@ -245,8 +322,9 @@ struct MessageListContentView: View {
     }
 }
 
-struct MessageBubble: View {
+struct MessageBubbleContent: View {
     @EnvironmentObject private var style: ViewStyleManager
+    
     private var isMine: Bool { message.isMine }
     private var cornerRadii: RectangleCornerRadii {
         RectangleCornerRadii(
@@ -260,24 +338,57 @@ struct MessageBubble: View {
     let message: DisplayedMessage
     
     var body: some View {
+        Text(message.text)
+            .font(.callout)
+            .foregroundColor(style.message.bubble.foregroundColor)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                style.message.bubble.background(isMine: isMine),
+                in: .rect(cornerRadii: cornerRadii)
+            )
+            .overlay(
+                style.message.bubble.strokeColor(isMine: isMine),
+                in: .rect(cornerRadii: cornerRadii).stroke(lineWidth: 1)
+            )
+    }
+}
+
+struct MessageBubble: View {
+    @EnvironmentObject private var style: ViewStyleManager
+    @State private var isPressed: Bool = false
+    @State private var contentFrame: CGRect = .zero
+    
+    private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+    private var isMine: Bool { message.isMine }
+    
+    let message: DisplayedMessage
+    @Binding var selectedBubble: MessageListContentView.SelectedBubble?
+    
+    var body: some View {
         HStack {
             if isMine {
                 Spacer()
             }
             
             VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
-                Text(message.text)
-                    .font(.callout)
-                    .foregroundColor(style.message.bubble.foregroundColor)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(
-                        style.message.bubble.background(isMine: isMine),
-                        in: .rect(cornerRadii: cornerRadii)
-                    )
-                    .overlay(
-                        style.message.bubble.strokeColor(isMine: isMine),
-                        in: .rect(cornerRadii: cornerRadii).stroke(lineWidth: 1)
+                MessageBubbleContent(message: message)
+                    .background {
+                        GeometryReader { proxy in
+                            DispatchQueue.main.async {
+                                contentFrame = proxy.frame(in: .global)
+                            }
+                            return Color.clear
+                        }
+                    }
+                    .onLongPressGesture(
+                        minimumDuration: 0.4,
+                        maximumDistance: .infinity,
+                        perform: {
+                            impactFeedback.impactOccurred()
+                            selectedBubble = .init(frame: contentFrame, message: message)
+                        },
+                        onPressingChanged: { isPressed = $0 }
                     )
                 
                 HStack(spacing: 4) {
