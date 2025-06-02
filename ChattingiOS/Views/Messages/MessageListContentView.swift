@@ -361,7 +361,6 @@ struct MessageBubbleContent: View {
 
 struct MessageBubble: View {
     @EnvironmentObject private var style: ViewStyleManager
-    @State private var isPressed: Bool = false
     @State private var contentFrame: CGRect = .zero
     
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -384,14 +383,15 @@ struct MessageBubble: View {
                             return Color.clear
                         }
                     }
+                    // A trick for long press gesture with a smooth scrolling
+                    // https://stackoverflow.com/a/59499892
+                    .onTapGesture {}
                     .onLongPressGesture(
-                        minimumDuration: 0.4,
-                        maximumDistance: .infinity,
+                        minimumDuration: 0.1,
                         perform: {
                             impactFeedback.impactOccurred()
                             selectedBubble = .init(frame: contentFrame, message: message)
-                        },
-                        onPressingChanged: { isPressed = $0 }
+                        }
                     )
                 
                 HStack(spacing: 4) {
