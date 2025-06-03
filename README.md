@@ -22,3 +22,10 @@
 4. MVVM, separate UI logic from business logic
 5. Build server side with Swift Vapor
 6. Use decorator for refresh token logic and caching
+
+### Update History
+* Version 1.0 basic chatting
+* Version 1.1 push notification
+* Version 1.2 messages caching
+* Version 1.3 contacts caching
+* Version 1.4 new UI design
