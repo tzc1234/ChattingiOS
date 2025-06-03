@@ -13,6 +13,20 @@ struct DisplayedMessage: Identifiable, Equatable {
     let isMine: Bool
     let isRead: Bool
     let date: String
+    let time: String
     
-    var isUnread: Bool { !isRead }
+    var isUnread: Bool { !isMine && !isRead }
+}
+
+extension DisplayedMessage {
+    func newReadInstance() -> Self {
+        DisplayedMessage(
+            id: id,
+            text: text,
+            isMine: isMine,
+            isRead: true,
+            date: date,
+            time: time
+        )
+    }
 }

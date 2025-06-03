@@ -107,17 +107,26 @@ final class MessageListViewModel: ObservableObject {
             
             do {
                 for try await result in connection.messageStream {
-                    let message = result.message
-                    
-                    if let previousID = result.metadata.previousID, messages.last?.id != previousID {
-                        try await loadMissingMessages(to: message.id)
-                    }
-                    
-                    messages.append(message.toDisplayedModel(currentUserID: currentUserID))
-                    canLoadMore = false
-                    
-                    if messageIDForListPosition == nil {
-                        messageIDForListPosition = message.id
+                    switch result {
+                    case let .message(withMetadata):
+                        let message = withMetadata.message
+                        let metadata = withMetadata.metadata
+                        
+                        if let previousID = metadata.previousID, messages.last?.id != previousID {
+                            try await loadMissingMessages(to: message.id)
+                        }
+                        
+                        messages.append(message.toDisplayedModel(currentUserID: currentUserID))
+                        canLoadMore = false
+                        
+                        if messageIDForListPosition == nil {
+                            messageIDForListPosition = message.id
+                        }
+                    case let .readMessages(readMessages):
+                        updateReadMessages(
+                            contactID: readMessages.contactID,
+                            untilMessageID: readMessages.untilMessageID
+                        )
                     }
                 }
             } catch {
@@ -250,6 +259,19 @@ final class MessageListViewModel: ObservableObject {
         
         avatarData = try? await loadImageData.load(for: url)
     }
+    
+    func updateReadMessages(contactID: Int, untilMessageID: Int) {
+        guard contact.id == contactID else { return }
+        
+        for index in (0..<messages.count) {
+            let message = messages[index]
+            guard message.id <= untilMessageID else { return }
+            
+            if !message.isRead && message.isMine {
+                messages[index] = message.newReadInstance()
+            }
+        }
+    }
 }
 
 private extension Message {
@@ -258,8 +280,9 @@ private extension Message {
             id: id,
             text: text,
             isMine: senderID == currentUserID,
-            isRead: senderID == currentUserID || isRead,
-            date: createdAt.formatted()
+            isRead: isRead,
+            date: createdAt.formatted(date: .abbreviated, time: .omitted),
+            time: createdAt.formatted(date: .omitted, time: .shortened)
         )
     }
 }

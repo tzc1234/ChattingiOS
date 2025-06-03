@@ -13,7 +13,7 @@ protocol CurrentUserVault: Sendable {
     
     func observe(onCurrentUserStored: @escaping CurrentUserStoredObserver) async
     func saveCurrentUser(user: User, token: Token) async throws(CurrentUserVaultError)
-    @discardableResult func retrieveCurrentUser() async -> CurrentUser?
+    func retrieveCurrentUser() async -> CurrentUser?
     func deleteCurrentUser() async throws(CurrentUserVaultError)
 }
 
@@ -36,16 +36,18 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         let name: String
         let email: String
         let avatarURL: URL?
+        let createdAt: Date
         
         init(_ user: User) {
             self.id = user.id
             self.name = user.name
             self.email = user.email
             self.avatarURL = user.avatarURL
+            self.createdAt = user.createdAt
         }
         
         var model: User {
-            User(id: id, name: name, email: email, avatarURL: avatarURL)
+            User(id: id, name: name, email: email, avatarURL: avatarURL, createdAt: createdAt)
         }
     }
     

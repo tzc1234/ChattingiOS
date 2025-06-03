@@ -40,7 +40,6 @@ final class ContactListViewModel: ObservableObject {
     }
     
     func loadContacts() async {
-        contacts = []
         do {
             let params = GetContactsParams(before: nil)
             contacts = try await getContacts.get(with: params)

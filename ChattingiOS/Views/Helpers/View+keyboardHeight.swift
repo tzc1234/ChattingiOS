@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct KeyboardHeightProvider: ViewModifier {
-    let keyboardHeight: Binding<CGFloat>
+    @Binding var keyboardHeight: CGFloat
     
     func body(content: Content) -> some View {
         content
@@ -19,17 +19,13 @@ struct KeyboardHeightProvider: ViewModifier {
                         return
                     }
                     
-                    withAnimation {
-                        keyboardHeight.wrappedValue = rect.height
-                    }
+                    withAnimation { keyboardHeight = rect.height }
                 }
             )
             .onReceive(
                 NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification),
                 perform: { _ in
-                    withAnimation {
-                        keyboardHeight.wrappedValue = 0
-                    }
+                    withAnimation { keyboardHeight = 0 }
                 }
             )
     }

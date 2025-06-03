@@ -20,7 +20,13 @@ func makeContact(id: Int = 99,
                  lastMessage: MessageWithMetadata? = nil) -> Contact {
     Contact(
         id: id,
-        responder: User(id: responderID, name: responderName, email: responderEmail, avatarURL: avatarURL),
+        responder: User(
+            id: responderID,
+            name: responderName,
+            email: responderEmail,
+            avatarURL: avatarURL,
+            createdAt: createdAt
+        ),
         blockedByUserID: blockedByUserID,
         unreadMessageCount: unreadMessageCount,
         createdAt: createdAt,

@@ -13,11 +13,13 @@ final class Flow {
     private var currentUserVault: CurrentUserVault { dependencies.currentUserVault }
     private var pushNotificationHandler: PushNotificationsHandler { dependencies.pushNotificationHandler }
     private var navigationControl: NavigationControlViewModel { contentViewModel.navigationControl }
+    private var style: ViewStyleManager { dependencies.viewStyleManager }
     
     // Let Flow manage the lifetime of the ContactListViewModel instance. Since there's a weird behaviour,
     // the ContactListView sometime will not update if let it manage its own ContactListViewModel.
     private var contactListViewModel: ContactListViewModel?
     
+    private weak var messageListViewModel: MessageListViewModel?
     private var newContactTask: Task<Void, Never>?
     var deviceToken: String? {
         didSet {
@@ -29,33 +31,48 @@ final class Flow {
     
     init(dependencies: DependenciesContainer) {
         self.dependencies = dependencies
-        self.observeUserSignIn()
+        self.initialSetup()
         self.observeNewContactAddedNotification()
         self.observeDidReceiveMessageNotification()
         self.observeWillPresentMessageNotification()
     }
     
-    private func observeUserSignIn() {
+    private func initialSetup() {
         contentViewModel.isLoading = true
-        
+        Task {
+            defer {
+                contentViewModel.isLoading = false
+                observeUserSignIn()
+            }
+            
+            guard let user = await currentUserVault.retrieveCurrentUser()?.user else { return }
+            
+            await contentViewModel.set(signInState: .signedIn(user))
+            try? await Task.sleep(for: .seconds(0.3)) // A little bit loading buffer time.
+        }
+    }
+    
+    private func observeUserSignIn() {
         Task {
             await currentUserVault.observe { [unowned self] currentUser in
                 guard let user = currentUser?.user, await user != contentViewModel.user else { return }
                 
                 await resetStateAfterCurrentUserUpdated(user: user)
             }
-            await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
-            
-            withAnimation { contentViewModel.isLoading = false }
         }
     }
     
     private func resetStateAfterCurrentUserUpdated(user: User) async {
+        contentViewModel.isLoading = true
+        defer { contentViewModel.isLoading = false }
+        
         // Order does matter!
         await contentViewModel.set(signInState: .signedIn(user))
         contactListViewModel = nil
         navigationControl.forceReloadContent()
         await updateDeviceToken()
+        
+        try? await Task.sleep(for: .seconds(0.3)) // A little bit loading buffer time.
     }
     
     private func updateDeviceToken() async {
@@ -99,6 +116,17 @@ final class Flow {
         Task { try? await dependencies.cacheContacts.cache([contact]) }
     }
     
+    func updateReadMessages(_ updatedReadMessages: UpdatedReadMessages, forUserID: Int) {
+        guard let currentUserID = contentViewModel.user?.id, currentUserID == forUserID else { return }
+        
+        messageListViewModel?.updateReadMessages(
+            contactID: updatedReadMessages.contactID,
+            untilMessageID: updatedReadMessages.untilMessageID
+        )
+        
+        Task { try? await dependencies.readCachedMessagesSentByCurrentUser.read(with: updatedReadMessages) }
+    }
+    
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { [unowned self] currentUser in
             TabView(selection: contentViewModel.selectedTabBinding) { [unowned self] in
@@ -116,12 +144,15 @@ final class Flow {
                     }
                     .tag(TabItem.profile)
             }
-            .tint(.ctOrange)
+            .toolbarColorScheme(.dark, for: .tabBar)
         } signInContent: { [unowned self] in
             signInView()
         } sheet: { [unowned self] in
             signUpView()
         }
+        .preferredColorScheme(.dark)
+        .tint(style.common.tintColor)
+        .environmentObject(style)
     }
     
     private func signInView() -> SignInView {
@@ -152,7 +183,7 @@ final class Flow {
     
     private func profileView(user: User) -> ProfileView {
         let viewModel = ProfileViewModel(user: user, loadImageData: dependencies.decoratedLoadImageDataWithCache)
-        return ProfileView(viewModel: viewModel, signOutTapped: { [unowned self] in
+        return ProfileView(viewModel: viewModel, signOutAction: { [unowned self] in
             Task {
                 try? await currentUserVault.deleteCurrentUser()
                 await contentViewModel.set(signInState: .userInitiatedSignOut)
@@ -187,7 +218,7 @@ final class Flow {
             .navigationDestinationFor(MessageListView.self)
     }
     
-    private func newContactView(with alertState: Binding<AlertState>) -> NewContactView {
+    private func newContactView(with alertState: Binding<AlertState>) -> some View {
         let viewModel = NewContactViewModel(newContact: dependencies.newContact)
         newContactTask?.cancel()
         newContactTask = Task { [unowned self] in
@@ -202,6 +233,7 @@ final class Flow {
             newContactTask?.cancel()
             newContactTask = nil
         })
+        .environmentObject(style)
     }
     
     private func showMessageListView(currentUserID: Int, contact: Contact) {
@@ -213,6 +245,8 @@ final class Flow {
             readMessages: dependencies.decoratedReadMessagesAndCache,
             loadImageData: dependencies.decoratedLoadImageDataWithCache
         )
+        messageListViewModel = viewModel
+        
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
         navigationControl.show(next: destination)
     }

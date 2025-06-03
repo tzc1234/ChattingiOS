@@ -9,18 +9,20 @@ import SwiftUI
 
 struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: View {
     @ObservedObject var viewModel: ContentViewModel
-    let signedInContent: (User) -> SignedInContent
-    let signInContent: () -> SignInContent
-    let sheet: () -> Sheet
+    @ViewBuilder let signedInContent: (User) -> SignedInContent
+    @ViewBuilder let signInContent: () -> SignInContent
+    @ViewBuilder let sheet: () -> Sheet
     
     var body: some View {
         ZStack {
             if viewModel.isLoading {
-                LoadingView()
+                CTLoadingView()
             } else {
                 content
             }
         }
+        .defaultAnimation(value: viewModel.isLoading)
+        .defaultAnimation(value: viewModel.user != nil)
         .sheet(isPresented: $viewModel.showSheet, content: sheet)
         .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
             Button("Cancel", role: .cancel) {}

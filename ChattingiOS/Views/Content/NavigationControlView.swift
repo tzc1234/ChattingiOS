@@ -26,11 +26,12 @@ final class NavigationControlViewModel: ObservableObject {
 
 struct NavigationControlView<Content: View>: View {
     @ObservedObject var viewModel: NavigationControlViewModel
-    let content: () -> Content?
+    let content: () -> Content
     
     var body: some View {
         NavigationStack(path: $viewModel.path) {
-            content()?.id(viewModel.contentID)
+            content()
+                .id(viewModel.contentID)
         }
     }
 }

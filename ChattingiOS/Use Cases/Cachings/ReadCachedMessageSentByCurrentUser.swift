@@ -1,13 +1,13 @@
 //
-//  ReadCachedMessages.swift
+//  ReadCachedMessageSentByCurrentUser.swift
 //  ChattingiOS
 //
-//  Created by Tsz-Lung on 14/05/2025.
+//  Created by Tsz-Lung on 31/05/2025.
 //
 
 import Foundation
 
-actor ReadCachedMessages {
+actor ReadCachedMessagesSentByCurrentUser {
     private let store: CoreDataMessagesStore
     private let currentUserID: () async -> Int?
     
@@ -16,14 +16,14 @@ actor ReadCachedMessages {
         self.currentUserID = currentUserID
     }
     
-    func read(with params: ReadMessagesParams) async throws(UseCaseError) {
+    func read(with updatedReadMessages: UpdatedReadMessages) async throws(UseCaseError) {
         guard let currentUserID = await currentUserID() else { return }
         
         do {
-            try await store.updateMessageRead(
-                until: params.untilMessageID,
-                contactID: params.contactID,
-                userID: currentUserID
+            try await store.readMessagesSentByUser(
+                userID: currentUserID,
+                until: updatedReadMessages.untilMessageID,
+                contactID: updatedReadMessages.contactID
             )
         } catch {
             throw .invalidData

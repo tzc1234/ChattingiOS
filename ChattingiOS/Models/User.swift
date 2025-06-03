@@ -12,4 +12,5 @@ struct User: Equatable {
     let name: String
     let email: String
     let avatarURL: URL?
+    let createdAt: Date
 }

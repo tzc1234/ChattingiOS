@@ -23,7 +23,7 @@ actor DefaultMessageChannel: MessageChannel {
             self.webSocket = webSocket
         }
         
-        var messageStream: AsyncThrowingStream<MessageWithMetadata, Error> {
+        var messageStream: AsyncThrowingStream<MessageStreamResult, Error> {
             defer {
                 Task { await webSocket.start() }
             }
@@ -31,7 +31,12 @@ actor DefaultMessageChannel: MessageChannel {
                 let task = Task {
                     do {
                         for try await data in webSocket.outputStream {
-                            continuation.yield(try MessageChannelReceivedMessageMapper.map(data))
+                            if let message = try? MessageChannelReceivedMessageMapper.map(data) {
+                                continuation.yield(.message(message))
+                                continue
+                            }
+                            
+                            continuation.yield(.readMessages(try MessageChannelUpdatedReadMessagesMapper.map(data)))
                         }
                         continuation.finish()
                     } catch let error as WebSocketError {

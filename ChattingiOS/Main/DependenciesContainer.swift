@@ -13,6 +13,7 @@ final class DependenciesContainer {
     let currentUserVault = DefaultCurrentUserVault()
     let contentViewModel = ContentViewModel()
     let pushNotificationHandler = PushNotificationsHandler()
+    let viewStyleManager = ViewStyleManager()
     
     private let httpClient: URLSessionHTTPClient = {
         let configuration = URLSessionConfiguration.default
@@ -21,8 +22,8 @@ final class DependenciesContainer {
     }()
     
     // Using force unwrap is easier to debug in development environment.
-    // Better not to do this in release app.
-    private lazy var messagesStore = try! CoreDataMessagesStore(url: DefaultMessageStoreURL.url)
+    // Better not to do this in a release app.
+    private let messagesStore: CoreDataMessagesStore = try! CoreDataMessagesStore(url: DefaultMessageStoreURL.url)
     private lazy var cacheMessages = CacheMessages(store: messagesStore, currentUserID: currentUserID)
     
     private(set) lazy var userSignIn = UserSignIn(client: httpClient) { try UserSignInEndpoint(params: $0).request }
@@ -109,7 +110,7 @@ final class DependenciesContainer {
     
     private(set) lazy var decoratedReadMessagesAndCache = ReadMessageAndCacheDecorator(
         readMessages: readMessages,
-        readCachedMessages: ReadCachedMessages(store: messagesStore, currentUserID: currentUserID)
+        readCachedMessages: ReadCachedMessagesNotSentByCurrentUser(store: messagesStore, currentUserID: currentUserID)
     )
     
     private(set) lazy var decoratedGetContactsWithCache = GetContactsWithCacheDecorator(
@@ -138,6 +139,12 @@ final class DependenciesContainer {
     
     private(set) lazy var decoratedMessageChannelWithCaching = CachingForMessageChannelDecorator(
         messageChannel: messageChannel,
-        cacheMessages: cacheMessages
+        cacheMessages: cacheMessages,
+        readCachedMessagesSentByCurrentUser: readCachedMessagesSentByCurrentUser
+    )
+    
+    private(set) lazy var readCachedMessagesSentByCurrentUser = ReadCachedMessagesSentByCurrentUser(
+        store: messagesStore,
+        currentUserID: currentUserID
     )
 }
