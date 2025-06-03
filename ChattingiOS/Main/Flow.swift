@@ -31,33 +31,48 @@ final class Flow {
     
     init(dependencies: DependenciesContainer) {
         self.dependencies = dependencies
-        self.observeUserSignIn()
+        self.initialSetup()
         self.observeNewContactAddedNotification()
         self.observeDidReceiveMessageNotification()
         self.observeWillPresentMessageNotification()
     }
     
-    private func observeUserSignIn() {
+    private func initialSetup() {
         contentViewModel.isLoading = true
         Task {
-            defer { contentViewModel.isLoading = false }
+            defer {
+                contentViewModel.isLoading = false
+                observeUserSignIn()
+            }
             
+            guard let user = await currentUserVault.retrieveCurrentUser()?.user else { return }
+            
+            await contentViewModel.set(signInState: .signedIn(user))
+            try? await Task.sleep(for: .seconds(0.3)) // A little bit loading buffer time.
+        }
+    }
+    
+    private func observeUserSignIn() {
+        Task {
             await currentUserVault.observe { [unowned self] currentUser in
                 guard let user = currentUser?.user, await user != contentViewModel.user else { return }
                 
                 await resetStateAfterCurrentUserUpdated(user: user)
             }
-            await currentUserVault.retrieveCurrentUser() // Trigger currentUser observer at once.
-            try? await Task.sleep(for: .seconds(0.3)) // A little bit loading buffer time.
         }
     }
     
     private func resetStateAfterCurrentUserUpdated(user: User) async {
+        contentViewModel.isLoading = true
+        defer { contentViewModel.isLoading = false }
+        
         // Order does matter!
         await contentViewModel.set(signInState: .signedIn(user))
         contactListViewModel = nil
         navigationControl.forceReloadContent()
         await updateDeviceToken()
+        
+        try? await Task.sleep(for: .seconds(0.3)) // A little bit loading buffer time.
     }
     
     private func updateDeviceToken() async {

@@ -13,7 +13,7 @@ protocol CurrentUserVault: Sendable {
     
     func observe(onCurrentUserStored: @escaping CurrentUserStoredObserver) async
     func saveCurrentUser(user: User, token: Token) async throws(CurrentUserVaultError)
-    @discardableResult func retrieveCurrentUser() async -> CurrentUser?
+    func retrieveCurrentUser() async -> CurrentUser?
     func deleteCurrentUser() async throws(CurrentUserVaultError)
 }
 
