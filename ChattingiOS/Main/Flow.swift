@@ -48,7 +48,7 @@ final class Flow {
             guard let user = await currentUserVault.retrieveCurrentUser()?.user else { return }
             
             await contentViewModel.set(signInState: .signedIn(user))
-            try? await Task.sleep(for: .seconds(0.3)) // A little bit loading buffer time.
+            navigationControl.forceReloadContent()
         }
     }
     
@@ -71,8 +71,6 @@ final class Flow {
         contactListViewModel = nil
         navigationControl.forceReloadContent()
         await updateDeviceToken()
-        
-        try? await Task.sleep(for: .seconds(0.3)) // A little bit loading buffer time.
     }
     
     private func updateDeviceToken() async {
