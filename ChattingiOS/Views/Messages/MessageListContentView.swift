@@ -330,7 +330,7 @@ struct MessageListContentView: View {
     private var loadingButtonLabel: some View {
         if isLoading {
             ProgressView()
-                .tint(style.message.input.foregroundColor)
+                .tint(style.message.input.spinnerColor)
         } else {
             Image(systemName: "paperplane.fill")
                 .foregroundColor(style.message.input.iconColor)

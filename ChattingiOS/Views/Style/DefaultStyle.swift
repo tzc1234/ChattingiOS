@@ -168,7 +168,7 @@ extension DefaultStyle {
             var foregroundColor: Color { .primary }
             var backgroundColor: Color { .white.opacity(0.7) }
             var strokeColor: Color { .gray.opacity(0.3) }
-            var spinnerColor: Color { .primary }
+            var spinnerColor: Color { .white }
             var cornerRadius: CGFloat { 16 }
             func sendButtonBackground(isActive: Bool) -> LinearGradient {
                 LinearGradient(
