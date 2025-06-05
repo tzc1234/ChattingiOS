@@ -28,6 +28,7 @@ final class Flow {
     private weak var messageListViewModel: MessageListViewModel?
     private var editProfileTask: Task<Void, Never>?
     private var newContactTask: Task<Void, Never>?
+    private var afterEditProfile = false
     var deviceToken: String? {
         didSet {
             Task { await updateDeviceToken() }
@@ -75,8 +76,13 @@ final class Flow {
         
         // Order does matter!
         await contentViewModel.set(signInState: .signedIn(user))
-        contactListViewModel = nil
-        navigationControlForContacts.forceReloadContent()
+        if afterEditProfile {
+            contentViewModel.selectedTab = .profile
+            afterEditProfile = false
+        } else {
+            contactListViewModel = nil
+            navigationControlForContacts.forceReloadContent()
+        }
         await updateDeviceToken()
     }
     
@@ -214,6 +220,7 @@ final class Flow {
                             user: editedUser,
                             token: Token(accessToken: currentUser.accessToken, refreshToken: currentUser.refreshToken)
                         )
+                        afterEditProfile = true
                     } catch {
                         // If save error occurred, delete the current user, force user sign in.
                         try? await currentUserVault.deleteCurrentUser()
