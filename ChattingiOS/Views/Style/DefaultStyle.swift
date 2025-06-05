@@ -57,7 +57,7 @@ extension DefaultStyle {
         var defaultStrokeColor: Color { .gray.opacity(0.2) }
         func outerStrokeStyle(isActive: Bool) -> LinearGradient {
             LinearGradient(
-                colors: isActive ? [Color.blue.opacity(0.5), Color.purple.opacity(0.5)] : [Color.clear],
+                colors: isActive ? [.blue.opacity(0.5), .purple.opacity(0.5)] : [.clear],
                 startPoint: .leading,
                 endPoint: .trailing
             )
@@ -245,7 +245,7 @@ extension DefaultStyle {
             Circle()
                 .fill(
                     LinearGradient(
-                        colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.2)],
+                        colors: [.blue.opacity(0.3), .purple.opacity(0.2)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
