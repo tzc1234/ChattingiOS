@@ -23,6 +23,7 @@ struct EditProfileView: View {
             canSave: viewModel.canSave,
             saveAction: viewModel.save
         )
+        .toolbar(.hidden, for: .tabBar)
         .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
             Button("Cancel", role: .cancel) {}
         } message: {
