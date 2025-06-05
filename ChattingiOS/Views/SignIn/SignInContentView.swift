@@ -28,11 +28,14 @@ struct SignInContentView: View {
         ZStack {
             CTBackgroundView()
             
-            VStack(spacing: 40) {
-                Spacer()
-                title
-                content
-                Spacer()
+            ScrollView {
+                VStack(spacing: 40) {
+                    Spacer()
+                    Spacer()
+                    title
+                    content
+                    Spacer()
+                }
             }
         }
     }
