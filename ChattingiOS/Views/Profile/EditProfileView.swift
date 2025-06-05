@@ -11,6 +11,7 @@ struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     
     @ObservedObject var viewModel: EditProfileViewModel
+    let onDismiss: () -> Void
     
     var body: some View {
         EditProfileContentView(
@@ -28,7 +29,10 @@ struct EditProfileView: View {
             Text(viewModel.generalError ?? "")
         }
         .onChange(of: viewModel.saveSuccess) { newValue in
-            if newValue { dismiss() }
+            if newValue {
+                dismiss()
+                onDismiss()
+            }
         }
     }
 }

@@ -29,7 +29,7 @@ enum TabItem {
 @MainActor
 final class ContentViewModel: ObservableObject {
     enum SignInState {
-        case signedIn(User)
+        case signedIn(User, to: TabItem)
         case userInitiatedSignOut
         case tokenInvalid
     }
@@ -45,9 +45,9 @@ final class ContentViewModel: ObservableObject {
     
     func set(signInState: SignInState) async {
         switch signInState {
-        case let .signedIn(user):
+        case let .signedIn(user, tab):
             await set(user: user)
-            selectedTab = .contacts
+            self.selectedTab = tab
         case .userInitiatedSignOut:
             await set(user: nil)
         case .tokenInvalid:

@@ -55,7 +55,7 @@ final class Flow {
             
             guard let user = await currentUserVault.retrieveCurrentUser()?.user else { return }
             
-            await contentViewModel.set(signInState: .signedIn(user))
+            await contentViewModel.set(signInState: .signedIn(user, to: .contacts))
             navigationControlForContacts.forceReloadContent()
         }
     }
@@ -75,15 +75,16 @@ final class Flow {
         defer { contentViewModel.isLoading = false }
         
         // Order does matter!
-        await contentViewModel.set(signInState: .signedIn(user))
         if afterEditProfile {
-            contentViewModel.selectedTab = .profile
+            await contentViewModel.set(signInState: .signedIn(user, to: .profile))
+            navigationControlForProfile.forceReloadContent()
             afterEditProfile = false
         } else {
+            await contentViewModel.set(signInState: .signedIn(user, to: .contacts))
             contactListViewModel = nil
             navigationControlForContacts.forceReloadContent()
+            await updateDeviceToken()
         }
-        await updateDeviceToken()
     }
     
     private func updateDeviceToken() async {
@@ -222,7 +223,6 @@ final class Flow {
                             user: editedUser,
                             token: Token(accessToken: currentUser.accessToken, refreshToken: currentUser.refreshToken)
                         )
-                        afterEditProfile = true
                     } catch {
                         // If save error occurred, delete the current user, force user sign in.
                         try? await currentUserVault.deleteCurrentUser()
@@ -236,7 +236,9 @@ final class Flow {
                 }
             }
         }
-        let editProfileView = EditProfileView(viewModel: viewModel)
+        let editProfileView = EditProfileView(viewModel: viewModel, onDismiss: { [unowned self] in
+            afterEditProfile = true
+        })
         navigationControlForProfile.show(next: NavigationDestination(editProfileView))
     }
     
