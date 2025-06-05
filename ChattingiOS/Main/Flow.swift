@@ -213,6 +213,8 @@ final class Flow {
         )
         editProfileTask = Task { [unowned self] in
             for await editedUser in viewModel.$user.values {
+                guard editedUser != user else { continue }
+                
                 if let currentUser = await currentUserVault.retrieveCurrentUser() {
                     do {
                         // Save edited user into current user vault.
@@ -225,17 +227,17 @@ final class Flow {
                         // If save error occurred, delete the current user, force user sign in.
                         try? await currentUserVault.deleteCurrentUser()
                     }
+                    
+                    // Release this task after user update process.
+                    editProfileTask?.cancel()
+                    editProfileTask = nil
                 } else {
                     assertionFailure("CurrentUser should not be nil just after edit profile.")
                 }
             }
         }
-        let editProfileView = EditProfileView(viewModel: viewModel, onDisappear: { [unowned self] in
-            editProfileTask?.cancel()
-            editProfileTask = nil
-        })
-        let destination = NavigationDestination(editProfileView)
-        navigationControlForProfile.show(next: destination)
+        let editProfileView = EditProfileView(viewModel: viewModel)
+        navigationControlForProfile.show(next: NavigationDestination(editProfileView))
     }
     
     private func contactListView(currentUserID: Int) -> some View {

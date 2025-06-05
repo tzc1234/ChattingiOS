@@ -11,7 +11,6 @@ struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     
     @ObservedObject var viewModel: EditProfileViewModel
-    let onDisappear: () -> Void
     
     var body: some View {
         EditProfileContentView(
@@ -23,18 +22,13 @@ struct EditProfileView: View {
             canSave: viewModel.canSave,
             saveAction: viewModel.save
         )
-        .onDisappear(perform: onDisappear)
         .alert("⚠️Oops!", isPresented: $viewModel.generalError.toBool) {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(viewModel.generalError ?? "")
         }
         .onChange(of: viewModel.saveSuccess) { newValue in
-            if newValue {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    dismiss()
-                }
-            }
+            if newValue { dismiss() }
         }
     }
 }
