@@ -21,7 +21,6 @@ struct SignUpContentView: View {
     @State private var selectedImage: UIImage?
     @State private var showImagePicker = false
     @State private var showActionSheet = false
-    @State private var keyboardHeight: CGFloat = 0
     
     @Binding var name: String
     @Binding var email: String
@@ -41,15 +40,15 @@ struct SignUpContentView: View {
             CTBackgroundView()
                 .frame(maxHeight: .infinity)
             
-            VStack(spacing: 0) {
-                dismissButton
-                Spacer()
-                titleSection
-                inputSection
-                Spacer()
+            ScrollView {
+                VStack(spacing: 0) {
+                    dismissButton
+                    Spacer()
+                    titleSection
+                    inputSection
+                    Spacer()
+                }
             }
-            .keyboardHeight($keyboardHeight)
-            .offset(y: -keyboardHeight / 2)
         }
         .disabled(isLoading)
         .actionSheet(isPresented: $showActionSheet) {
