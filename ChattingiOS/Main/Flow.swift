@@ -209,13 +209,17 @@ final class Flow {
             for await editedUser in viewModel.$user.values {
                 if let currentUser = await currentUserVault.retrieveCurrentUser() {
                     do {
+                        // Save edited user into current user vault.
                         try await currentUserVault.saveCurrentUser(
                             user: editedUser,
                             token: Token(accessToken: currentUser.accessToken, refreshToken: currentUser.refreshToken)
                         )
                     } catch {
+                        // If save error occurred, delete the current user, force user sign in.
                         try? await currentUserVault.deleteCurrentUser()
                     }
+                } else {
+                    assertionFailure("CurrentUser should not be nil just after edit profile.")
                 }
             }
         }
