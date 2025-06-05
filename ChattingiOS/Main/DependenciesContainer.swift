@@ -65,6 +65,9 @@ final class DependenciesContainer {
     private lazy var unblockContact = DefaultUnblockContact(client: refreshTokenHTTPClient) { [accessToken] in
         UnblockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
     }
+    private(set) lazy var updateCurrentUser = DefaultUpdateCurrentUser(client: refreshTokenHTTPClient) { [accessToken] in
+        UpdateCurrentUserEndpoint(accessToken: try await accessToken(), params: $0).request
+    }
     
     private(set) lazy var updateDeviceToken = DefaultUpdateDeviceToken(client: httpClient) { [accessToken] in
         try UpdateDeviceTokenEndpoint(accessToken: try await accessToken(), params: $0).request
