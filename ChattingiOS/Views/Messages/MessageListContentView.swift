@@ -111,13 +111,25 @@ struct MessageListContentView: View {
                 text: setupError + " Switch to read-only mode.",
                 backgroundColor: style.notice.errorBackgroundColor,
                 strokeColor: style.notice.errorStrokeColor,
-                buttonSetting: .init(
-                    title: "Connect",
-                    action: {
+                button: {
+                    Button {
                         self.setupError = nil
                         setupList()
+                    } label: {
+                        Text("Connect")
+                            .foregroundStyle(style.notice.button.foregroundColor)
+                            .font(.footnote.weight(.medium))
+                            .padding(10)
+                            .background(
+                                style.button.backgroundColor,
+                                in: .rect(cornerRadius: style.button.cornerRadius)
+                            )
+                            .overlay(
+                                style.notice.button.strokeColor,
+                                in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1)
+                            )
                     }
-                )
+                }
             )
             .padding(.horizontal, 18)
             .padding(.vertical, 8)
@@ -143,7 +155,7 @@ struct MessageListContentView: View {
                 isScrollToBottom = true
             } label: {
                 Image(systemName: "chevron.down.circle")
-                    .font(.system(size: 25).weight(.medium))
+                    .font(.system(size: 25).weight(.regular))
                     .foregroundStyle(style.message.scrollToBottomIconColor)
                     .padding(4)
             }
@@ -310,7 +322,7 @@ struct MessageListContentView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
         .background { style.message.input.sectionBackground }
-        .brightness(isLoading || !isConnecting ? -0.5 : 0)
+        .brightness(isLoading || !isConnecting ? -0.1 : 0)
         .disabled(isLoading || !isConnecting)
     }
     
@@ -321,7 +333,7 @@ struct MessageListContentView: View {
                 .tint(style.message.input.foregroundColor)
         } else {
             Image(systemName: "paperplane.fill")
-                .foregroundColor(style.message.input.foregroundColor)
+                .foregroundColor(style.message.input.iconColor)
                 .font(.system(size: 18))
         }
     }
@@ -345,7 +357,7 @@ struct MessageBubbleContent: View {
     var body: some View {
         Text(message.text)
             .font(.callout)
-            .foregroundColor(style.message.bubble.foregroundColor)
+            .foregroundColor(style.message.bubble.foregroundColor(isMine: isMine))
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(
@@ -397,7 +409,7 @@ struct MessageBubble: View {
                 HStack(spacing: 4) {
                     Text(message.time)
                         .font(.caption)
-                        .foregroundColor(style.message.bubble.foregroundColor.opacity(0.6))
+                        .foregroundColor(style.message.bubble.timeColor)
                     
                     if isMine {
                         Image(systemName: message.isRead ? "checkmark.circle.fill" : "checkmark.circle")
@@ -438,5 +450,5 @@ struct MessageBubble: View {
         )
     }
     .environmentObject(ViewStyleManager())
-    .preferredColorScheme(.dark)
+    .preferredColorScheme(.light)
 }

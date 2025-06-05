@@ -9,7 +9,6 @@ import SwiftUI
 
 struct ProfileContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
-    @State private var isAnimating = false
     @State private var showSignOutAlert = false
     @State private var avatar: UIImage?
     
@@ -30,7 +29,6 @@ struct ProfileContentView: View {
             }
             .padding(.horizontal, 24)
         }
-        .onAppear { isAnimating = true }
         .alert("Sign Out", isPresented: $showSignOutAlert) {
             Button("Cancel", role: .cancel) { }
             Button("Sign Out", role: .destructive, action: signOutAction)
@@ -57,18 +55,13 @@ struct ProfileContentView: View {
                     } else {
                         Image(systemName: "person.circle.fill")
                             .font(.system(size: 75, weight: .medium))
-                            .foregroundColor(style.common.textColor)
+                            .foregroundColor(style.common.iconColor)
                         
                     }
                 }
                 .frame(width: 110, height: 110)
                 .defaultShadow(color: style.common.shadowColor)
             }
-            .scaleEffect(isAnimating ? 1.05 : 1.0)
-            .animation(
-                .easeInOut(duration: 2).repeatForever(autoreverses: true),
-                value: isAnimating
-            )
             
             Text(user.name)
                 .font(.title.bold())
@@ -100,6 +93,7 @@ struct ProfileContentView: View {
             CTButton(
                 icon: "arrow.right.circle.fill",
                 title: "Sign Out",
+                foregroundColor: style.profile.signOut.foregroundColor,
                 background: {
                     CTButtonBackground(
                         cornerRadius: style.profile.signOut.cornerRadius,
@@ -114,7 +108,7 @@ struct ProfileContentView: View {
             if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
                 Text("ChattingiOS v\(version)")
                     .font(.footnote.bold())
-                    .foregroundColor(style.common.textColor.opacity(0.5))
+                    .foregroundColor(style.common.subTextColor)
             }
         }
     }
@@ -178,5 +172,5 @@ struct ProfileInfoCard: View {
         signOutAction: {}
     )
     .environmentObject(ViewStyleManager())
-    .preferredColorScheme(.dark)
+    .preferredColorScheme(.light)
 }

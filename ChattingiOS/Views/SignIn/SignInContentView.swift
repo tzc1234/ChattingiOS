@@ -14,7 +14,6 @@ struct SignInContentView: View {
     
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var focused: FocusedField?
-    @State private var isAnimating = false
     
     @Binding var email: String
     @Binding var password: String
@@ -36,23 +35,17 @@ struct SignInContentView: View {
                 Spacer()
             }
         }
-        .onAppear { isAnimating = true }
     }
     
     private var title: some View {
         VStack(spacing: 20) {
             CTIconView {
-                Image(systemName: "message.circle.fill")
-                    .font(.system(size: 50))
+                Image(systemName: "ellipsis.message")
+                    .font(.system(size: 45).bold())
                     .foregroundColor(.white)
             }
             .frame(width: 80, height: 80)
             .defaultShadow(color: style.common.shadowColor)
-            .scaleEffect(isAnimating ? 0.95 : 1)
-            .animation(
-                .easeInOut(duration: 2).repeatForever(autoreverses: true),
-                value: isAnimating
-            )
             
             VStack(spacing: 8) {
                 Text("ChattingiOS")
@@ -94,6 +87,7 @@ struct SignInContentView: View {
                 icon: "arrow.right.circle.fill",
                 title: "Sign In",
                 isLoading: isLoading,
+                foregroundColor: style.button.lightForegroundColor,
                 background: {
                     CTButtonBackground(
                         cornerRadius: style.button.cornerRadius,
@@ -114,6 +108,7 @@ struct SignInContentView: View {
             CTButton(
                 icon: "arrow.up.circle.fill",
                 title: "Sign Up",
+                foregroundColor: style.button.foregroundColor,
                 background: {
                     CTButtonBackground(
                         cornerRadius: style.button.cornerRadius,
@@ -135,7 +130,7 @@ struct SignInContentView: View {
                 .fill(style.common.dividerColor)
                 .frame(height: 1)
             
-            Text("or")
+            Text("OR")
                 .font(.caption)
                 .foregroundColor(style.common.textColor.opacity(0.8))
                 .padding(.horizontal, 16)

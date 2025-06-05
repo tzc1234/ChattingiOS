@@ -30,7 +30,8 @@ struct ContactListContentView: View {
                     CTNotice(
                         text: message,
                         backgroundColor: style.notice.defaultBackgroundColor,
-                        strokeColor: style.notice.defaultStrokeColor
+                        strokeColor: style.notice.defaultStrokeColor,
+                        button: {}
                     )
                     .padding(.horizontal, 18)
                     .padding(.vertical, 8)
@@ -44,7 +45,6 @@ struct ContactListContentView: View {
         }
         .disabled(isLoading)
         .navigationTitle("Contacts")
-        .toolbarColorScheme(.dark, for: .navigationBar)
         .defaultAnimation(value: message)
         .defaultAnimation(duration: 0.3, value: isLoading)
         .onChange(of: message) { _ in
@@ -132,7 +132,7 @@ struct ContactRow: View {
                 } else {
                     Image(systemName: "person.circle.fill")
                         .font(.system(size: 35, weight: .medium))
-                        .foregroundColor(style.listRow.foregroundColor)
+                        .foregroundColor(style.listRow.iconColor)
                 }
             }
             .frame(width: 56, height: 56)
@@ -162,7 +162,7 @@ struct ContactRow: View {
                     
                     if isBlocked {
                         Image(systemName: "person.slash.fill")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(style.listRow.blockedIconColor)
                             .font(.system(size: 20))
                     } else if unreadCount > 0 {
                         Text(unreadCount < 100 ? "\(unreadCount)" : "99+")
@@ -238,5 +238,5 @@ struct ContactRow: View {
         )
     }
     .environmentObject(ViewStyleManager())
-    .preferredColorScheme(.dark)
+    .preferredColorScheme(.light)
 }

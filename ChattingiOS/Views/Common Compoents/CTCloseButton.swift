@@ -17,8 +17,16 @@ struct CTCloseButton: View {
             Image(systemName: "xmark")
                 .font(.system(size: 16, weight: .medium))
                 .frame(width: 32, height: 32)
-                .foregroundColor(style.button.foregroundColor.opacity(0.8))
-                .background(style.button.backgroundColor, in: .circle)
+                .foregroundColor(style.button.close.foregroundColor)
+                .background(style.button.close.backgroundColor, in: .circle)
         }
+    }
+}
+
+#Preview {
+    ZStack {
+        Color.black
+        CTCloseButton(tapAction: {})
+            .environmentObject(ViewStyleManager())
     }
 }

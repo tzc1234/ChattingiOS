@@ -148,8 +148,7 @@ final class Flow {
         } sheet: { [unowned self] in
             signUpView()
         }
-        .preferredColorScheme(.dark)
-        .tint(style.common.tintColor)
+        .preferredColorScheme(.light)
         .environmentObject(style)
     }
     
@@ -231,6 +230,7 @@ final class Flow {
             newContactTask?.cancel()
             newContactTask = nil
         })
+        .preferredColorScheme(.light)
         .environmentObject(style)
     }
     
