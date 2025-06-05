@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol UpdateCurrentUser {
+protocol UpdateCurrentUser: Sendable {
     func update(with params: UpdateCurrentUserParams) async throws(UseCaseError) -> User
 }
 

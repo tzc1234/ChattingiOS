@@ -34,7 +34,8 @@ final class ContentViewModel: ObservableObject {
         case tokenInvalid
     }
     
-    let navigationControl = NavigationControlViewModel()
+    let navigationControlForContacts = NavigationControlViewModel()
+    let navigationControlForProfile = NavigationControlViewModel()
     
     @Published private(set) var user: User?
     @Published var isLoading = false
@@ -57,7 +58,7 @@ final class ContentViewModel: ObservableObject {
     
     private func set(user: User?) async {
         if user == nil {
-            navigationControl.popToRoot()
+            navigationControlForContacts.popToRoot()
         }
         self.user = user
     }

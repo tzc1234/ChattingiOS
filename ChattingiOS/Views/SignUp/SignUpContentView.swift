@@ -51,19 +51,10 @@ struct SignUpContentView: View {
             }
         }
         .disabled(isLoading)
-        .actionSheet(isPresented: $showActionSheet) {
-            ActionSheet(
-                title: Text("Select Profile Photo"),
-                buttons: [
-                    .default(Text("Photo Library")) {
-                        showImagePicker = true
-                    },
-                    .default(Text("Remove Photo")) {
-                        selectedImage = nil
-                    },
-                    .cancel()
-                ]
-            )
+        .confirmationDialog("Select Profile Photo", isPresented: $showActionSheet, titleVisibility: .visible) {
+            Button("Photo Library") { showImagePicker = true }
+            Button("Remove Photo") { selectedImage = nil }
+            Button("Cancel", role: .cancel) {}
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(selectedImage: $selectedImage)

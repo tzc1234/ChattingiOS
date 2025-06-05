@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @EnvironmentObject private var style: ViewStyleManager
     @ObservedObject var viewModel: ProfileViewModel
+    let editAction: (UIImage?) -> Void
     let signOutAction: () -> Void
     
     var body: some View {
@@ -19,6 +21,7 @@ struct ProfileView: View {
                 
                 return UIImage(data: data)
             },
+            editAction: editAction,
             signOutAction: signOutAction
         )
     }

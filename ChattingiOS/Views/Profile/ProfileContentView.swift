@@ -14,6 +14,7 @@ struct ProfileContentView: View {
     
     let user: User
     let loadAvatar: () async -> UIImage?
+    let editAction: (UIImage?) -> Void
     let signOutAction: () -> Void
     
     var body: some View {
@@ -28,6 +29,19 @@ struct ProfileContentView: View {
                 Spacer()
             }
             .padding(.horizontal, 24)
+        }
+        .navigationTitle("Profile")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    editAction(avatar)
+                } label: {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(style.button.foregroundColor)
+                }
+            }
         }
         .alert("Sign Out", isPresented: $showSignOutAlert) {
             Button("Cancel", role: .cancel) { }
@@ -169,6 +183,7 @@ struct ProfileInfoCard: View {
             createdAt: .now
         ),
         loadAvatar: { nil },
+        editAction: { _ in },
         signOutAction: {}
     )
     .environmentObject(ViewStyleManager())

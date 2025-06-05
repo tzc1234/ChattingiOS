@@ -12,14 +12,21 @@ final class Flow {
     private var contentViewModel: ContentViewModel { dependencies.contentViewModel }
     private var currentUserVault: CurrentUserVault { dependencies.currentUserVault }
     private var pushNotificationHandler: PushNotificationsHandler { dependencies.pushNotificationHandler }
-    private var navigationControl: NavigationControlViewModel { contentViewModel.navigationControl }
     private var style: ViewStyleManager { dependencies.viewStyleManager }
+    
+    private var navigationControlForContacts: NavigationControlViewModel {
+        contentViewModel.navigationControlForContacts
+    }
+    private var navigationControlForProfile: NavigationControlViewModel {
+        contentViewModel.navigationControlForProfile
+    }
     
     // Let Flow manage the lifetime of the ContactListViewModel instance. Since there's a weird behaviour,
     // the ContactListView sometime will not update if let it manage its own ContactListViewModel.
     private var contactListViewModel: ContactListViewModel?
     
     private weak var messageListViewModel: MessageListViewModel?
+    private var editProfileTask: Task<Void, Never>?
     private var newContactTask: Task<Void, Never>?
     var deviceToken: String? {
         didSet {
@@ -48,7 +55,7 @@ final class Flow {
             guard let user = await currentUserVault.retrieveCurrentUser()?.user else { return }
             
             await contentViewModel.set(signInState: .signedIn(user))
-            navigationControl.forceReloadContent()
+            navigationControlForContacts.forceReloadContent()
         }
     }
     
@@ -69,7 +76,7 @@ final class Flow {
         // Order does matter!
         await contentViewModel.set(signInState: .signedIn(user))
         contactListViewModel = nil
-        navigationControl.forceReloadContent()
+        navigationControlForContacts.forceReloadContent()
         await updateDeviceToken()
     }
     
@@ -93,7 +100,7 @@ final class Flow {
             guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
             
             // On contacts tab, not on MessageListView.
-            if contentViewModel.selectedTab == .contacts, navigationControl.path.count < 1 {
+            if contentViewModel.selectedTab == .contacts, navigationControlForContacts.path.count < 1 {
                 showMessageListView(currentUserID: currentUserID, contact: contact)
             }
             
@@ -128,21 +135,18 @@ final class Flow {
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { [unowned self] currentUser in
             TabView(selection: contentViewModel.selectedTabBinding) { [unowned self] in
-                NavigationControlView(viewModel: navigationControl) { [unowned self] in
+                NavigationControlView(viewModel: navigationControlForContacts) { [unowned self] in
                     contactListView(currentUserID: currentUser.id)
                 }
-                .tabItem {
-                    Label(TabItem.contacts.title, systemImage: TabItem.contacts.systemImage)
-                }
+                .tabItem { Label(TabItem.contacts.title, systemImage: TabItem.contacts.systemImage) }
                 .tag(TabItem.contacts)
                 
-                profileView(user: currentUser)
-                    .tabItem {
-                        Label(TabItem.profile.title, systemImage: TabItem.profile.systemImage)
-                    }
-                    .tag(TabItem.profile)
+                NavigationControlView(viewModel: navigationControlForProfile) { [unowned self] in
+                    profileView(user: currentUser)
+                }
+                .tabItem { Label(TabItem.profile.title, systemImage: TabItem.profile.systemImage) }
+                .tag(TabItem.profile)
             }
-            .toolbarColorScheme(.dark, for: .tabBar)
         } signInContent: { [unowned self] in
             signInView()
         } sheet: { [unowned self] in
@@ -178,14 +182,49 @@ final class Flow {
         return SignUpView(viewModel: viewModel)
     }
     
-    private func profileView(user: User) -> ProfileView {
+    private func profileView(user: User) -> some View {
         let viewModel = ProfileViewModel(user: user, loadImageData: dependencies.decoratedLoadImageDataWithCache)
-        return ProfileView(viewModel: viewModel, signOutAction: { [unowned self] in
-            Task {
-                try? await currentUserVault.deleteCurrentUser()
-                await contentViewModel.set(signInState: .userInitiatedSignOut)
+        return ProfileView(
+            viewModel: viewModel,
+            editAction: { [unowned self] avatar in
+                showEditProfileView(user: user, avatar: avatar)
+            },
+            signOutAction: { [unowned self] in
+                Task {
+                    try? await currentUserVault.deleteCurrentUser()
+                    await contentViewModel.set(signInState: .userInitiatedSignOut)
+                }
             }
+        )
+        .navigationDestinationFor(EditProfileView.self)
+    }
+    
+    private func showEditProfileView(user: User, avatar: UIImage?) {
+        let viewModel = EditProfileViewModel(
+            user: user,
+            currentAvatarData: avatar?.pngData(),
+            updateCurrentUser: dependencies.updateCurrentUser
+        )
+        editProfileTask = Task { [unowned self] in
+            for await editedUser in viewModel.$user.values {
+                if let currentUser = await currentUserVault.retrieveCurrentUser() {
+                    do {
+                        try await currentUserVault.saveCurrentUser(
+                            user: editedUser,
+                            token: Token(accessToken: currentUser.accessToken, refreshToken: currentUser.refreshToken)
+                        )
+                    } catch {
+                        try? await currentUserVault.deleteCurrentUser()
+                    }
+                }
+            }
+        }
+        let editProfileView = EditProfileView(viewModel: viewModel, onDisappear: { [unowned self] in
+            editProfileTask?.cancel()
+            editProfileTask = nil
         })
+        let destination = NavigationDestination(editProfileView)
+        navigationControlForProfile.show(next: destination)
     }
     
     private func contactListView(currentUserID: Int) -> some View {
@@ -246,6 +285,6 @@ final class Flow {
         messageListViewModel = viewModel
         
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
-        navigationControl.show(next: destination)
+        navigationControlForContacts.show(next: destination)
     }
 }
