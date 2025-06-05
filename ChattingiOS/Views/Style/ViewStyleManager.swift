@@ -13,6 +13,7 @@ final class ViewStyleManager: ObservableObject {
     var common: DefaultStyle.Common { style.common }
     var textField: DefaultStyle.TextField { style.textField }
     var button: DefaultStyle.Button { style.button }
+    var signUp: DefaultStyle.SignUp { style.signUp }
     var listRow: DefaultStyle.ListRow { style.listRow }
     var notice: DefaultStyle.Notice { style.notice }
     var popup: DefaultStyle.Popup { style.popup }

@@ -13,17 +13,20 @@ struct CTButton<V: View>: View {
     private let icon: String
     private let title: String
     private let isLoading: Bool
+    private let foregroundColor: Color
     @ViewBuilder private let background: () -> V
     private let action: () -> Void
     
     init(icon: String,
          title: String,
          isLoading: Bool = false,
+         foregroundColor: Color,
          background: @escaping () -> V,
          action: @escaping () -> Void) {
         self.icon = icon
         self.title = title
         self.isLoading = isLoading
+        self.foregroundColor = foregroundColor
         self.background = background
         self.action = action
     }
@@ -35,7 +38,7 @@ struct CTButton<V: View>: View {
                 
                 if isLoading {
                     ProgressView()
-                        .tint(style.button.foregroundColor)
+                        .tint(style.button.spinnerColor)
                 } else {
                     HStack {
                         Image(systemName: icon)
@@ -43,7 +46,7 @@ struct CTButton<V: View>: View {
                         Text(title)
                             .font(.body.bold())
                     }
-                    .foregroundColor(style.button.foregroundColor)
+                    .foregroundColor(foregroundColor)
                 }
             }
         }

@@ -9,7 +9,6 @@ import SwiftUI
 
 struct NewContactContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
-    @State private var isAnimating = false
     @State private var keyboardHeight: CGFloat = 0
     
     @Binding var email: String
@@ -30,15 +29,10 @@ struct NewContactContentView: View {
                 CTIconView {
                     Image(systemName: "person.fill.badge.plus")
                         .font(.system(size: 45, weight: .medium))
-                        .foregroundColor(.white)
+                        .foregroundColor(style.common.iconColor)
                 }
                 .frame(width: 80, height: 80)
                 .defaultShadow(color: style.common.shadowColor)
-                .scaleEffect(isAnimating ? 0.95 : 1)
-                .animation(
-                    .easeInOut(duration: 2).repeatForever(autoreverses: true),
-                    value: isAnimating
-                )
                 
                 Text("Add Contact")
                     .font(.title2.bold())
@@ -58,6 +52,7 @@ struct NewContactContentView: View {
                     icon: "arrow.up.circle.fill",
                     title: "Submit",
                     isLoading: isLoading,
+                    foregroundColor: style.button.lightForegroundColor,
                     background: {
                         CTButtonBackground(
                             cornerRadius: style.button.cornerRadius,
@@ -85,7 +80,6 @@ struct NewContactContentView: View {
         }
         .padding(.horizontal, 32)
         .disabled(isLoading)
-        .onAppear { isAnimating = true }
         .keyboardHeight($keyboardHeight)
         .offset(y: -keyboardHeight / 2)
     }
@@ -101,5 +95,5 @@ struct NewContactContentView: View {
         submitTapped: {}
     )
     .environmentObject(ViewStyleManager())
-    .preferredColorScheme(.dark)
+    .preferredColorScheme(.light)
 }

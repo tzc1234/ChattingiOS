@@ -34,7 +34,7 @@ struct CTLoadingView: View {
 
 #Preview {
     ZStack {
-        Color.black
+        Color.white
         CTLoadingView()
             .environmentObject(ViewStyleManager())
     }

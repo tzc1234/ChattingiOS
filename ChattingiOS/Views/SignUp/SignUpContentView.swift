@@ -18,7 +18,6 @@ struct SignUpContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focused: FocusedField?
-    @State private var isAnimating = false
     @State private var selectedImage: UIImage?
     @State private var showImagePicker = false
     @State private var showActionSheet = false
@@ -39,16 +38,18 @@ struct SignUpContentView: View {
     var body: some View {
         ZStack {
             CTBackgroundView()
+                .frame(maxHeight: .infinity)
             
-            VStack(spacing: 0) {
-                dismissButton
-                Spacer()
-                titleSection
-                inputSection
-                Spacer()
+            ScrollView {
+                VStack(spacing: 0) {
+                    dismissButton
+                    Spacer()
+                    titleSection
+                    inputSection
+                    Spacer()
+                }
             }
         }
-        .onAppear { isAnimating = true }
         .disabled(isLoading)
         .actionSheet(isPresented: $showActionSheet) {
             ActionSheet(
@@ -88,23 +89,12 @@ struct SignUpContentView: View {
                     showActionSheet = true
                 }) {
                     ZStack {
-                        LinearGradient(
-                            colors: selectedImage == nil ?
-                                [Color.orange.opacity(0.3), Color.purple.opacity(0.3)] :
-                                [Color.clear],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                        .clipShape(.circle)
-                        .overlay(
-                            LinearGradient(
-                                colors: [Color.orange, Color.purple],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            in: .circle.stroke(lineWidth: 2)
-                        )
-                        .defaultShadow(color: .orange.opacity(0.3))
+                        style.signUp.iconBackground(isActive: selectedImage == nil)
+                            .clipShape(.circle)
+                            .overlay(
+                                style.signUp.iconStrokeStyle,
+                                in: .circle.stroke(lineWidth: 2)
+                            )
                         
                         if let selectedImage {
                             Image(uiImage: selectedImage)
@@ -115,7 +105,8 @@ struct SignUpContentView: View {
                         } else {
                             Image(systemName: "person.crop.circle.badge.plus")
                                 .font(.system(size: 50))
-                                .foregroundColor(style.button.foregroundColor)
+                                .foregroundColor(style.common.iconColor)
+                                
                         }
                         
                         VStack {
@@ -123,19 +114,17 @@ struct SignUpContentView: View {
                             HStack {
                                 Spacer()
                                 Image(systemName: "pencil.circle.fill")
-                                    .font(.system(size: 23, weight: .bold))
-                                    .foregroundColor(style.button.foregroundColor)
+                                    .font(.system(size: 23, weight: .medium))
+                                    .foregroundColor(style.signUp.pencilIconColor)
+                                    .background(style.signUp.pencilIconBackgroundColor)
+                                    .clipShape(.circle)
                             }
                         }
                         .opacity(selectedImage == nil ? 0 : 1)
                     }
-                    .frame(width: 100, height: 100)
+                    .frame(width: 90, height: 90)
+                    .defaultShadow(color: style.common.shadowColor)
                 }
-                .scaleEffect(isAnimating ? 1.05 : 1)
-                .animation(
-                    .easeInOut(duration: 2.5).repeatForever(autoreverses: true),
-                    value: isAnimating
-                )
             }
             
             VStack(spacing: 8) {
@@ -143,7 +132,7 @@ struct SignUpContentView: View {
                     .font(.title.bold())
                     .foregroundColor(style.common.textColor)
                 
-                Text("Join the conversation today")
+                Text("Join us now")
                     .font(.subheadline)
                     .foregroundColor(style.common.subTextColor)
             }
@@ -202,16 +191,11 @@ struct SignUpContentView: View {
                 icon: "arrow.up.circle.fill",
                 title: "Sign Up",
                 isLoading: isLoading,
+                foregroundColor: style.button.lightForegroundColor,
                 background: {
                     CTButtonBackground(
                         cornerRadius: style.button.cornerRadius,
-                        backgroundStyle: LinearGradient(
-                            colors: canSignUp ?
-                                [Color.orange, Color.purple] :
-                                [Color.gray.opacity(0.6), Color.gray.opacity(0.4)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                        backgroundStyle: style.button.gradient
                     )
                 },
                 action: signUpTapped
@@ -219,8 +203,9 @@ struct SignUpContentView: View {
             .frame(height: 56)
             .disabled(!canSignUp)
             .scaleEffect(canSignUp ? 1.0 : 0.98)
+            .opacity(canSignUp ? 1 : 0.7)
             .defaultAnimation(value: canSignUp)
-            .defaultShadow(color: canSignUp ? .orange.opacity(0.3) : .clear)
+            .defaultShadow(color: canSignUp ? style.common.shadowColor : .clear)
         }
         .padding(.horizontal, 32)
     }
