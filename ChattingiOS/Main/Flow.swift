@@ -193,8 +193,8 @@ final class Flow {
         let viewModel = ProfileViewModel(user: user, loadImageData: dependencies.decoratedLoadImageDataWithCache)
         return ProfileView(
             viewModel: viewModel,
-            editAction: { [unowned self] avatar in
-                showEditProfileView(user: user, avatar: avatar)
+            editAction: { [unowned self] avatarData in
+                showEditProfileView(user: user, avatarData: avatarData)
             },
             signOutAction: { [unowned self] in
                 Task {
@@ -206,10 +206,10 @@ final class Flow {
         .navigationDestinationFor(EditProfileView.self)
     }
     
-    private func showEditProfileView(user: User, avatar: UIImage?) {
+    private func showEditProfileView(user: User, avatarData: Data?) {
         let viewModel = EditProfileViewModel(
             user: user,
-            currentAvatarData: avatar?.pngData(),
+            currentAvatarData: avatarData,
             updateCurrentUser: dependencies.updateCurrentUser
         )
         editProfileTask = Task { [unowned self] in

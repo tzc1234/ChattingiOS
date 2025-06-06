@@ -10,19 +10,16 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @ObservedObject var viewModel: ProfileViewModel
-    let editAction: (UIImage?) -> Void
+    let editAction: (Data?) -> Void
     let signOutAction: () -> Void
     
     var body: some View {
         ProfileContentView(
             user: viewModel.user,
-            loadAvatar: {
-                guard let data = await viewModel.loadAvatarData() else { return nil }
-                
-                return UIImage(data: data)
-            },
-            editAction: editAction,
+            avatarData: viewModel.avatarData,
+            editAction: { editAction(viewModel.avatarData) },
             signOutAction: signOutAction
         )
+        .onAppear { viewModel.loadAvatarData() }
     }
 }
