@@ -10,10 +10,12 @@ import SwiftUI
 struct ProfileContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @State private var showSignOutAlert = false
-    @State private var avatar: UIImage?
+    @State private var avatarImage: UIImage?
     
     let user: User
-    let loadAvatar: () async -> UIImage?
+    let avatarData: Data?
+    let isLoading: Bool
+    let editAction: (Data?) -> Void
     let signOutAction: () -> Void
     
     var body: some View {
@@ -28,6 +30,24 @@ struct ProfileContentView: View {
                 Spacer()
             }
             .padding(.horizontal, 24)
+            
+            CTLoadingView()
+                .opacity(isLoading ? 1 : 0)
+        }
+        .disabled(isLoading)
+        .navigationTitle("Profile")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    editAction(avatarImage?.pngData())
+                } label: {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(style.button.foregroundColor)
+                }
+                .disabled(isLoading)
+            }
         }
         .alert("Sign Out", isPresented: $showSignOutAlert) {
             Button("Cancel", role: .cancel) { }
@@ -35,7 +55,11 @@ struct ProfileContentView: View {
         } message: {
             Text("Are you sure you want to sign out?")
         }
-        .task { avatar = await loadAvatar() }
+        .onChange(of: avatarData) { newValue in
+            if let newValue {
+                avatarImage = UIImage(data: newValue)
+            }
+        }
     }
     
     private var profileHeader: some View {
@@ -46,8 +70,8 @@ struct ProfileContentView: View {
                     .blur(radius: 15)
                 
                 CTIconView {
-                    if let avatar {
-                        Image(uiImage: avatar)
+                    if let avatarImage {
+                        Image(uiImage: avatarImage)
                             .resizable()
                             .scaledToFill()
                             .frame(width: 105, height: 105)
@@ -168,7 +192,9 @@ struct ProfileInfoCard: View {
             avatarURL: nil,
             createdAt: .now
         ),
-        loadAvatar: { nil },
+        avatarData: nil,
+        isLoading: false,
+        editAction: { _ in },
         signOutAction: {}
     )
     .environmentObject(ViewStyleManager())

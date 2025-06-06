@@ -13,6 +13,7 @@ protocol CurrentUserVault: Sendable {
     
     func observe(onCurrentUserStored: @escaping CurrentUserStoredObserver) async
     func saveCurrentUser(user: User, token: Token) async throws(CurrentUserVaultError)
+    func saveCurrentUserWithoutNotifyObservers(user: User, token: Token) async throws(CurrentUserVaultError)
     func retrieveCurrentUser() async -> CurrentUser?
     func deleteCurrentUser() async throws(CurrentUserVaultError)
 }
@@ -74,6 +75,14 @@ actor DefaultCurrentUserVault: CurrentUserVault {
     private static var currentUserKey: String { "current_user" }
     
     func saveCurrentUser(user: User, token: Token) async throws(CurrentUserVaultError) {
+        try await saveCurrentUser(user: user, token: token, shouldNotify: true)
+    }
+    
+    func saveCurrentUserWithoutNotifyObservers(user: User, token: Token) async throws(CurrentUserVaultError) {
+        try await saveCurrentUser(user: user, token: token, shouldNotify: false)
+    }
+    
+    private func saveCurrentUser(user: User, token: Token, shouldNotify: Bool) async throws(CurrentUserVaultError) {
         let codableCurrentUser = CodableCurrentUser(user: user, token: token)
         
         guard cachedCodableCurrentUser != codableCurrentUser else { return }
@@ -88,7 +97,7 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         let status = SecItemAdd(query as CFDictionary, nil)
         
         if status == errSecDuplicateItem {
-            try await update(data: data, codableCurrentUser: codableCurrentUser)
+            try await update(data: data, codableCurrentUser: codableCurrentUser, shouldNotify: shouldNotify)
             return
         }
         
@@ -97,10 +106,12 @@ actor DefaultCurrentUserVault: CurrentUserVault {
             throw .saveFailed
         }
         
-        await deliver(codableCurrentUser)
+        await cache(codableCurrentUser, shouldNotify: shouldNotify)
     }
     
-    private func update(data: Data, codableCurrentUser: CodableCurrentUser) async throws(CurrentUserVaultError) {
+    private func update(data: Data,
+                        codableCurrentUser: CodableCurrentUser,
+                        shouldNotify: Bool) async throws(CurrentUserVaultError) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: Self.currentUserKey
@@ -113,7 +124,7 @@ actor DefaultCurrentUserVault: CurrentUserVault {
             throw .saveFailed
         }
         
-        await deliver(codableCurrentUser)
+        await cache(codableCurrentUser, shouldNotify: shouldNotify)
     }
     
     func retrieveCurrentUser() async -> CurrentUser? {
@@ -133,7 +144,7 @@ actor DefaultCurrentUserVault: CurrentUserVault {
             return nil
         }
         
-        await deliver(codableCurrentUser)
+        await cache(codableCurrentUser, shouldNotify: true)
         return codableCurrentUser.model
     }
     
@@ -149,9 +160,11 @@ actor DefaultCurrentUserVault: CurrentUserVault {
         await deliverNilCurrentUser()
     }
     
-    private func deliver(_ codableCurrentUser: CodableCurrentUser) async {
+    private func cache(_ codableCurrentUser: CodableCurrentUser, shouldNotify: Bool) async {
         if cachedCodableCurrentUser != codableCurrentUser {
-            await onCurrentUserStored?(codableCurrentUser.model)
+            if shouldNotify {
+                await onCurrentUserStored?(codableCurrentUser.model)
+            }
             cachedCodableCurrentUser = codableCurrentUser
         }
     }

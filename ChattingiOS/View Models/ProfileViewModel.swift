@@ -9,6 +9,11 @@ import Foundation
 
 @MainActor
 final class ProfileViewModel: ObservableObject {
+    @Published private(set) var avatarData: Data?
+    @Published private(set) var isLoading = false
+    
+    private var loadAvatarTask: Task<Void, Never>?
+    
     let user: User
     private let loadImageData: LoadImageData
     
@@ -17,9 +22,19 @@ final class ProfileViewModel: ObservableObject {
         self.loadImageData = loadImageData
     }
     
-    func loadAvatarData() async -> Data? {
-        guard let url = user.avatarURL else { return nil }
+    func loadAvatarData() {
+        guard loadAvatarTask == nil else { return }
         
-        return try? await loadImageData.load(for: url)
+        isLoading = true
+        loadAvatarTask = Task {
+            defer {
+                isLoading = false
+                loadAvatarTask = nil
+            }
+            
+            guard let url = user.avatarURL else { return }
+            
+            avatarData = try? await loadImageData.load(for: url)
+        }
     }
 }

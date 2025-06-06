@@ -29,12 +29,13 @@ enum TabItem {
 @MainActor
 final class ContentViewModel: ObservableObject {
     enum SignInState {
-        case signedIn(User)
+        case signedIn(User, to: TabItem)
         case userInitiatedSignOut
         case tokenInvalid
     }
     
-    let navigationControl = NavigationControlViewModel()
+    let navigationControlForContacts = NavigationControlViewModel()
+    let navigationControlForProfile = NavigationControlViewModel()
     
     @Published private(set) var user: User?
     @Published var isLoading = false
@@ -44,9 +45,9 @@ final class ContentViewModel: ObservableObject {
     
     func set(signInState: SignInState) async {
         switch signInState {
-        case let .signedIn(user):
+        case let .signedIn(user, tab):
             await set(user: user)
-            selectedTab = .contacts
+            self.selectedTab = tab
         case .userInitiatedSignOut:
             await set(user: nil)
         case .tokenInvalid:
@@ -57,7 +58,7 @@ final class ContentViewModel: ObservableObject {
     
     private func set(user: User?) async {
         if user == nil {
-            navigationControl.popToRoot()
+            navigationControlForContacts.popToRoot()
         }
         self.user = user
     }

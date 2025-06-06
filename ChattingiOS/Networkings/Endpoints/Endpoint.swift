@@ -10,6 +10,7 @@ import Foundation
 enum HTTPMethod: String {
     case get = "GET"
     case post = "POST"
+    case put = "PUT"
     case patch = "PATCH"
 }
 
@@ -61,5 +62,34 @@ extension Endpoint {
         request.allHTTPHeaderFields = headers
         request.httpBody = body
         return request
+    }
+}
+
+extension Endpoint {
+    func makeMultipartBody(boundary: String, keyValues: [String: String], avatar: AvatarParams?) -> Data? {
+        var body = Data()
+        
+        let content = keyValues.reduce("") { partialResult, pair in
+            partialResult +
+                "--\(boundary)\r\n" +
+                "Content-Disposition: form-data; name=\"\(pair.key)\"\r\n\r\n" +
+                "\(pair.value)\r\n"
+        }
+        body.append(Data(content.utf8))
+        
+        if let avatar {
+            let fieldName = "avatar"
+            let fileName = "avatar.\(avatar.fileType)"
+            let avatarContent = "--\(boundary)\r\n" +
+                "Content-Disposition: form-data; name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n" +
+                "Content-Type: image/\(avatar.fileType)\r\n\r\n"
+            
+            body.append(Data(avatarContent.utf8))
+            body.append(avatar.data)
+            body.append(Data("\r\n".utf8))
+        }
+        
+        body.append(Data("--\(boundary)--\r\n".utf8))
+        return body
     }
 }
