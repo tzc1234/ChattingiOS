@@ -14,6 +14,7 @@ struct ProfileContentView: View {
     
     let user: User
     let avatarData: Data?
+    let isLoading: Bool
     let editAction: () -> Void
     let signOutAction: () -> Void
     
@@ -29,7 +30,11 @@ struct ProfileContentView: View {
                 Spacer()
             }
             .padding(.horizontal, 24)
+            
+            CTLoadingView()
+                .opacity(isLoading ? 1 : 0)
         }
+        .disabled(isLoading)
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -39,6 +44,7 @@ struct ProfileContentView: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(style.button.foregroundColor)
                 }
+                .disabled(isLoading)
             }
         }
         .alert("Sign Out", isPresented: $showSignOutAlert) {
@@ -185,6 +191,7 @@ struct ProfileInfoCard: View {
             createdAt: .now
         ),
         avatarData: nil,
+        isLoading: false,
         editAction: {},
         signOutAction: {}
     )

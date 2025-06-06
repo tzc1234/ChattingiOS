@@ -17,6 +17,7 @@ struct ProfileView: View {
         ProfileContentView(
             user: viewModel.user,
             avatarData: viewModel.avatarData,
+            isLoading: viewModel.isLoading,
             editAction: { editAction(viewModel.avatarData) },
             signOutAction: signOutAction
         )
