@@ -15,7 +15,7 @@ struct ProfileContentView: View {
     let user: User
     let avatarData: Data?
     let isLoading: Bool
-    let editAction: () -> Void
+    let editAction: (Data?) -> Void
     let signOutAction: () -> Void
     
     var body: some View {
@@ -39,7 +39,9 @@ struct ProfileContentView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button(action: editAction) {
+                Button {
+                    editAction(avatarImage?.pngData())
+                } label: {
                     Image(systemName: "pencil")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(style.button.foregroundColor)
@@ -192,7 +194,7 @@ struct ProfileInfoCard: View {
         ),
         avatarData: nil,
         isLoading: false,
-        editAction: {},
+        editAction: { _ in },
         signOutAction: {}
     )
     .environmentObject(ViewStyleManager())

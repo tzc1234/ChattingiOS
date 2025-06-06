@@ -11,7 +11,7 @@ struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     
     @ObservedObject var viewModel: EditProfileViewModel
-    let onDismiss: () -> Void
+    let onDisappear: () -> Void
     
     var body: some View {
         EditProfileContentView(
@@ -32,9 +32,9 @@ struct EditProfileView: View {
         .onChange(of: viewModel.saveSuccess) { newValue in
             if newValue {
                 dismiss()
-                onDismiss()
             }
         }
+        .onDisappear(perform: onDisappear)
     }
 }
 

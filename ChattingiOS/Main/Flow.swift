@@ -28,7 +28,6 @@ final class Flow {
     private weak var messageListViewModel: MessageListViewModel?
     private var editProfileTask: Task<Void, Never>?
     private var newContactTask: Task<Void, Never>?
-    private var afterEditProfile = false
     var deviceToken: String? {
         didSet {
             Task { await updateDeviceToken() }
@@ -75,16 +74,10 @@ final class Flow {
         defer { contentViewModel.isLoading = false }
         
         // Order does matter!
-        if afterEditProfile {
-            await contentViewModel.set(signInState: .signedIn(user, to: .profile))
-            navigationControlForProfile.forceReloadContent()
-            afterEditProfile = false
-        } else {
-            await contentViewModel.set(signInState: .signedIn(user, to: .contacts))
-            contactListViewModel = nil
-            navigationControlForContacts.forceReloadContent()
-            await updateDeviceToken()
-        }
+        await contentViewModel.set(signInState: .signedIn(user, to: .contacts))
+        contactListViewModel = nil
+        navigationControlForContacts.forceReloadContent()
+        await updateDeviceToken()
     }
     
     private func updateDeviceToken() async {
@@ -212,17 +205,23 @@ final class Flow {
             currentAvatarData: avatarData,
             updateCurrentUser: dependencies.updateCurrentUser
         )
+        editProfileTask?.cancel()
         editProfileTask = Task { [unowned self] in
+            defer { editProfileTask = nil }
+            
             for await editedUser in viewModel.$user.values {
                 guard editedUser != user else { continue }
                 
                 if let currentUser = await currentUserVault.retrieveCurrentUser() {
                     do {
                         // Save edited user into current user vault.
-                        try await currentUserVault.saveCurrentUser(
+                        try await currentUserVault.saveCurrentUserWithoutNotifyObservers(
                             user: editedUser,
                             token: Token(accessToken: currentUser.accessToken, refreshToken: currentUser.refreshToken)
                         )
+                        
+                        await contentViewModel.set(signInState: .signedIn(editedUser, to: .profile))
+                        navigationControlForProfile.forceReloadContent()
                     } catch {
                         // If save error occurred, delete the current user, force user sign in.
                         try? await currentUserVault.deleteCurrentUser()
@@ -230,14 +229,13 @@ final class Flow {
                     
                     // Release this task after user update process.
                     editProfileTask?.cancel()
-                    editProfileTask = nil
                 } else {
                     assertionFailure("CurrentUser should not be nil just after edit profile.")
                 }
             }
         }
-        let editProfileView = EditProfileView(viewModel: viewModel, onDismiss: { [unowned self] in
-            afterEditProfile = true
+        let editProfileView = EditProfileView(viewModel: viewModel, onDisappear: { [unowned self] in
+            editProfileTask?.cancel()
         })
         navigationControlForProfile.show(next: NavigationDestination(editProfileView))
     }
