@@ -142,22 +142,29 @@ final class DependenciesContainer {
         }
     }
     
-    var decoratedMessageChannelWithCaching: CachingForMessageChannelDecorator {
-        CachingForMessageChannelDecorator(
+    var decoratedMessageChannelWithCaching: MessageChannelDecorator {
+        MessageChannelDecorator(
             messageChannel: messageChannel,
-            cacheMessages: cacheMessages,
-            readCachedMessagesSentByCurrentUser: readCachedMessagesSentByCurrentUser,
-            readCachedMessagesSentByOthers: readCachedMessagesSentByOthers
-        )
-    }
-    private var readCachedMessagesSentByOthers: ReadCachedMessagesSentByOthers {
-        ReadCachedMessagesSentByOthers(
-            store: messagesStore,
-            currentUserID: currentUserID
+            connectionWrapper: { [cacheMessages, readCachedMessagesSentByCurrentUser, readCachedMessagesSentByOthers]
+                contactID, connection in
+                MessageChannelConnectionDecorator(
+                    contactID: contactID,
+                    connection: connection,
+                    cache: cacheMessages,
+                    readCachedMessagesSentByCurrentUser: readCachedMessagesSentByCurrentUser,
+                    readCachedMessagesSentByOthers: readCachedMessagesSentByOthers
+                )
+            }
         )
     }
     var readCachedMessagesSentByCurrentUser: ReadCachedMessagesSentByCurrentUser {
         ReadCachedMessagesSentByCurrentUser(
+            store: messagesStore,
+            currentUserID: currentUserID
+        )
+    }
+    private var readCachedMessagesSentByOthers: ReadCachedMessagesSentByOthers {
+        ReadCachedMessagesSentByOthers(
             store: messagesStore,
             currentUserID: currentUserID
         )
