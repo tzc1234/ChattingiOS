@@ -54,7 +54,8 @@ actor DefaultMessageChannel: MessageChannel {
         
         func send(text: String) async throws {
             let data = try MessageChannelSentTextMapper.map(text)
-            try await webSocket.send(data: data)
+            let binary = MessageChannelBinary(type: .message, payload: data)
+            try await webSocket.send(data: binary.binaryData)
         }
         
         func close() async throws {

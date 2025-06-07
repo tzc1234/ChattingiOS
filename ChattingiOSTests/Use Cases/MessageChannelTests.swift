@@ -86,7 +86,7 @@ final class MessageChannelTests: XCTestCase {
         
         try await connection.send(text: text)
         
-        XCTAssertEqual(webSocket.loggedActions, [.sendText(text.toData)])
+        XCTAssertEqual(webSocket.loggedActions, [.sendText(text.toBinaryData)])
     }
     
     func test_close_deliversErrorOnWebSocketError() async throws {
@@ -340,7 +340,11 @@ private extension String {
         let text: String
     }
     
-    var toData: Data {
+    private var toData: Data {
         try! JSONEncoder().encode(TextSent(text: self))
+    }
+    
+    var toBinaryData: Data {
+        MessageChannelBinary(type: .message, payload: toData).binaryData
     }
 }
