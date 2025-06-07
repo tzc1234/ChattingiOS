@@ -124,7 +124,6 @@ final class DependenciesContainer {
     }
     
     private(set) lazy var cacheContacts = CacheContacts(store: messagesStore, currentUserID: currentUserID)
-    
     private(set) lazy var decoratedGetContactsWithCache = GetContactsWithCacheDecorator(
         getContacts: getContacts,
         getCachedContacts: GetCachedContacts(store: messagesStore, currentUserID: currentUserID),
@@ -143,22 +142,24 @@ final class DependenciesContainer {
         }
     }
     
-    private(set) lazy var decoratedMessageChannelWithCaching = CachingForMessageChannelDecorator(
-        messageChannel: messageChannel,
-        cacheMessages: cacheMessages,
-        readCachedMessagesSentByCurrentUser: readCachedMessagesSentByCurrentUser,
-        readCachedMessagesNotSentByCurrentUser: readCachedMessagesNotSentByCurrentUser
-    )
-    
-    private var readCachedMessagesNotSentByCurrentUser: ReadCachedMessagesNotSentByCurrentUser {
-        ReadCachedMessagesNotSentByCurrentUser(
+    var decoratedMessageChannelWithCaching: CachingForMessageChannelDecorator {
+        CachingForMessageChannelDecorator(
+            messageChannel: messageChannel,
+            cacheMessages: cacheMessages,
+            readCachedMessagesSentByCurrentUser: readCachedMessagesSentByCurrentUser,
+            readCachedMessagesSentByOthers: readCachedMessagesSentByOthers
+        )
+    }
+    private var readCachedMessagesSentByOthers: ReadCachedMessagesSentByOthers {
+        ReadCachedMessagesSentByOthers(
             store: messagesStore,
             currentUserID: currentUserID
         )
     }
-    
-    private(set) lazy var readCachedMessagesSentByCurrentUser = ReadCachedMessagesSentByCurrentUser(
-        store: messagesStore,
-        currentUserID: currentUserID
-    )
+    var readCachedMessagesSentByCurrentUser: ReadCachedMessagesSentByCurrentUser {
+        ReadCachedMessagesSentByCurrentUser(
+            store: messagesStore,
+            currentUserID: currentUserID
+        )
+    }
 }

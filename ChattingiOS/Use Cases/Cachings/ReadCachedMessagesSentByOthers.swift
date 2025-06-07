@@ -1,5 +1,5 @@
 //
-//  ReadCachedMessagesNotSentByCurrentUser.swift
+//  ReadCachedMessagesSentByOthers.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 14/05/2025.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-actor ReadCachedMessagesNotSentByCurrentUser {
+actor ReadCachedMessagesSentByOthers {
     private let store: CoreDataMessagesStore
     private let currentUserID: () async -> Int?
     
