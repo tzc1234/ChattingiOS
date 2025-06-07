@@ -32,14 +32,14 @@ struct MessageChannelConnectionDecorator: MessageChannelConnection {
                 do {
                     for try await result in connection.messageStream {
                         switch result {
-                        case let .message(message):
+                        case let .message(messageWithMetadata):
                             try? await cache.cache(
-                                [message.message],
-                                previousID: message.metadata.previousID,
+                                [messageWithMetadata.message],
+                                previousID: messageWithMetadata.metadata.previousID,
                                 nextID: nil,
                                 for: contactID
                             )
-                            continuation.yield(.message(message))
+                            continuation.yield(.message(messageWithMetadata))
                         case let .readMessages(readMessages):
                             try? await readCachedMessagesSentByCurrentUser.read(readMessages)
                             continuation.yield(.readMessages(readMessages))
