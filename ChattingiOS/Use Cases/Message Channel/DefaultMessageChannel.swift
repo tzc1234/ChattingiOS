@@ -60,7 +60,7 @@ actor DefaultMessageChannel: MessageChannel {
         
         func send(readUntilMessageID: Int) async throws {
             let data = try MessageChannelReadMessageEncoder.encode(readUntilMessageID)
-            let binary = MessageChannelBinary(type: .readMessage, payload: data)
+            let binary = MessageChannelBinary(type: .readMessages, payload: data)
             try await webSocket.send(data: binary.binaryData)
         }
         
