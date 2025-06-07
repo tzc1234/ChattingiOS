@@ -80,7 +80,8 @@ final class CachingForMessageChannelDecorator: MessageChannel {
         func send(readUntilMessageID: Int) async throws {
             try await connection.send(readUntilMessageID: readUntilMessageID)
             try? await readCachedMessagesNotSentByCurrentUser.read(
-                with: .init(contactID: contactID, untilMessageID: readUntilMessageID)
+                untilMessageID: readUntilMessageID,
+                contactID: contactID
             )
         }
         
