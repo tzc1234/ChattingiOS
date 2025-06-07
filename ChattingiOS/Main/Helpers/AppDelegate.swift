@@ -10,7 +10,7 @@ import UIKit
 
 final class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
     var onReceiveDeviceToken: ((String) -> Void)?
-    var onReceiveUpdateReadMessages: ((UserID, ReadMessages) -> Void)?
+    var onReceiveReadMessages: ((UserID, ReadMessages) -> Void)?
     
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
         let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
             return completionHandler(.noData)
         }
         
-        onReceiveUpdateReadMessages?(forUserID, ReadMessages(
+        onReceiveReadMessages?(forUserID, ReadMessages(
             contactID: contactID,
             untilMessageID: untilMessageID,
             timestamp: timestamp

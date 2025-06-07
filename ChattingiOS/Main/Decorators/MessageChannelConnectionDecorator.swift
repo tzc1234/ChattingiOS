@@ -41,7 +41,7 @@ struct MessageChannelConnectionDecorator: MessageChannelConnection {
                             )
                             continuation.yield(.message(message))
                         case let .readMessages(readMessages):
-                            try? await readCachedMessagesSentByCurrentUser.read(with: readMessages)
+                            try? await readCachedMessagesSentByCurrentUser.read(readMessages)
                             continuation.yield(.readMessages(readMessages))
                         }
                     }
