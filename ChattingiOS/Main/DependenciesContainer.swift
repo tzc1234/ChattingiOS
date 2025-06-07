@@ -61,11 +61,6 @@ final class DependenciesContainer {
             NewContactEndpoint(accessToken: try await accessToken(), responderEmail: $0).request
         }
     }
-    private var readMessages: DefaultReadMessages {
-        DefaultReadMessages(client: refreshTokenHTTPClient) { [accessToken] in
-            ReadMessagesEndpoint(accessToken: try await accessToken(), params: $0).request
-        }
-    }
     private var blockContact: DefaultBlockContact {
         DefaultBlockContact(client: refreshTokenHTTPClient) { [accessToken] in
             BlockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
@@ -125,15 +120,6 @@ final class DependenciesContainer {
             getMessages: getMessages,
             getCachedMessages: GetCachedMessages(store: messagesStore, currentUserID: currentUserID),
             cacheMessages: cacheMessages
-        )
-    }
-    var decoratedReadMessagesAndCache: ReadMessageAndCacheDecorator {
-        ReadMessageAndCacheDecorator(
-            readMessages: readMessages,
-            readCachedMessages: ReadCachedMessagesNotSentByCurrentUser(
-                store: messagesStore,
-                currentUserID: currentUserID
-            )
         )
     }
     

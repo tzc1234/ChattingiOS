@@ -41,20 +41,17 @@ final class MessageListViewModel: ObservableObject {
     private let contact: Contact
     private let getMessages: GetMessages
     private let messageChannel: MessageChannel
-    private let readMessages: ReadMessages
     private let loadImageData: LoadImageData
     
     init(currentUserID: Int,
          contact: Contact,
          getMessages: GetMessages,
          messageChannel: MessageChannel,
-         readMessages: ReadMessages,
          loadImageData: LoadImageData) {
         self.currentUserID = currentUserID
         self.contact = contact
         self.getMessages = getMessages
         self.messageChannel = messageChannel
-        self.readMessages = readMessages
         self.loadImageData = loadImageData
     }
     

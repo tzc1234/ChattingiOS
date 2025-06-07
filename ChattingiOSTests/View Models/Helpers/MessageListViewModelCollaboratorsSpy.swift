@@ -85,12 +85,6 @@ extension MessageListViewModelCollaboratorsSpy: MessageChannel {
     }
 }
 
-extension MessageListViewModelCollaboratorsSpy: ReadMessages {
-    func read(with params: ReadMessagesParams) async throws(UseCaseError) {
-        
-    }
-}
-
 extension MessageListViewModelCollaboratorsSpy: LoadImageData {
     func load(for url: URL) async throws(UseCaseError) -> Data {
         Data()

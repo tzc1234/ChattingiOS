@@ -292,7 +292,6 @@ final class Flow {
             contact: contact,
             getMessages: dependencies.decoratedGetMessagesWithCaching,
             messageChannel: dependencies.decoratedMessageChannelWithCaching,
-            readMessages: dependencies.decoratedReadMessagesAndCache,
             loadImageData: dependencies.decoratedLoadImageDataWithCache
         )
         messageListViewModel = viewModel

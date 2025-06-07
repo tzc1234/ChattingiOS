@@ -689,7 +689,6 @@ final class MessageListViewModelTests: XCTestCase {
             contact: contact,
             getMessages: spy,
             messageChannel: spy,
-            readMessages: spy,
             loadImageData: spy
         )
         trackMemoryLeak(spy, file: file, line: line)
