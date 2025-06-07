@@ -106,7 +106,7 @@ final class MessageListViewModelTests: XCTestCase {
         XCTAssertNil(sut.messageIDForListPosition)
         XCTAssertEqual(spy.closeCallCount, 0)
         
-        await setupMessageList(on: sut, spy: spy, shouldCompleteMessageStream: false)
+        await setupMessageList(on: sut, spy: spy, shouldEndMessageChannelConnection: false)
         
         XCTAssertTrue(sut.isConnecting)
         XCTAssertEqual(sut.messages, messages.displays)
@@ -572,11 +572,11 @@ final class MessageListViewModelTests: XCTestCase {
     
     func test_sendMessage_ignoresWhenEmptyInputMessage() async {
         let (sut, spy) = makeSUT()
-        await finishInitialLoad(on: sut, spy: spy, shouldCompleteMessageStream: false)
+        await finishInitialLoad(on: sut, spy: spy, shouldEndMessageChannelConnection: false)
         
         sut.inputMessage = ""
         sut.sendMessage()
-        await completeMessageStream(on: sut, spy: spy)
+        await endMessageChannelConnection(on: sut, spy: spy)
         
         XCTAssertTrue(spy.textsSent.isEmpty)
     }
@@ -592,12 +592,12 @@ final class MessageListViewModelTests: XCTestCase {
                 .success(moreMessages.models),
             ]
         )
-        await finishInitialLoad(on: sut, spy: spy, shouldCompleteMessageStream: false)
+        await finishInitialLoad(on: sut, spy: spy, shouldEndMessageChannelConnection: false)
         
         XCTAssertEqual(sut.messages, initialMessages.displays)
         
         await sendMessage(on: sut, message: "any")
-        await completeMessageStream(on: sut, spy: spy)
+        await endMessageChannelConnection(on: sut, spy: spy)
         
         XCTAssertEqual(spy.events, [.get(with: contactID, messageID: .after(0), limit: -1)])
         XCTAssertEqual(sut.messages, (initialMessages + moreMessages).displays)
@@ -605,11 +605,11 @@ final class MessageListViewModelTests: XCTestCase {
     
     func test_sendMessage_sendsMessageSuccessfully() async {
         let (sut, spy) = makeSUT()
-        await finishInitialLoad(on: sut, spy: spy, shouldCompleteMessageStream: false)
+        await finishInitialLoad(on: sut, spy: spy, shouldEndMessageChannelConnection: false)
         
         let messageSent = "message sent"
         await sendMessage(on: sut, message: messageSent)
-        await completeMessageStream(on: sut, spy: spy)
+        await endMessageChannelConnection(on: sut, spy: spy)
         
         XCTAssertEqual(spy.textsSent, [messageSent])
         XCTAssertTrue(sut.inputMessage.isEmpty)
@@ -623,20 +623,20 @@ final class MessageListViewModelTests: XCTestCase {
                 .failure(error)
             ]
         )
-        await finishInitialLoad(on: sut, spy: spy, shouldCompleteMessageStream: false)
+        await finishInitialLoad(on: sut, spy: spy, shouldEndMessageChannelConnection: false)
         
         await sendMessage(on: sut, message: "any")
-        await completeMessageStream(on: sut, spy: spy)
+        await endMessageChannelConnection(on: sut, spy: spy)
         
         XCTAssertEqual(sut.generalError, error.toGeneralErrorMessage())
     }
     
     func test_sendMessage_deliversGeneralErrorOnOtherError() async {
         let (sut, spy) = makeSUT(sendMessageError: anyNSError())
-        await finishInitialLoad(on: sut, spy: spy, shouldCompleteMessageStream: false)
+        await finishInitialLoad(on: sut, spy: spy, shouldEndMessageChannelConnection: false)
         
         await sendMessage(on: sut, message: "any")
-        await completeMessageStream(on: sut, spy: spy)
+        await endMessageChannelConnection(on: sut, spy: spy)
         
         XCTAssertEqual(sut.generalError, "Cannot send the message, please try it again later.")
     }
@@ -653,13 +653,13 @@ final class MessageListViewModelTests: XCTestCase {
             contact: makeContact(id: contactID),
             getMessagesStubs: [.success(messages.models)]
         )
-        await finishInitialLoad(on: sut, spy: spy, shouldCompleteMessageStream: false)
+        await finishInitialLoad(on: sut, spy: spy, shouldEndMessageChannelConnection: false)
         
         sut.readMessages(until: 0)
         sut.readMessages(until: 1)
         sut.readMessages(until: maxMessageID)
         await sut.completeReadMessagesTask()
-        await completeMessageStream(on: sut, spy: spy)
+        await endMessageChannelConnection(on: sut, spy: spy)
         
         XCTAssertEqual(spy.events, [.read(untilMessageID: maxMessageID)])
     }
@@ -699,13 +699,13 @@ final class MessageListViewModelTests: XCTestCase {
     
     private func finishInitialLoad(on sut: MessageListViewModel,
                                    spy: MessageListViewModelCollaboratorsSpy,
-                                   shouldCompleteMessageStream: Bool = true,
+                                   shouldEndMessageChannelConnection: Bool = true,
                                    file: StaticString = #filePath,
                                    line: UInt = #line) async {
         await setupMessageList(
             on: sut,
             spy: spy,
-            shouldCompleteMessageStream: shouldCompleteMessageStream,
+            shouldEndMessageChannelConnection: shouldEndMessageChannelConnection,
             file: file,
             line: line
         )
@@ -714,7 +714,7 @@ final class MessageListViewModelTests: XCTestCase {
     
     private func setupMessageList(on sut: MessageListViewModel,
                                   spy: MessageListViewModelCollaboratorsSpy,
-                                  shouldCompleteMessageStream: Bool = true,
+                                  shouldEndMessageChannelConnection: Bool = true,
                                   file: StaticString = #filePath,
                                   line: UInt = #line) async {
         sut.setupMessageList()
@@ -725,8 +725,13 @@ final class MessageListViewModelTests: XCTestCase {
         
         XCTAssertFalse(sut.isLoading, file: file, line: line)
         
-        if shouldCompleteMessageStream { await completeMessageStream(on: sut, spy: spy) }
+        if shouldEndMessageChannelConnection { await endMessageChannelConnection(on: sut, spy: spy) }
         try? await Task.sleep(for: .seconds(0.001))
+    }
+    
+    private func endMessageChannelConnection(on sut: MessageListViewModel,
+                                             spy: MessageListViewModelCollaboratorsSpy) async {
+        await completeMessageStream(on: sut, spy: spy)
     }
     
     private func completeMessageStream(on sut: MessageListViewModel, spy: MessageListViewModelCollaboratorsSpy) async {
