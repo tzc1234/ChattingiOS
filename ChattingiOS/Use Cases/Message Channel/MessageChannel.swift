@@ -38,5 +38,5 @@ enum MessageChannelConnectionError: Error {
 
 enum MessageStreamResult {
     case message(MessageWithMetadata)
-    case readMessages(UpdatedReadMessages)
+    case readMessages(ReadMessages)
 }

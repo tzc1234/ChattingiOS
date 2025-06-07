@@ -1,5 +1,5 @@
 //
-//  UpdatedReadMessages.swift
+//  ReadMessages.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 31/05/2025.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct UpdatedReadMessages {
+struct ReadMessages {
     let contactID: Int
     let untilMessageID: Int
     let timestamp: Date
