@@ -12,7 +12,7 @@ final class MessageChannelSentTextMapperTests: XCTestCase {
     func test_map_deliversDataCorrectly() throws {
         let text = "any text"
         
-        let data = try MessageChannelSentTextMapper.map(text)
+        let data = try MessageChannelSentTextEncoder.encode(text)
         
         XCTAssertEqual(data, text.toData)
     }

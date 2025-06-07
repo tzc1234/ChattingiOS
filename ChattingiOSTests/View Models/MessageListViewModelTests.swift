@@ -653,14 +653,15 @@ final class MessageListViewModelTests: XCTestCase {
             contact: makeContact(id: contactID),
             getMessagesStubs: [.success(messages.models)]
         )
-        await finishInitialLoad(on: sut, spy: spy)
+        await finishInitialLoad(on: sut, spy: spy, shouldCompleteMessageStream: false)
         
         sut.readMessages(until: 0)
         sut.readMessages(until: 1)
         sut.readMessages(until: maxMessageID)
         await sut.completeReadMessagesTask()
+        await completeMessageStream(on: sut, spy: spy)
         
-        XCTAssertEqual(spy.events, [.read(with: contactID, until: maxMessageID)])
+        XCTAssertEqual(spy.events, [.read(untilMessageID: maxMessageID)])
     }
     
     // MARK: - Helpers

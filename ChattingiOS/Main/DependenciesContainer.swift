@@ -160,8 +160,16 @@ final class DependenciesContainer {
     private(set) lazy var decoratedMessageChannelWithCaching = CachingForMessageChannelDecorator(
         messageChannel: messageChannel,
         cacheMessages: cacheMessages,
-        readCachedMessagesSentByCurrentUser: readCachedMessagesSentByCurrentUser
+        readCachedMessagesSentByCurrentUser: readCachedMessagesSentByCurrentUser,
+        readCachedMessagesNotSentByCurrentUser: readCachedMessagesNotSentByCurrentUser
     )
+    
+    private var readCachedMessagesNotSentByCurrentUser: ReadCachedMessagesNotSentByCurrentUser {
+        ReadCachedMessagesNotSentByCurrentUser(
+            store: messagesStore,
+            currentUserID: currentUserID
+        )
+    }
     
     private(set) lazy var readCachedMessagesSentByCurrentUser = ReadCachedMessagesSentByCurrentUser(
         store: messagesStore,

@@ -11,13 +11,16 @@ final class CachingForMessageChannelDecorator: MessageChannel {
     private let messageChannel: MessageChannel
     private let cacheMessages: CacheMessages
     private let readCachedMessagesSentByCurrentUser: ReadCachedMessagesSentByCurrentUser
+    private let readCachedMessagesNotSentByCurrentUser: ReadCachedMessagesNotSentByCurrentUser
     
     init(messageChannel: MessageChannel,
          cacheMessages: CacheMessages,
-         readCachedMessagesSentByCurrentUser: ReadCachedMessagesSentByCurrentUser) {
+         readCachedMessagesSentByCurrentUser: ReadCachedMessagesSentByCurrentUser,
+         readCachedMessagesNotSentByCurrentUser: ReadCachedMessagesNotSentByCurrentUser) {
         self.messageChannel = messageChannel
         self.cacheMessages = cacheMessages
         self.readCachedMessagesSentByCurrentUser = readCachedMessagesSentByCurrentUser
+        self.readCachedMessagesNotSentByCurrentUser = readCachedMessagesNotSentByCurrentUser
     }
     
     private struct ConnectionWrapper: MessageChannelConnection {
@@ -25,15 +28,18 @@ final class CachingForMessageChannelDecorator: MessageChannel {
         private let connection: MessageChannelConnection
         private let cache: CacheMessages
         private let readCachedMessagesSentByCurrentUser: ReadCachedMessagesSentByCurrentUser
+        private let readCachedMessagesNotSentByCurrentUser: ReadCachedMessagesNotSentByCurrentUser
         
         init(contactID: Int,
              connection: MessageChannelConnection,
              cache: CacheMessages,
-             readCachedMessagesSentByCurrentUser: ReadCachedMessagesSentByCurrentUser) {
+             readCachedMessagesSentByCurrentUser: ReadCachedMessagesSentByCurrentUser,
+             readCachedMessagesNotSentByCurrentUser: ReadCachedMessagesNotSentByCurrentUser) {
             self.contactID = contactID
             self.connection = connection
             self.cache = cache
             self.readCachedMessagesSentByCurrentUser = readCachedMessagesSentByCurrentUser
+            self.readCachedMessagesNotSentByCurrentUser = readCachedMessagesNotSentByCurrentUser
         }
         
         var messageStream: AsyncThrowingStream<MessageStreamResult, Error> {
@@ -71,6 +77,13 @@ final class CachingForMessageChannelDecorator: MessageChannel {
             try await connection.send(text: text)
         }
         
+        func send(readUntilMessageID: Int) async throws {
+            try await connection.send(readUntilMessageID: readUntilMessageID)
+            try? await readCachedMessagesNotSentByCurrentUser.read(
+                with: .init(contactID: contactID, untilMessageID: readUntilMessageID)
+            )
+        }
+        
         func close() async throws {
             try await connection.close()
         }
@@ -82,7 +95,8 @@ final class CachingForMessageChannelDecorator: MessageChannel {
             contactID: contactID,
             connection: connection,
             cache: cacheMessages,
-            readCachedMessagesSentByCurrentUser: readCachedMessagesSentByCurrentUser
+            readCachedMessagesSentByCurrentUser: readCachedMessagesSentByCurrentUser,
+            readCachedMessagesNotSentByCurrentUser: readCachedMessagesNotSentByCurrentUser
         )
     }
 }

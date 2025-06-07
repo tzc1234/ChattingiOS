@@ -250,8 +250,7 @@ final class MessageListViewModel: ObservableObject {
             guard let maxMessageID = messagesToBeReadIDs.max() else { return }
             messagesToBeReadIDs.removeAll()
             
-            let param = ReadMessagesParams(contactID: contactID, untilMessageID: maxMessageID)
-            try? await readMessages.read(with: param)
+            try? await connection?.send(readUntilMessageID: maxMessageID)
         }
     }
     

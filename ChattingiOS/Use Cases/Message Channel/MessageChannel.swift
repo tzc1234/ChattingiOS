@@ -26,6 +26,7 @@ protocol MessageChannelConnection: Sendable {
     var messageStream: AsyncThrowingStream<MessageStreamResult, Error> { get }
     
     func send(text: String) async throws
+    func send(readUntilMessageID: Int) async throws
     func close() async throws
 }
 

@@ -13,7 +13,7 @@ final class MessageListViewModelCollaboratorsSpy {
     enum Event: Equatable {
         case get(with: Int, messageID: GetMessagesParams.MessageID? = nil, limit: Int? = nil)
         case establish(for: Int)
-        case read(with: Int, until: Int)
+        case read(untilMessageID: Int)
     }
     
     private(set) var events = [Event]()
@@ -87,7 +87,7 @@ extension MessageListViewModelCollaboratorsSpy: MessageChannel {
 
 extension MessageListViewModelCollaboratorsSpy: ReadMessages {
     func read(with params: ReadMessagesParams) async throws(UseCaseError) {
-        events.append(.read(with: params.contactID, until: params.untilMessageID))
+        
     }
 }
 
@@ -117,6 +117,10 @@ extension MessageListViewModelCollaboratorsSpy: MessageChannelConnection {
     func send(text: String) async throws {
         textsSent.append(text)
         if let sendMessageError { throw sendMessageError }
+    }
+    
+    func send(readUntilMessageID: Int) async throws {
+        events.append(.read(untilMessageID: readUntilMessageID))
     }
     
     func close() async throws {
