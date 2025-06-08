@@ -21,6 +21,7 @@ struct MessageListContentView: View {
     @State private var selectedBubble: SelectedBubble?
     @State private var screenSize: CGSize = .zero
     @State private var bottomInset: CGFloat = .zero
+    @State private var avatarImage: UIImage?
     
     private var sendButtonActive: Bool {
         !isLoading && !inputMessage.isEmpty && isConnecting
@@ -83,8 +84,8 @@ struct MessageListContentView: View {
             ToolbarItem(placement: .principal) {
                 HStack(spacing: 12) {
                     CTIconView {
-                        if let avatar = avatarData.flatMap(UIImage.init) {
-                            Image(uiImage: avatar)
+                        if let avatarImage {
+                            Image(uiImage: avatarImage)
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: 30, height: 30)
@@ -100,6 +101,11 @@ struct MessageListContentView: View {
                     Text(responderName)
                         .font(.headline)
                 }
+            }
+        }
+        .onChange(of: avatarData) { newValue in
+            if let newValue {
+                avatarImage = UIImage(data: newValue)
             }
         }
     }
