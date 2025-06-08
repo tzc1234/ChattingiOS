@@ -22,4 +22,11 @@ struct MessageChannelBinary {
         data.append(payload)
         return data
     }
+    
+    static func convert(from data: Data) -> MessageChannelBinary? {
+        guard !data.isEmpty, let type = MessageChannelBinaryType(rawValue: data[0]) else { return nil }
+        
+        let payload = data.dropFirst()
+        return MessageChannelBinary(type: type, payload: payload)
+    }
 }

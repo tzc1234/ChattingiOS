@@ -31,12 +31,18 @@ actor DefaultMessageChannel: MessageChannel {
                 let task = Task {
                     do {
                         for try await data in webSocket.outputStream {
-                            if let message = try? MessageChannelReceivedMessageMapper.map(data) {
-                                continuation.yield(.message(message))
-                                continue
+                            guard let binary = MessageChannelBinary.convert(from: data) else {
+                                throw MessageChannelConnectionError.unsupportedData
                             }
-                            
-                            continuation.yield(.readMessages(try MessageChannelUpdatedReadMessagesMapper.map(data)))
+
+                            switch binary.type {
+                            case .message:
+                                let message = try MessageChannelReceivedMessageMapper.map(binary.payload)
+                                continuation.yield(.message(message))
+                            case .readMessages:
+                                let readMessages = try MessageChannelUpdatedReadMessagesMapper.map(binary.payload)
+                                continuation.yield(.readMessages(readMessages))
+                            }
                         }
                         continuation.finish()
                     } catch let error as WebSocketError {

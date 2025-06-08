@@ -314,7 +314,9 @@ final class MessageChannelTests: XCTestCase {
         
         func start() async {
             if !messageDataStubs.isEmpty {
-                messageDataStubs.forEach { continuation.yield($0) }
+                messageDataStubs.forEach { data in
+                    continuation.yield(MessageChannelBinary(type: .message, payload: data).binaryData)
+                }
                 continuation.finish()
             }
             
