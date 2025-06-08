@@ -8,6 +8,7 @@
 import Foundation
 
 enum MessageChannelBinaryType: UInt8 {
+    // Reserve 0 for heartbeat
     case message = 1
     case readMessages = 2
 }
