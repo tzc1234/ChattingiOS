@@ -106,6 +106,7 @@ actor DefaultWebSocket: WebSocket {
     }
     
     private func sendHeartbeat() async throws {
+        heartbeatResponded = false
         try await send(data: Data([Self.heartbeatByte]))
     }
 }
