@@ -11,7 +11,10 @@ import NIOWebSocket
 import NIOFoundationCompat
 
 actor DefaultWebSocket: WebSocket {
+    private static var heartbeatByte: UInt8 { 0 }
+    
     private var channel: Channel { asyncChannel.channel }
+    private var heartbeatResponded = false
     
     private let asyncChannel: AsyncChannel
     let outputStream: AsyncThrowingStream<Data, Error>
@@ -25,8 +28,10 @@ actor DefaultWebSocket: WebSocket {
             guard let self else { return }
             
             while true {
-                try? await Task.sleep(for: .seconds(10))
-                if await !channel.isActive {
+                try? await sendHeartbeat()
+                try? await Task.sleep(for: .seconds(30)) // Wait heartbeat response for 30s.
+                
+                if await !heartbeatResponded, await !channel.isActive {
                     continuation.finish(throwing: WebSocketError.disconnected)
                     return
                 }
@@ -82,7 +87,12 @@ actor DefaultWebSocket: WebSocket {
     private func handleFrame(_ frame: WebSocketFrame) async throws {
         switch frame.opcode {
         case .binary:
-            continuation.yield(frame.toData())
+            let data = frame.toData()
+            if data.first == Self.heartbeatByte {
+                heartbeatResponded = true
+            } else {
+                continuation.yield(data)
+            }
         case .connectionClose:
             continuation.finish(throwing: WebSocketError.disconnected)
         case .ping, .pong:
@@ -93,6 +103,11 @@ actor DefaultWebSocket: WebSocket {
             continuation.finish(throwing: WebSocketError.unsupportedData)
             try await sendClose(code: .unacceptableData)
         }
+    }
+    
+    private func sendHeartbeat() async throws {
+        heartbeatResponded = false
+        try await send(data: Data([Self.heartbeatByte]))
     }
 }
 

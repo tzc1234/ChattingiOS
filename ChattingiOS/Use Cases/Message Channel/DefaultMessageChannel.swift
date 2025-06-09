@@ -31,12 +31,18 @@ actor DefaultMessageChannel: MessageChannel {
                 let task = Task {
                     do {
                         for try await data in webSocket.outputStream {
-                            if let message = try? MessageChannelReceivedMessageMapper.map(data) {
-                                continuation.yield(.message(message))
-                                continue
+                            guard let binary = MessageChannelBinary.convert(from: data) else {
+                                throw MessageChannelConnectionError.unsupportedData
                             }
-                            
-                            continuation.yield(.readMessages(try MessageChannelUpdatedReadMessagesMapper.map(data)))
+
+                            switch binary.type {
+                            case .message:
+                                let message = try MessageChannelReceivedMessageMapper.map(binary.payload)
+                                continuation.yield(.message(message))
+                            case .readMessages:
+                                let readMessages = try MessageChannelUpdatedReadMessagesMapper.map(binary.payload)
+                                continuation.yield(.readMessages(readMessages))
+                            }
                         }
                         continuation.finish()
                     } catch let error as WebSocketError {
@@ -53,8 +59,15 @@ actor DefaultMessageChannel: MessageChannel {
         }
         
         func send(text: String) async throws {
-            let data = try MessageChannelSentTextMapper.map(text)
-            try await webSocket.send(data: data)
+            let data = try MessageChannelSentTextEncoder.encode(text)
+            let binary = MessageChannelBinary(type: .message, payload: data)
+            try await webSocket.send(data: binary.binaryData)
+        }
+        
+        func send(readUntilMessageID: Int) async throws {
+            let data = try MessageChannelReadMessageEncoder.encode(readUntilMessageID)
+            let binary = MessageChannelBinary(type: .readMessages, payload: data)
+            try await webSocket.send(data: binary.binaryData)
         }
         
         func close() async throws {

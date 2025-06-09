@@ -8,14 +8,14 @@
 import Foundation
 
 enum MessageChannelUpdatedReadMessagesMapper {
-    static func map(_ data: Data) throws(MessageStreamError) -> UpdatedReadMessages {
+    static func map(_ data: Data) throws(MessageStreamError) -> ReadMessages {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         guard let response = try? decoder.decode(UpdatedReadMessagesResponse.self, from: data) else {
             throw .invalidData
         }
         
-        return UpdatedReadMessages(
+        return ReadMessages(
             contactID: response.contactID,
             untilMessageID: response.untilMessageID,
             timestamp: response.timestamp

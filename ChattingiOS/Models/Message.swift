@@ -15,6 +15,10 @@ struct Messages {
     
     let items: [Message]
     let metadata: Metadata?
+    
+    var hasMetadata: Bool { metadata != nil }
+    var hasPrevious: Bool { metadata?.previousID != nil }
+    var hasNext: Bool { metadata?.nextID != nil }
 }
 
 struct Message: Equatable {

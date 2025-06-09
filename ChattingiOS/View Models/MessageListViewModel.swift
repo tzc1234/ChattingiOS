@@ -41,20 +41,17 @@ final class MessageListViewModel: ObservableObject {
     private let contact: Contact
     private let getMessages: GetMessages
     private let messageChannel: MessageChannel
-    private let readMessages: ReadMessages
     private let loadImageData: LoadImageData
     
     init(currentUserID: Int,
          contact: Contact,
          getMessages: GetMessages,
          messageChannel: MessageChannel,
-         readMessages: ReadMessages,
          loadImageData: LoadImageData) {
         self.currentUserID = currentUserID
         self.contact = contact
         self.getMessages = getMessages
         self.messageChannel = messageChannel
-        self.readMessages = readMessages
         self.loadImageData = loadImageData
     }
     
@@ -86,10 +83,11 @@ final class MessageListViewModel: ObservableObject {
     
     private func loadMessages() async throws(UseCaseError) {
         let param = GetMessagesParams(contactID: contactID)
-        let messages = try await getMessages.get(with: param).items
-        canLoadPrevious = !messages.isEmpty
-        canLoadMore = !messages.isEmpty
-        self.messages = messages.toDisplayedModels(currentUserID: currentUserID)
+        let messages = try await getMessages.get(with: param)
+        let messageItems = messages.items
+        canLoadPrevious = messages.hasMetadata ? messages.hasPrevious : !messageItems.isEmpty
+        canLoadMore = messages.hasMetadata ? messages.hasNext : !messageItems.isEmpty
+        self.messages = messageItems.toDisplayedModels(currentUserID: currentUserID)
         
         messageIDForListPosition = messageIDForInitialListPosition
     }
@@ -139,15 +137,16 @@ final class MessageListViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         
-        let params: GetMessagesParams = if let currentLastID = messages.last?.id {
-            .init(
+        let params = if let currentLastID = messages.last?.id {
+            GetMessagesParams(
                 contactID: contactID,
                 messageID: .betweenExcluded(from: currentLastID, to: newLastID),
                 limit: .endLimit
             )
-        // The message last id is nil, that means the current messages array is empty, load the previous messages.
+        // The message last id is nil, that means the current messages array is empty,
+        // load all messages before new message id.
         } else {
-            .init(contactID: contactID, messageID: .before(newLastID), limit: .endLimit)
+            GetMessagesParams(contactID: contactID, messageID: .before(newLastID), limit: .endLimit)
         }
         messages += try await getMessages.get(with: params).items
             .toDisplayedModels(currentUserID: currentUserID)
@@ -167,12 +166,14 @@ final class MessageListViewModel: ObservableObject {
                 guard let firstMessageID = messages.first?.id else { return }
                 
                 let params = GetMessagesParams(contactID: contactID, messageID: .before(firstMessageID))
-                let previousMessages = try await getMessages.get(with: params).items
-                    .toDisplayedModels(currentUserID: currentUserID)
-                canLoadPrevious = !previousMessages.isEmpty
+                let previousMessages = try await getMessages.get(with: params)
+                let previousMessageItems = previousMessages.items.toDisplayedModels(currentUserID: currentUserID)
+                canLoadPrevious = previousMessages.hasMetadata ?
+                    previousMessages.hasPrevious :
+                    !previousMessageItems.isEmpty
                 
-                if !previousMessages.isEmpty {
-                    messages.insert(contentsOf: previousMessages, at: 0)
+                if !previousMessageItems.isEmpty {
+                    messages.insert(contentsOf: previousMessageItems, at: 0)
                     messageIDForListPosition = firstMessageID
                 }
             } catch {
@@ -231,9 +232,10 @@ final class MessageListViewModel: ObservableObject {
     private func _loadMoreMessages(to limit: Int? = nil) async throws(UseCaseError) {
         let messageID = messages.last.map { GetMessagesParams.MessageID.after($0.id) }
         let param = GetMessagesParams(contactID: contactID, messageID: messageID, limit: limit)
-        let moreMessages = try await getMessages.get(with: param).items
-        canLoadMore = !moreMessages.isEmpty
-        messages += moreMessages.toDisplayedModels(currentUserID: currentUserID)
+        let moreMessages = try await getMessages.get(with: param)
+        let moreMessageItems = moreMessages.items
+        canLoadMore = moreMessages.hasMetadata ? moreMessages.hasNext : !moreMessageItems.isEmpty
+        messages += moreMessageItems.toDisplayedModels(currentUserID: currentUserID)
     }
     
     func readMessages(until messageID: Int) {
@@ -245,8 +247,7 @@ final class MessageListViewModel: ObservableObject {
             guard let maxMessageID = messagesToBeReadIDs.max() else { return }
             messagesToBeReadIDs.removeAll()
             
-            let param = ReadMessagesParams(contactID: contactID, untilMessageID: maxMessageID)
-            try? await readMessages.read(with: param)
+            try? await connection?.send(readUntilMessageID: maxMessageID)
         }
     }
     
