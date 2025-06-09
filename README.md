@@ -6,7 +6,7 @@
 
 ### Retrospective
 #### Unify the binary for web socket
-Before, the read messages endpoint was using HTTP request, now using web socket to read messages. Since the read message request only contains one `untilMessageID` parameter, it is lightweight enough to utilise webSocket for fast, efficient transfer. But then the binary for web socket must be reorganised, unifying from different message, readMessage binary responses to one `MessageChannelBinary`. In order to distinguish the binary data, the first byte(UInt8) is used to determine the response type, and the remaining bytes are the payload. For message is 1, and readMessages is 2, represented by an enum. This approach will also benefit for the future when more different types of binary data are needed.
+Before, the read messages endpoint was using HTTP request, now using web socket to read messages. Since the read message request only contains one `untilMessageID` parameter, it is lightweight enough to utilise webSocket for fast, efficient transfer. But then the binary for web socket must be reorganised, unifying from different heartbeat, message, readMessage binary responses to one `MessageChannelBinary`. In order to distinguish the binary data, the first byte(UInt8) is used to determine the response type, and the remaining bytes are the payload. For heartbeat is 0, message is 1, and readMessages is 2, represented by an enum. This approach will also benefit for the future when more different binary data types are needed.
 
 #### Apply new UI design
 It's quite easy to update the UI, benefit from the MVVM, I only have to focus on the UI layout/logic. First add the new UI view components files, then wire them to the existing `View Models`, after that with some polishing and bug fixing, finally remove the old views. This time I've extracted the styles code to a separate file. It will be simple to modify or add a new colour theme to this app.
@@ -37,6 +37,14 @@ The `URLSessionWebSocketTask` provided is not sufficient for my needs. It does n
 #### Centralise UI Flow
 In this app, all UIs are built by SwiftUI, and I would like to have something like the navigation coordinator pattern in UIKit. Therefore, I implement the `Flow` component to handle all SwiftUI views' instantiation and communication between views. The single view component doesn't have to know which is its next view. Also the navigation, because of the `NavigationStack`, controlling it outside of the view is possible, easier to change the UI flow and cleaner code.
 
+#### Swift 6
+The compiler will complain if something is not thread-safe, non-sendable. In order to satisfy it, conform to `Sendable`, the followings are the approaches I mostly use:
+1. actor
+2. @MainActor final class
+3. immutable struct
+4. @Sendable closure
+5. enum
+
 ### Technologies
 1. Swift 6
 2. WebSocket
@@ -60,3 +68,4 @@ In this app, all UIs are built by SwiftUI, and I would like to have something li
 * Version 1.2 messages caching
 * Version 1.3 contacts caching
 * Version 1.4 new UI design
+* Version 1.5 unify web socket binary types
