@@ -169,6 +169,17 @@ struct MessageListContentView: View {
         .opacity(showScrollToBottomButton ? 1 : 0)
     }
     
+    @State private var diffY: CGFloat = .zero
+    @State private var menuFrame: CGRect = .zero
+    
+    private func menuOffsetY(_ bubbleFrame: CGRect) -> CGFloat {
+        let spacing: CGFloat = 8
+        let offsetY = (menuFrame.height + bubbleFrame.height) / 2 + spacing
+        let menuMaxY = bubbleFrame.maxY + menuFrame.height
+        let bottom = screenSize.height - bottomInset
+        return menuMaxY < bottom ? offsetY : -offsetY
+    }
+    
     @ViewBuilder
     private var messageBubbleMenu: some View {
         if let selectedBubble {
@@ -177,57 +188,82 @@ struct MessageListContentView: View {
             
             ZStack {
                 Color.white.opacity(0.01)
+                    .background(.ultraThinMaterial)
                 
                 MessageBubbleContent(message: message)
                     .frame(width: bubbleFrame.width, height: bubbleFrame.height)
                     .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
+                    .background {
+                        GeometryReader { proxy in
+                            DispatchQueue.main.async {
+                                let frame = proxy.frame(in: .global)
+                                diffY = frame.midY - bubbleFrame.midY
+                            }
+                            return Color.clear
+                        }
+                    }
                 
-                let menuWidth: CGFloat = 200
-                let widthDiff = screenSize.width - menuWidth
-                let horizontalSpacing: CGFloat = 20
-                let verticalSpacing: CGFloat = 12
-                let buttonHeight: CGFloat = 36
-                let buttonVerticalPadding: CGFloat = 8
-                let dividerHeight: CGFloat = 1
-                let buttonCount: CGFloat = 1
-                let menuHeight = (buttonHeight + buttonVerticalPadding*2) * buttonCount +
-                    dividerHeight * (buttonCount-1)
-                
-                let menuPositionY = if bubbleFrame.maxY + menuHeight + verticalSpacing < screenSize.height - bottomInset {
-                    bubbleFrame.maxY + menuHeight/2 + verticalSpacing
-                } else {
-                    bubbleFrame.minY - menuHeight/2 - verticalSpacing
-                }
-                
-                VStack(spacing: 0) {
-                    Button {
-                        UIPasteboard.general.string = message.text
-                        self.selectedBubble = nil
-                    } label: {
-                        Text("Copy")
-                            .font(.headline)
-                            .frame(height: buttonHeight)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, buttonVerticalPadding)
-                            .padding(.horizontal, 12)
-                            .foregroundColor(style.message.bubbleMenu.foregroundColor)
-                            .background(style.message.bubbleMenu.backgroundColor)
+                HStack {
+                    if message.isMine {
+                        Spacer()
+                    }
+                    
+                    VStack(spacing: 0) {
+                        Button {
+                            UIPasteboard.general.string = message.text
+                            self.selectedBubble = nil
+                        } label: {
+                            Label("Copy", systemImage: "doc.on.doc")
+                                .font(.headline.weight(.medium))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 20)
+                                .foregroundColor(style.message.bubbleMenu.foregroundColor)
+                                .background(style.message.bubbleMenu.backgroundColor)
+                        }
+                        
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundStyle(style.message.bubbleMenu.strokeColor)
+                        
+                        Button {
+                            self.selectedBubble = nil
+                        } label: {
+                            Label("Edit", systemImage: "square.and.pencil")
+                                .font(.headline.weight(.medium))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 20)
+                                .foregroundColor(style.message.bubbleMenu.foregroundColor)
+                                .background(style.message.bubbleMenu.backgroundColor)
+                        }
+                    }
+                    .frame(width: 200)
+                    .clipShape(.rect(cornerRadius: style.message.bubbleMenu.cornerRadius))
+                    .overlay(
+                        style.message.bubbleMenu.strokeColor,
+                        in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1))
+                    .padding(.horizontal, 20)
+                    .background {
+                        GeometryReader { proxy in
+                            DispatchQueue.main.async {
+                                let menuFrame = proxy.frame(in: .global)
+                                if self.menuFrame != menuFrame {
+                                    self.menuFrame = menuFrame
+                                }
+                            }
+                            return Color.clear
+                        }
+                    }
+                    .offset(y: -diffY)
+                    .offset(y: menuOffsetY(bubbleFrame))
+                    
+                    if !message.isMine {
+                        Spacer()
                     }
                 }
-                .frame(width: menuWidth)
-                .clipShape(.rect(cornerRadius: style.message.bubbleMenu.cornerRadius))
-                .overlay(
-                    style.message.bubbleMenu.strokeColor,
-                    in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1))
-                .position(
-                    x: message.isMine ?
-                        (screenSize.width+widthDiff)/2 - horizontalSpacing :
-                        (screenSize.width-widthDiff)/2 + horizontalSpacing,
-                    y: menuPositionY
-                )
             }
             .ignoresSafeArea()
-            .background(.ultraThinMaterial)
             .onTapGesture { self.selectedBubble = nil }
             .opacity(self.selectedBubble == nil ? 0 : 1)
         }
@@ -439,7 +475,7 @@ struct MessageBubble: View {
                 .init(id: 0, text: "Hi!", isMine: false, isRead: true, date:  "1 Jan 2025", time: "10:00"),
                 .init(id: 1, text: "How are you?", isMine: false, isRead: true, date:  "1 Jan 2025", time: "10:05"),
                 .init(id: 2, text: "Not bad.", isMine: true, isRead: true, date: "2 Jan 2025", time: "12:45"),
-                .init(id: 3, text: "Long time no see", isMine: true, isRead: true, date: "2 Jan 2025", time: "13:00"),
+                .init(id: 3, text: "Long time no see\nHow are you?", isMine: true, isRead: true, date: "2 Jan 2025", time: "13:00"),
                 .init(id: 4, text: "What are you doing now?", isMine: false, isRead: true, date:  "3 Jan 2025", time: "11:00"),
             ],
             isLoading: false,
