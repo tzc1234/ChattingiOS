@@ -140,6 +140,8 @@ final class MessageChannelTests: XCTestCase {
                     logger.append(message)
                 case .readMessages:
                     break
+                case .errorReason:
+                    break
                 }
             }
         }) { error in
@@ -173,6 +175,8 @@ final class MessageChannelTests: XCTestCase {
                 case let .message(message):
                     logger.append(message)
                 case .readMessages:
+                    break
+                case .errorReason:
                     break
                 }
             }

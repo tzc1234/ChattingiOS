@@ -117,6 +117,8 @@ extension MessageListViewModelCollaboratorsSpy: MessageChannelConnection {
         events.append(.read(untilMessageID: readUntilMessageID))
     }
     
+    func send(editMessageID: Int, text: String) async throws {}
+    
     func close() async throws {
         closeCallCount += 1
     }

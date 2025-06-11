@@ -42,6 +42,10 @@ actor DefaultMessageChannel: MessageChannel {
                             case .readMessages:
                                 let readMessages = try MessageChannelUpdatedReadMessagesMapper.map(binary.payload)
                                 continuation.yield(.readMessages(readMessages))
+                            case .error:
+                                if let reason = ErrorResponseMapper.map(errorData: binary.payload) {
+                                    continuation.yield(.errorReason(reason))
+                                }
                             }
                         }
                         continuation.finish()
@@ -67,6 +71,12 @@ actor DefaultMessageChannel: MessageChannel {
         func send(readUntilMessageID: Int) async throws {
             let data = try MessageChannelReadMessageEncoder.encode(readUntilMessageID)
             let binary = MessageChannelOutgoingBinary(type: .readMessages, payload: data)
+            try await webSocket.send(data: binary.binaryData)
+        }
+        
+        func send(editMessageID: Int, text: String) async throws {
+            let data = try MessageChannelEditMessageEncoder.encode(messageID: editMessageID, text: text)
+            let binary = MessageChannelOutgoingBinary(type: .editMessage, payload: data)
             try await webSocket.send(data: binary.binaryData)
         }
         

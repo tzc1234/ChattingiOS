@@ -38,6 +38,7 @@ struct MessageChannelOutgoingBinary {
         // Reserve 0 for heartbeat
         case message = 1
         case readMessages = 2
+        case editMessage = 3
     }
     
     let type: BinaryType

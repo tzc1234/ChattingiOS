@@ -125,6 +125,8 @@ final class MessageListViewModel: ObservableObject {
                             contactID: readMessages.contactID,
                             untilMessageID: readMessages.untilMessageID
                         )
+                    case .errorReason(_):
+                        break
                     }
                 }
             } catch {

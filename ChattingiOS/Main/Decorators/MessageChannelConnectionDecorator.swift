@@ -43,6 +43,8 @@ struct MessageChannelConnectionDecorator: MessageChannelConnection {
                         case let .readMessages(readMessages):
                             try? await readCachedMessagesSentByCurrentUser.read(readMessages)
                             continuation.yield(.readMessages(readMessages))
+                        case let .errorReason(reason):
+                            continuation.yield(.errorReason(reason))
                         }
                     }
                     continuation.finish()
@@ -68,6 +70,11 @@ struct MessageChannelConnectionDecorator: MessageChannelConnection {
             contactID: contactID
         )
     }
+    
+    func send(editMessageID: Int, text: String) async throws {
+        try await connection.send(editMessageID: editMessageID, text: text)
+    }
+    
     
     func close() async throws {
         try await connection.close()
