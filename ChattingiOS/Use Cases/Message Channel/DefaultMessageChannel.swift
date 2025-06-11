@@ -31,7 +31,7 @@ actor DefaultMessageChannel: MessageChannel {
                 let task = Task {
                     do {
                         for try await data in webSocket.outputStream {
-                            guard let binary = MessageChannelBinary.convert(from: data) else {
+                            guard let binary = MessageChannelIncomingBinary.convert(from: data) else {
                                 throw MessageChannelConnectionError.unsupportedData
                             }
 
@@ -60,13 +60,13 @@ actor DefaultMessageChannel: MessageChannel {
         
         func send(text: String) async throws {
             let data = try MessageChannelSentTextEncoder.encode(text)
-            let binary = MessageChannelBinary(type: .message, payload: data)
+            let binary = MessageChannelOutgoingBinary(type: .message, payload: data)
             try await webSocket.send(data: binary.binaryData)
         }
         
         func send(readUntilMessageID: Int) async throws {
             let data = try MessageChannelReadMessageEncoder.encode(readUntilMessageID)
-            let binary = MessageChannelBinary(type: .readMessages, payload: data)
+            let binary = MessageChannelOutgoingBinary(type: .readMessages, payload: data)
             try await webSocket.send(data: binary.binaryData)
         }
         
