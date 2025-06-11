@@ -13,6 +13,7 @@ final class MessageListViewModel: ObservableObject {
     @Published var generalError: String?
     @Published var setupError: String?
     @Published var inputMessage = ""
+    @Published var editMessage = ""
     @Published private(set) var isLoading = false
     @Published var messageIDForListPosition: Int?
     @Published private(set) var avatarData: Data?
@@ -35,6 +36,7 @@ final class MessageListViewModel: ObservableObject {
     private(set) var loadPreviousMessagesTask: Task<Void, Never>?
     private(set) var loadMoreMessagesTask: Task<Void, Never>?
     private(set) var sendMessageTask: Task<Void, Never>?
+    private(set) var editMessageTask: Task<Void, Never>?
     private(set) var readMessagesTask: Task<Void, Never>?
     
     private let currentUserID: Int
@@ -114,19 +116,23 @@ final class MessageListViewModel: ObservableObject {
                             try await loadMissingMessages(to: message.id)
                         }
                         
-                        messages.append(message.toDisplayedModel(currentUserID: currentUserID))
-                        canLoadMore = false
-                        
-                        if messageIDForListPosition == nil {
-                            messageIDForListPosition = message.id
+                        let receivedMessage = message.toDisplayedModel(currentUserID: currentUserID)
+                        let updateMessageSuccess = updateMessageSuccess(receivedMessage)
+                        if !updateMessageSuccess {
+                            messages.append(receivedMessage)
+                            canLoadMore = false
+                            
+                            if messageIDForListPosition == nil {
+                                messageIDForListPosition = message.id
+                            }
                         }
                     case let .readMessages(readMessages):
                         updateReadMessages(
                             contactID: readMessages.contactID,
                             untilMessageID: readMessages.untilMessageID
                         )
-                    case .errorReason(_):
-                        break
+                    case let .errorReason(reason):
+                        generalError = reason
                     }
                 }
             } catch {
@@ -225,6 +231,21 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
+    func editMessage(messageID: Int) {
+        guard !editMessage.isEmpty else { return }
+        
+        isLoading = true
+        editMessageTask = Task {
+            defer { isLoading = false }
+            
+            do {
+                try await connection?.send(editMessageID: messageID, text: editMessage)
+            } catch {
+                print("edit message fail.")
+            }
+        }
+    }
+    
     private func loadMoreMessageToTheEnd() async throws(UseCaseError) {
         guard canLoadMore else { return }
         
@@ -274,6 +295,13 @@ final class MessageListViewModel: ObservableObject {
                 messages[index] = message.newReadInstance()
             }
         }
+    }
+    
+    private func updateMessageSuccess(_ message: DisplayedMessage) -> Bool {
+        guard let index = messages.firstIndex(where: { $0.id == message.id }) else { return false }
+        
+        messages[index] = message
+        return true
     }
 }
 
