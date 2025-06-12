@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MessageListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
-    @FocusState private var textEditorFocused: Bool
+    @FocusState private var messageInputFocused: Bool
     @State private var scrollToMessageID: Int?
     @State private var visibleMessageIndex = Set<Int>()
     @State private var isScrollToBottom = false
@@ -64,7 +64,7 @@ struct MessageListContentView: View {
             messageBubbleMenu
         }
         .defaultAnimation(duration: 0.3, value: selectedBubble == nil)
-        .onTapGesture { textEditorFocused = false }
+        .onTapGesture { messageInputFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -235,53 +235,15 @@ struct MessageListContentView: View {
     }
     
     private var messageInputArea: some View {
-        HStack(spacing: 12) {
-            TextEditor(text: $inputMessage)
-                .focused($textEditorFocused)
-                .font(.callout)
-                .foregroundColor(style.message.input.foregroundColor)
-                .scrollContentBackground(.hidden)
-                .frame(minHeight: 35, maxHeight: 100)
-                .padding(.horizontal, 8)
-                .background {
-                    RoundedRectangle(cornerRadius: style.message.input.cornerRadius)
-                        .fill(style.message.input.backgroundColor)
-                        .overlay(
-                            style.message.input.strokeColor,
-                            in: .rect(cornerRadius: style.message.input.cornerRadius).stroke(lineWidth: 1)
-                        )
-                }
-                .fixedSize(horizontal: false, vertical: true)
-            
-            Button {
-                sendMessage()
-                textEditorFocused = false
-            } label: {
-                loadingButtonLabel
-                    .frame(width: 35, height: 35)
-                    .background(style.message.input.sendButtonBackground(isActive: sendButtonActive), in: .circle)
-                    .scaleEffect(sendButtonActive ? 1 : 0.9)
-                    .defaultAnimation(value: sendButtonActive)
-            }
-            .disabled(!sendButtonActive)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 8)
-        .background { style.message.input.sectionBackground }
+        MessageInputArea(
+            inputMessage: $inputMessage,
+            focused: _messageInputFocused,
+            sendButtonActive: sendButtonActive,
+            isLoading: isLoading,
+            sendAction: sendMessage
+        )
         .brightness(isLoading || !isConnecting ? -0.1 : 0)
         .disabled(isLoading || !isConnecting)
-    }
-    
-    @ViewBuilder
-    private var loadingButtonLabel: some View {
-        if isLoading {
-            ProgressView()
-                .tint(style.message.input.spinnerColor)
-        } else {
-            Image(systemName: "paperplane.fill")
-                .foregroundColor(style.message.input.iconColor)
-                .font(.system(size: 18))
-        }
     }
 }
 
