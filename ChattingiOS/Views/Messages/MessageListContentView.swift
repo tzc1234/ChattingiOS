@@ -8,19 +8,12 @@
 import SwiftUI
 
 struct MessageListContentView: View {
-    struct SelectedBubble {
-        let frame: CGRect
-        let message: DisplayedMessage
-    }
-    
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var textEditorFocused: Bool
     @State private var scrollToMessageID: Int?
     @State private var visibleMessageIndex = Set<Int>()
     @State private var isScrollToBottom = false
     @State private var selectedBubble: SelectedBubble?
-    @State private var screenSize: CGSize = .zero
-    @State private var bottomInset: CGFloat = .zero
     @State private var avatarImage: UIImage?
     
     private var sendButtonActive: Bool {
@@ -71,13 +64,6 @@ struct MessageListContentView: View {
             messageBubbleMenu
         }
         .defaultAnimation(duration: 0.3, value: selectedBubble == nil)
-        .onAppear {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
-                screenSize = windowScene.screen.bounds.size
-                bottomInset = keyWindow.safeAreaInsets.bottom
-            }
-        }
         .onTapGesture { textEditorFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -169,101 +155,19 @@ struct MessageListContentView: View {
         .opacity(showScrollToBottomButton ? 1 : 0)
     }
     
-    @State private var diffY: CGFloat = .zero
-    @State private var menuFrame: CGRect = .zero
-    
-    private func menuOffsetY(_ bubbleFrame: CGRect) -> CGFloat {
-        let spacing: CGFloat = 8
-        let offsetY = (menuFrame.height + bubbleFrame.height) / 2 + spacing
-        let menuMaxY = bubbleFrame.maxY + menuFrame.height
-        let bottom = screenSize.height - bottomInset
-        return menuMaxY < bottom ? offsetY : -offsetY
-    }
-    
     @ViewBuilder
     private var messageBubbleMenu: some View {
         if let selectedBubble {
-            let message = selectedBubble.message
-            let bubbleFrame = selectedBubble.frame
-            
-            ZStack {
-                Color.white.opacity(0.01)
-                    .background(.ultraThinMaterial)
-                
-                MessageBubbleContent(message: message)
-                    .frame(width: bubbleFrame.width, height: bubbleFrame.height)
-                    .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
-                    .background {
-                        GeometryReader { proxy in
-                            DispatchQueue.main.async {
-                                let frame = proxy.frame(in: .global)
-                                diffY = frame.midY - bubbleFrame.midY
-                            }
-                            return Color.clear
-                        }
-                    }
-                
-                HStack {
-                    if message.isMine {
-                        Spacer()
-                    }
-                    
-                    VStack(spacing: 0) {
-                        Button {
-                            UIPasteboard.general.string = message.text
-                            self.selectedBubble = nil
-                        } label: {
-                            Label("Copy", systemImage: "doc.on.doc")
-                                .font(.headline.weight(.medium))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 12)
-                                .padding(.horizontal, 20)
-                                .foregroundColor(style.message.bubbleMenu.foregroundColor)
-                                .background(style.message.bubbleMenu.backgroundColor)
-                        }
-                        
-                        Rectangle()
-                            .frame(height: 1)
-                            .foregroundStyle(style.message.bubbleMenu.strokeColor)
-                        
-                        Button {
-                            self.selectedBubble = nil
-                        } label: {
-                            Label("Edit", systemImage: "square.and.pencil")
-                                .font(.headline.weight(.medium))
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 12)
-                                .padding(.horizontal, 20)
-                                .foregroundColor(style.message.bubbleMenu.foregroundColor)
-                                .background(style.message.bubbleMenu.backgroundColor)
-                        }
-                    }
-                    .frame(width: 200)
-                    .clipShape(.rect(cornerRadius: style.message.bubbleMenu.cornerRadius))
-                    .overlay(
-                        style.message.bubbleMenu.strokeColor,
-                        in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1))
-                    .padding(.horizontal, 20)
-                    .background {
-                        GeometryReader { proxy in
-                            DispatchQueue.main.async {
-                                let menuFrame = proxy.frame(in: .global)
-                                if self.menuFrame != menuFrame {
-                                    self.menuFrame = menuFrame
-                                }
-                            }
-                            return Color.clear
-                        }
-                    }
-                    .offset(y: -diffY)
-                    .offset(y: menuOffsetY(bubbleFrame))
-                    
-                    if !message.isMine {
-                        Spacer()
-                    }
+            MessageBubbleMenu(
+                selectedBubble: selectedBubble,
+                copyAction: {
+                    UIPasteboard.general.string = selectedBubble.message.text
+                    self.selectedBubble = nil
+                },
+                editAction: {
+                    self.selectedBubble = nil
                 }
-            }
-            .ignoresSafeArea()
+            )
             .onTapGesture { self.selectedBubble = nil }
             .opacity(self.selectedBubble == nil ? 0 : 1)
         }
@@ -421,7 +325,7 @@ struct MessageBubble: View {
     private var isMine: Bool { message.isMine }
     
     let message: DisplayedMessage
-    @Binding var selectedBubble: MessageListContentView.SelectedBubble?
+    @Binding var selectedBubble: SelectedBubble?
     
     var body: some View {
         HStack {
