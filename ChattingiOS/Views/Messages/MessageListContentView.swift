@@ -163,9 +163,6 @@ struct MessageListContentView: View {
                 copyAction: {
                     UIPasteboard.general.string = selectedBubble.message.text
                     self.selectedBubble = nil
-                },
-                editAction: {
-                    self.selectedBubble = nil
                 }
             )
             .onTapGesture { self.selectedBubble = nil }
