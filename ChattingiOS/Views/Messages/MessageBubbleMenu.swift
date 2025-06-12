@@ -14,25 +14,21 @@ struct SelectedBubble {
 
 struct MessageBubbleMenu: View {
     @EnvironmentObject private var style: ViewStyleManager
-    @State private var screenSize: CGSize = .zero
-    @State private var bottomInset: CGFloat = .zero
+    @State private var screenBottom: CGFloat = .zero
     @State private var bubbleDifferenceY: CGFloat = .zero
     @State private var menuFrame: CGRect = .zero
     @State private var showMenuItems = false
-    
     @State private var showEditArea = false
     @State private var editText = ""
     @FocusState private var editAreaFocused: Bool
     
     private var message: DisplayedMessage { selectedBubble.message }
     private var bubbleFrame: CGRect { selectedBubble.frame }
-    
-    private func menuOffsetY(_ bubbleFrame: CGRect) -> CGFloat {
+    private var menuOffsetY: CGFloat {
         let spacing: CGFloat = 8
         let offsetY = (menuFrame.height + bubbleFrame.height) / 2 + spacing
         let menuMaxY = bubbleFrame.maxY + menuFrame.height
-        let bottom = screenSize.height - bottomInset
-        return menuMaxY < bottom ? offsetY : -offsetY
+        return menuMaxY < screenBottom ? offsetY : -offsetY
     }
     
     let selectedBubble: SelectedBubble
@@ -47,15 +43,6 @@ struct MessageBubbleMenu: View {
                 MessageBubbleContent(message: message)
                     .frame(width: bubbleFrame.width, height: bubbleFrame.height)
                     .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
-                    .background {
-                        GeometryReader { proxy -> Color in
-                            DispatchQueue.main.async {
-                                let frame = proxy.frame(in: .global)
-                                bubbleDifferenceY = frame.midY - bubbleFrame.midY
-                            }
-                            return Color.clear
-                        }
-                    }
                 
                 HStack {
                     if message.isMine { Spacer() }
@@ -70,6 +57,8 @@ struct MessageBubbleMenu: View {
                         MessageBubbleMenuButton(title: "Edit", icon: "square.and.pencil") {
                             showMenuItems = false
                             showEditArea = true
+                            editAreaFocused = true
+                            editText = message.text
                         }
                     }
                     .frame(width: 200)
@@ -90,24 +79,32 @@ struct MessageBubbleMenu: View {
                         }
                     }
                     .offset(y: -bubbleDifferenceY)
-                    .offset(y: menuOffsetY(bubbleFrame))
+                    .offset(y: menuOffsetY)
                     
                     if !message.isMine { Spacer() }
                 }
                 .opacity(showMenuItems ? 1 : 0)
             }
-            .defaultAnimation(value: showMenuItems)
+            .background {
+                GeometryReader { proxy -> Color in
+                    DispatchQueue.main.async {
+                        let frame = proxy.frame(in: .global)
+                        bubbleDifferenceY = frame.midY - bubbleFrame.midY
+                    }
+                    return Color.clear
+                }
+            }
             .ignoresSafeArea()
             
             editArea
                 .opacity(showEditArea ? 1 : 0)
         }
+        .defaultAnimation(value: showMenuItems)
         .defaultAnimation(value: showEditArea)
         .onAppear {
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
-                screenSize = windowScene.screen.bounds.size
-                bottomInset = keyWindow.safeAreaInsets.bottom
+                screenBottom = windowScene.screen.bounds.size.height - keyWindow.safeAreaInsets.bottom
             }
             
             showMenuItems = true
@@ -118,13 +115,31 @@ struct MessageBubbleMenu: View {
         VStack {
             Spacer()
             
-            MessageInputArea(
-                inputMessage: $editText,
-                focused: _editAreaFocused,
-                sendButtonActive: !editText.isEmpty,
-                isLoading: false,
-                sendAction: {}
-            )
+            VStack(spacing: 12) {
+                HStack {
+                    Text("Edit Message")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(style.message.bubbleMenu.foregroundColor)
+                    
+                    Spacer()
+                    
+                    CTCloseButton(size: 22, fontSize: 12) {
+                        showEditArea = false
+                        editAreaFocused = false
+                    }
+                }
+                .padding(.top, 8)
+                .padding(.horizontal, 22)
+
+                MessageInputArea(
+                    inputMessage: $editText,
+                    focused: _editAreaFocused,
+                    sendButtonActive: !editText.isEmpty,
+                    isLoading: false,
+                    sendAction: {}
+                )
+            }
+            .background { style.message.input.sectionBackground }
         }
     }
 }

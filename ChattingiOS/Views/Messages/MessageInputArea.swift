@@ -49,7 +49,6 @@ struct MessageInputArea: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 8)
-        .background { style.message.input.sectionBackground }
     }
     
     @ViewBuilder

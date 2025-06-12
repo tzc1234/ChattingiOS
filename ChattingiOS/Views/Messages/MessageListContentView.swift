@@ -239,6 +239,7 @@ struct MessageListContentView: View {
             isLoading: isLoading,
             sendAction: sendMessage
         )
+        .background { style.message.input.sectionBackground }
         .brightness(isLoading || !isConnecting ? -0.1 : 0)
         .disabled(isLoading || !isConnecting)
     }
