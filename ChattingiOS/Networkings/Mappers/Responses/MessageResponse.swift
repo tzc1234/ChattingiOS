@@ -36,6 +36,7 @@ struct MessageResponse: Response {
     let senderID: Int
     let isRead: Bool
     let createdAt: Date
+    let editedAt: Date?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -43,10 +44,11 @@ struct MessageResponse: Response {
         case senderID = "sender_id"
         case isRead = "is_read"
         case createdAt = "created_at"
+        case editedAt = "edited_at"
     }
     
     var toModel: Message {
-        Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt)
+        Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt, editedAt: editedAt)
     }
 }
 

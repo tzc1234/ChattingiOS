@@ -21,11 +21,11 @@ final class MessageChannelReceivedMessageMapperTests: XCTestCase {
         let now = Date.now.removeTimeIntervalDecimal()
         let expectedMessages = [
             makeWebSocketMessage(
-                Message(id: 1, text: "any text", senderID: 1, isRead: false, createdAt: now),
+                Message(id: 1, text: "any text", senderID: 1, isRead: false, createdAt: now, editedAt: .distantFuture),
                 previousID: nil
             ),
             makeWebSocketMessage(
-                Message(id: 99, text: "another text", senderID: 99, isRead: true, createdAt: .distantFuture),
+                Message(id: 99, text: "another text", senderID: 99, isRead: true, createdAt: .distantFuture, editedAt: nil),
                 previousID: 98
             )
         ]

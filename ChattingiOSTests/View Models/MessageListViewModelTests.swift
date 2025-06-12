@@ -782,8 +782,9 @@ final class MessageListViewModelTests: XCTestCase {
                              senderID: Int = 99,
                              currentUserID: Int = 99,
                              isRead: Bool = false,
-                             createdAt: Date = .now) -> MessagePair {
-        let model = Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt)
+                             createdAt: Date = .now,
+                             editedAt: Date? = nil) -> MessagePair {
+        let model = Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt, editedAt: editedAt)
         let display = DisplayedMessage(
             id: id,
             text: text,
