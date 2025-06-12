@@ -15,6 +15,8 @@ struct MessageListContentView: View {
     @State private var isScrollToBottom = false
     @State private var selectedBubble: SelectedBubble?
     @State private var avatarImage: UIImage?
+    @State private var screenSize: CGSize = .zero
+    @State private var bottomInset: CGFloat = .zero
     
     private var sendButtonActive: Bool {
         !isLoading && !inputMessage.isEmpty && isConnecting
@@ -63,7 +65,7 @@ struct MessageListContentView: View {
             
             messageBubbleMenu
         }
-        .defaultAnimation(duration: 0.3, value: selectedBubble == nil)
+        .defaultAnimation(duration: 0.5, value: selectedBubble == nil)
         .onTapGesture { messageInputFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -92,6 +94,13 @@ struct MessageListContentView: View {
         .onChange(of: avatarData) { newValue in
             if let newValue {
                 avatarImage = UIImage(data: newValue)
+            }
+        }
+        .onAppear {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
+                screenSize = windowScene.screen.bounds.size
+                bottomInset = keyWindow.safeAreaInsets.bottom
             }
         }
     }
@@ -159,6 +168,8 @@ struct MessageListContentView: View {
     private var messageBubbleMenu: some View {
         if let selectedBubble {
             MessageBubbleMenu(
+                screenSize: screenSize,
+                bottomInset: bottomInset,
                 selectedBubble: selectedBubble,
                 copyAction: {
                     UIPasteboard.general.string = selectedBubble.message.text
