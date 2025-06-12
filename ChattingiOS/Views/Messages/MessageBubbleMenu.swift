@@ -38,11 +38,17 @@ struct MessageBubbleMenu: View {
         ZStack {
             ZStack {
                 Color.white.opacity(0.001)
-                    .background(.ultraThinMaterial)
                 
-                MessageBubbleContent(message: message)
-                    .frame(width: bubbleFrame.width, height: bubbleFrame.height)
-                    .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
+                HStack {
+                    if message.isMine { Spacer() }
+                    
+                    MessageBubbleContent(message: message)
+                        .frame(width: bubbleFrame.width, height: bubbleFrame.height)
+                    
+                    if !message.isMine { Spacer() }
+                }
+                .padding(.horizontal, 20)
+                .offset(y: -bubbleDifferenceY)
                 
                 HStack {
                     if message.isMine { Spacer() }
@@ -101,6 +107,7 @@ struct MessageBubbleMenu: View {
         }
         .defaultAnimation(value: showMenuItems)
         .defaultAnimation(value: showEditArea)
+        .background(.ultraThinMaterial)
         .onAppear {
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
