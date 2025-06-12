@@ -313,7 +313,8 @@ private extension Message {
             isMine: senderID == currentUserID,
             isRead: isRead,
             date: createdAt.formatted(date: .abbreviated, time: .omitted),
-            time: createdAt.formatted(date: .omitted, time: .shortened)
+            time: editedAt.map { "Edited \($0.formatted(date: .omitted, time: .shortened))" } ??
+                createdAt.formatted(date: .omitted, time: .shortened)
         )
     }
 }
