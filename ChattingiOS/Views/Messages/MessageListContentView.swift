@@ -66,7 +66,7 @@ struct MessageListContentView: View {
             
             messageBubbleMenu
         }
-        .defaultAnimation(duration: 0.5, value: showBubbleMenu)
+        .defaultAnimation(duration: 0.3, value: showBubbleMenu)
         .onTapGesture { messageInputFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -102,7 +102,9 @@ struct MessageListContentView: View {
         }
         .onChange(of: showBubbleMenu) { newValue in
             if !newValue {
-                selectedBubble = nil
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    selectedBubble = nil
+                }
             }
         }
         .onAppear {
