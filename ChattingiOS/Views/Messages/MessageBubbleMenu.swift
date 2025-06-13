@@ -16,27 +16,20 @@ struct MessageBubbleMenu: View {
     @EnvironmentObject private var style: ViewStyleManager
     
     @FocusState private var editAreaFocused: Bool
-    @State private var showMenuItems = false
+    @State private var showMenuItems = true
     @State private var showEditArea = false
-    @State private var scrollViewContentID = UUID()
     
     @State private var keyboardHeight: CGFloat = .zero
-    @State private var bubbleDifferenceY: CGFloat = .zero
     @State private var menuFrame: CGRect = .zero
     @State private var editText = ""
     @State private var editAreaFrame: CGRect = .zero
-    @State private var currentBubbleFrame: CGRect = .zero
     @State private var scrollOffset: CGPoint = .zero
+    
+    @State private var bubbleDifferenceMinY: CGFloat = .zero
     
     private var message: DisplayedMessage { selectedBubble.message }
     private var bubbleFrame: CGRect { selectedBubble.frame }
-    private var verticalSpacing: CGFloat { 8 }
-    private var menuOffsetY: CGFloat {
-        let offsetY = (menuFrame.height + bubbleFrame.height) / 2 + verticalSpacing
-        let menuMaxY = bubbleFrame.maxY + menuFrame.height
-        let bottom = screenSize.height - bottomInset
-        return menuMaxY < bottom ? offsetY : -offsetY
-    }
+    private let verticalSpacing: CGFloat = 8
     
     let screenSize: CGSize
     let bottomInset: CGFloat
@@ -44,52 +37,39 @@ struct MessageBubbleMenu: View {
     @Binding var showBubbleMenu: Bool
     let copyAction: () -> Void
     
+    private var contentInsets: UIEdgeInsets {
+        if bubbleDifferenceMinY > 0 {
+            UIEdgeInsets(top: bubbleDifferenceMinY, left: 0, bottom: 0, right: 0)
+        } else {
+            UIEdgeInsets(top: 0, left: 0, bottom: abs(bubbleDifferenceMinY), right: 0)
+        }
+    }
+    
     var body: some View {
-        VStack(spacing: 0) {
-            ScrollViewRepresentable(
-                scrollOffset: $scrollOffset,
-                contentInsets: UIEdgeInsets(top: 0, left: 0, bottom: keyboardHeight, right: 0)
-            ) {
-                ZStack {
-                    Color.white.opacity(0.01)
-                        .onTapGesture { dismiss() }
-                    
-                    ZStack {
-                        bubbleContent
-                        menuItems
-                    }
-                    .offset(y: -bubbleDifferenceY)
-                    .frame(width: screenSize.width, height: screenSize.height)
+        ZStack {
+            GeometryReader { proxy in
+                DispatchQueue.main.async {
+                    let frame = proxy.frame(in: .global)
+                    bubbleDifferenceMinY = bubbleFrame.minY - frame.minY
                 }
-            }
-            .onChange(of: editAreaFrame) { _ in
-                guard editAreaFrame.maxY > 0 else { return }
-                
-                scrollOffset.y += currentBubbleFrame.maxY - editAreaFrame.minY + verticalSpacing
+                return Color.white.opacity(0.01)
+                    .frame(height: 1)
             }
             
-            if showEditArea {
-                editArea
-            }
-        }
-        .background(.ultraThinMaterial)
-        .background {
-            GeometryReader { proxy -> Color in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    let frame = proxy.frame(in: .global)
-                    bubbleDifferenceY = frame.midY - bubbleFrame.midY
+            ScrollViewRepresentable(scrollOffset: $scrollOffset, contentInsets: contentInsets) {
+                VStack {
+                    bubbleContent
+                    menuItems
                 }
-                return Color.clear
+                .frame(width: screenSize.width)
             }
+            
         }
+        .onTapGesture { dismiss() }
+        .background(.ultraThinMaterial)
         .defaultAnimation(duration: 0.3, value: showMenuItems)
         .defaultAnimation(duration: 0.5, value: showEditArea)
-        .ignoresSafeArea()
         .keyboardHeight($keyboardHeight)
-        .onAppear {
-            showMenuItems = true
-            scrollViewContentID = UUID()
-        }
     }
     
     private var bubbleContent: some View {
@@ -98,21 +78,15 @@ struct MessageBubbleMenu: View {
             
             MessageBubbleContent(message: message)
                 .frame(width: bubbleFrame.width, height: bubbleFrame.height)
-                .background {
-                    GeometryReader { proxy -> Color in
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            let frame = proxy.frame(in: .global)
-                            if currentBubbleFrame != frame {
-                                currentBubbleFrame = frame
-                            }
-                        }
-                        return Color.clear
-                    }
-                }
             
             if !message.isMine { Spacer() }
         }
         .padding(.horizontal, 20)
+    }
+    
+    private var menuOffsetY: CGFloat {
+        let offsetY = (menuFrame.height + bubbleFrame.height) / 2 + verticalSpacing
+        return bubbleFrame.midY < screenSize.height / 2 ? offsetY : -offsetY
     }
     
     private var menuItems: some View {
@@ -139,22 +113,10 @@ struct MessageBubbleMenu: View {
                 style.message.bubbleMenu.strokeColor,
                 in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1))
             .padding(.horizontal, 20)
-            .background {
-                GeometryReader { proxy -> Color in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        let menuFrame = proxy.frame(in: .global)
-                        if self.menuFrame != menuFrame {
-                            self.menuFrame = menuFrame
-                        }
-                    }
-                    return Color.clear
-                }
-            }
             
             if !message.isMine { Spacer() }
         }
         .opacity(showMenuItems ? 1 : 0)
-        .offset(y: menuOffsetY)
     }
     
     private var editArea: some View {
@@ -183,7 +145,7 @@ struct MessageBubbleMenu: View {
         .background(.ultraThinMaterial)
         .background {
             GeometryReader { proxy -> Color in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                DispatchQueue.main.async {
                     let frame = proxy.frame(in: .global)
                     if editAreaFrame != frame {
                         editAreaFrame = frame
