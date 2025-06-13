@@ -10,6 +10,7 @@ import SwiftUI
 struct ScrollViewRepresentable<Content: View>: UIViewRepresentable {
     @Binding var scrollOffset: CGPoint
     let contentInsets: UIEdgeInsets
+    let onBackgroundTap: () -> Void
     let content: () -> Content
     
     func makeUIView(context: Context) -> UIScrollView {
@@ -19,6 +20,9 @@ struct ScrollViewRepresentable<Content: View>: UIViewRepresentable {
         let hostingController = UIHostingController(rootView: content())
         hostingController.view.backgroundColor = .clear
         scrollView.addSubview(hostingController.view)
+        
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap))
+        scrollView.addGestureRecognizer(tapGesture)
         
         context.coordinator.hostingController = hostingController
         return scrollView
@@ -59,6 +63,10 @@ struct ScrollViewRepresentable<Content: View>: UIViewRepresentable {
         
         init(_ parent: ScrollViewRepresentable) {
             self.parent = parent
+        }
+        
+        @objc func handleTap(_ gesture: UITapGestureRecognizer) {
+            parent.onBackgroundTap()
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {

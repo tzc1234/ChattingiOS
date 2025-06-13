@@ -53,19 +53,26 @@ struct MessageBubbleMenu: View {
                     bubbleDifferenceMinY = bubbleFrame.minY - frame.minY
                 }
                 return Color.white.opacity(0.01)
-                    .frame(height: 1)
             }
             
-            ScrollViewRepresentable(scrollOffset: $scrollOffset, contentInsets: contentInsets) {
-                VStack {
-                    bubbleContent
-                    menuItems
+            VStack(spacing: 0) {
+                ScrollViewRepresentable(
+                    scrollOffset: $scrollOffset,
+                    contentInsets: contentInsets,
+                    onBackgroundTap: { dismiss() }
+                ) {
+                    VStack {
+                        bubbleContent
+                        menuItems
+                    }
+                    .frame(width: screenSize.width)
                 }
-                .frame(width: screenSize.width)
+                
+                if showEditArea {
+                    editArea
+                }
             }
-            
         }
-        .onTapGesture { dismiss() }
         .background(.ultraThinMaterial)
         .defaultAnimation(duration: 0.3, value: showMenuItems)
         .defaultAnimation(duration: 0.5, value: showEditArea)
@@ -141,20 +148,18 @@ struct MessageBubbleMenu: View {
                 sendAction: {}
             )
         }
-        .padding(.bottom, bottomInset)
         .background(.ultraThinMaterial)
-        .background {
-            GeometryReader { proxy -> Color in
-                DispatchQueue.main.async {
-                    let frame = proxy.frame(in: .global)
-                    if editAreaFrame != frame {
-                        editAreaFrame = frame
-                    }
-                }
-                return Color.clear
-            }
-        }
-        .offset(y: -max((keyboardHeight-bottomInset), 0))
+//        .background {
+//            GeometryReader { proxy -> Color in
+//                DispatchQueue.main.async {
+//                    let frame = proxy.frame(in: .global)
+//                    if editAreaFrame != frame {
+//                        editAreaFrame = frame
+//                    }
+//                }
+//                return Color.clear
+//            }
+//        }
     }
     
     private func dismiss() {
