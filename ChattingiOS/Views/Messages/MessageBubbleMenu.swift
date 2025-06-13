@@ -7,19 +7,21 @@
 
 import SwiftUI
 
-struct SelectedBubble {
+struct SelectedBubble: Equatable {
     let frame: CGRect
     let message: DisplayedMessage
 }
 
 struct MessageBubbleMenu: View {
     @EnvironmentObject private var style: ViewStyleManager
+    
     @FocusState private var editAreaFocused: Bool
+    @State private var showMenuItems = false
+    @State private var showEditArea = false
+    
     @State private var keyboardHeight: CGFloat = 0
     @State private var bubbleDifferenceY: CGFloat = .zero
     @State private var menuFrame: CGRect = .zero
-    @State private var showMenuItems = false
-    @State private var showEditArea = false
     @State private var editText = ""
     @State private var editAreaFrame: CGRect = .zero
     @State private var oldEditAreaFrame: CGRect = .zero
@@ -40,119 +42,66 @@ struct MessageBubbleMenu: View {
     let screenSize: CGSize
     let bottomInset: CGFloat
     let selectedBubble: SelectedBubble
+    @Binding var showBubbleMenu: Bool
     let copyAction: () -> Void
     
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                ScrollViewRepresentable(
-                    scrollOffset: $scrollOffset,
-                    contentInsets: UIEdgeInsets(top: 0, left: 0, bottom: keyboardHeight, right: 0)
-                ) {
-                    HStack {
-                        if message.isMine { Spacer() }
-                        
-                        MessageBubbleContent(message: message)
-                            .frame(width: bubbleFrame.width, height: bubbleFrame.height)
-                            .background {
-                                GeometryReader { proxy -> Color in
-                                    DispatchQueue.main.async {
-                                        let frame = proxy.frame(in: .global)
-                                        if currentBubbleFrame != frame {
-                                            currentBubbleFrame = frame
-                                        }
-                                    }
-                                    return Color.clear
-                                }
-                            }
-                        
-                        if !message.isMine { Spacer() }
+        VStack(spacing: 0) {
+            ScrollViewRepresentable(
+                scrollOffset: $scrollOffset,
+                contentInsets: UIEdgeInsets(top: 0, left: 0, bottom: keyboardHeight, right: 0)
+            ) {
+                ZStack {
+                    Color.white.opacity(0.01)
+                        .onTapGesture { showBubbleMenu = false }
+                    
+                    ZStack {
+                        bubbleContent
+                        menuItems
                     }
-                    .padding(.horizontal, 20)
                     .offset(y: -bubbleDifferenceY)
                     .frame(width: screenSize.width, height: screenSize.height)
                 }
-                .onChange(of: editAreaFrame) { _ in
-                    if editAreaFrame.height >= oldEditAreaFrame.height {
+            }
+            .onChange(of: editAreaFrame) { _ in
+                if editAreaFrame.height >= oldEditAreaFrame.height {
+                    let spacing: CGFloat = 8
+                    let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + spacing
+                    if diffY > .zero {
+                        scrollOffset.y += diffY
+                        scrollOffsetDiffYs.append(diffY)
+                    }
+                } else {
+                    if let oldDiffY = scrollOffsetDiffYs.popLast() {
+                        scrollOffset.y -= oldDiffY
+                    }
+                }
+            }
+            .onChange(of: keyboardHeight) { _ in
+                if keyboardHeight > 0 {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         let spacing: CGFloat = 8
                         let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + spacing
                         if diffY > .zero {
                             scrollOffset.y += diffY
                             scrollOffsetDiffYs.append(diffY)
                         }
-                    } else {
-                        if let oldDiffY = scrollOffsetDiffYs.popLast() {
-                            scrollOffset.y -= oldDiffY
-                        }
                     }
                 }
-                .onChange(of: keyboardHeight) { _ in
-                    if keyboardHeight > 0 {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            let spacing: CGFloat = 8
-                            let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + spacing
-                            if diffY > .zero {
-                                scrollOffset.y += diffY
-                                scrollOffsetDiffYs.append(diffY)
-                            }
-                        }
-                    }
-                }
-                .onChange(of: showEditArea) { newValue in
-                    if !newValue {
-                        scrollOffset.y = 0
-                        scrollOffsetDiffYs.removeAll()
-                    }
-                }
-                
-                if showEditArea {
-                    editArea
-                        .offset(y: -max((keyboardHeight-bottomInset), 0))
+            }
+            .onChange(of: showEditArea) { newValue in
+                if !newValue {
+                    scrollOffset.y = 0
+                    scrollOffsetDiffYs.removeAll()
                 }
             }
             
-            HStack {
-                if message.isMine { Spacer() }
-                
-                VStack(spacing: 0) {
-                    MessageBubbleMenuButton(title: "Copy", icon: "doc.on.doc", action: copyAction)
-                    
-                    Rectangle()
-                        .frame(height: 1)
-                        .foregroundStyle(style.message.bubbleMenu.strokeColor)
-                    
-                    MessageBubbleMenuButton(title: "Edit", icon: "square.and.pencil") {
-                        showMenuItems = false
-                        editAreaFocused = true
-                        editText = message.text
-                        showEditArea = true
-                    }
-                }
-                .frame(width: 200)
-                .clipShape(.rect(cornerRadius: style.message.bubbleMenu.cornerRadius))
-                .overlay(
-                    style.message.bubbleMenu.strokeColor,
-                    in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1))
-                .padding(.horizontal, 20)
-                .background {
-                    GeometryReader { proxy -> Color in
-                        DispatchQueue.main.async {
-                            let menuFrame = proxy.frame(in: .global)
-                            if self.menuFrame != menuFrame {
-                                self.menuFrame = menuFrame
-                            }
-                        }
-                        return Color.clear
-                    }
-                }
-                .offset(y: -bubbleDifferenceY)
-                .offset(y: menuOffsetY)
-                
-                if !message.isMine { Spacer() }
+            if showEditArea {
+                editArea
+                    .offset(y: -max((keyboardHeight-bottomInset), 0))
             }
-            .opacity(showMenuItems ? 1 : 0)
-            
         }
+        .background(.ultraThinMaterial)
         .background {
             GeometryReader { proxy -> Color in
                 DispatchQueue.main.async {
@@ -165,11 +114,75 @@ struct MessageBubbleMenu: View {
         .defaultAnimation(duration: 0.3, value: showMenuItems)
         .defaultAnimation(duration: 0.5, value: showEditArea)
         .ignoresSafeArea()
-        .background(.ultraThinMaterial)
         .keyboardHeight($keyboardHeight)
         .onAppear {
             showMenuItems = true
         }
+    }
+    
+    private var bubbleContent: some View {
+        HStack {
+            if message.isMine { Spacer() }
+            
+            MessageBubbleContent(message: message)
+                .frame(width: bubbleFrame.width, height: bubbleFrame.height)
+                .background {
+                    GeometryReader { proxy -> Color in
+                        DispatchQueue.main.async {
+                            let frame = proxy.frame(in: .global)
+                            if currentBubbleFrame != frame {
+                                currentBubbleFrame = frame
+                            }
+                        }
+                        return Color.clear
+                    }
+                }
+            
+            if !message.isMine { Spacer() }
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var menuItems: some View {
+        HStack {
+            if message.isMine { Spacer() }
+            
+            VStack(spacing: 0) {
+                MessageBubbleMenuButton(title: "Copy", icon: "doc.on.doc", action: copyAction)
+                
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundStyle(style.message.bubbleMenu.strokeColor)
+                
+                MessageBubbleMenuButton(title: "Edit", icon: "square.and.pencil") {
+                    showMenuItems = false
+                    editAreaFocused = true
+                    editText = message.text
+                    showEditArea = true
+                }
+            }
+            .frame(width: 200)
+            .clipShape(.rect(cornerRadius: style.message.bubbleMenu.cornerRadius))
+            .overlay(
+                style.message.bubbleMenu.strokeColor,
+                in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1))
+            .padding(.horizontal, 20)
+            .background {
+                GeometryReader { proxy -> Color in
+                    DispatchQueue.main.async {
+                        let menuFrame = proxy.frame(in: .global)
+                        if self.menuFrame != menuFrame {
+                            self.menuFrame = menuFrame
+                        }
+                    }
+                    return Color.clear
+                }
+            }
+            
+            if !message.isMine { Spacer() }
+        }
+        .opacity(showMenuItems ? 1 : 0)
+        .offset(y: menuOffsetY)
     }
     
     private var editArea: some View {
