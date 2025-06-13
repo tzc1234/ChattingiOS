@@ -15,6 +15,7 @@ struct SelectedBubble {
 struct MessageBubbleMenu: View {
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var editAreaFocused: Bool
+    @State private var keyboardHeight: CGFloat = 0
     @State private var bubbleDifferenceY: CGFloat = .zero
     @State private var menuFrame: CGRect = .zero
     @State private var showMenuItems = false
@@ -24,7 +25,7 @@ struct MessageBubbleMenu: View {
     @State private var oldEditAreaFrame: CGRect = .zero
     @State private var currentBubbleFrame: CGRect = .zero
     @State private var scrollOffsetDiffYs = [CGFloat]()
-    @State private var scrollOffset = CGPoint.zero
+    @State private var scrollOffset: CGPoint = .zero
     
     private var message: DisplayedMessage { selectedBubble.message }
     private var bubbleFrame: CGRect { selectedBubble.frame }
@@ -44,7 +45,10 @@ struct MessageBubbleMenu: View {
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                ScrollViewRepresentable(scrollOffset: $scrollOffset) {
+                ScrollViewRepresentable(
+                    scrollOffset: $scrollOffset,
+                    contentInsets: UIEdgeInsets(top: 0, left: 0, bottom: keyboardHeight, right: 0)
+                ) {
                     HStack {
                         if message.isMine { Spacer() }
                         
@@ -68,8 +72,8 @@ struct MessageBubbleMenu: View {
                     .offset(y: -bubbleDifferenceY)
                     .frame(width: screenSize.width, height: screenSize.height)
                 }
-                .onChange(of: editAreaFrame) { newValue in
-                    if newValue.height > oldEditAreaFrame.height {
+                .onChange(of: editAreaFrame) { _ in
+                    if editAreaFrame.height >= oldEditAreaFrame.height {
                         let spacing: CGFloat = 8
                         let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + spacing
                         if diffY > .zero {
@@ -82,15 +86,28 @@ struct MessageBubbleMenu: View {
                         }
                     }
                 }
+                .onChange(of: keyboardHeight) { _ in
+                    if keyboardHeight > 0 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            let spacing: CGFloat = 8
+                            let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + spacing
+                            if diffY > .zero {
+                                scrollOffset.y += diffY
+                                scrollOffsetDiffYs.append(diffY)
+                            }
+                        }
+                    }
+                }
                 .onChange(of: showEditArea) { newValue in
                     if !newValue {
-                        scrollOffset.y = .zero
+                        scrollOffset.y = 0
                         scrollOffsetDiffYs.removeAll()
                     }
                 }
                 
                 if showEditArea {
                     editArea
+                        .offset(y: -max((keyboardHeight-bottomInset), 0))
                 }
             }
             
@@ -149,13 +166,14 @@ struct MessageBubbleMenu: View {
         .defaultAnimation(duration: 0.5, value: showEditArea)
         .ignoresSafeArea()
         .background(.ultraThinMaterial)
+        .keyboardHeight($keyboardHeight)
         .onAppear {
             showMenuItems = true
         }
     }
     
     private var editArea: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             HStack {
                 Text("Edit Message")
                     .font(.subheadline.weight(.semibold))
@@ -163,7 +181,7 @@ struct MessageBubbleMenu: View {
                 
                 Spacer()
                 
-                CTCloseButton(size: 22, fontSize: 12) {
+                CTCloseButton(size: 24, fontSize: 12) {
                     showEditArea = false
                     editAreaFocused = false
                 }
@@ -180,7 +198,7 @@ struct MessageBubbleMenu: View {
             )
         }
         .padding(.bottom, bottomInset)
-        .background { style.message.input.sectionBackground }
+        .background(.ultraThinMaterial)
         .background {
             GeometryReader { proxy -> Color in
                 DispatchQueue.main.async {

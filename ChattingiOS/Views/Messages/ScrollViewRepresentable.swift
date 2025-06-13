@@ -9,18 +9,14 @@ import SwiftUI
 
 struct ScrollViewRepresentable<Content: View>: UIViewRepresentable {
     @Binding var scrollOffset: CGPoint
-    let content: Content
-    
-    init(scrollOffset: Binding<CGPoint>, @ViewBuilder content: () -> Content) {
-        self._scrollOffset = scrollOffset
-        self.content = content()
-    }
+    let contentInsets: UIEdgeInsets
+    let content: () -> Content
     
     func makeUIView(context: Context) -> UIScrollView {
         let scrollView = UIScrollView()
         scrollView.delegate = context.coordinator
         
-        let hostingController = UIHostingController(rootView: content)
+        let hostingController = UIHostingController(rootView: content())
         hostingController.view.backgroundColor = .clear
         scrollView.addSubview(hostingController.view)
         
@@ -29,7 +25,7 @@ struct ScrollViewRepresentable<Content: View>: UIViewRepresentable {
     }
     
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
-        context.coordinator.hostingController?.rootView = content
+        context.coordinator.hostingController?.rootView = content()
         
         guard let hostingView = context.coordinator.hostingController?.view else { return }
         
@@ -40,9 +36,15 @@ struct ScrollViewRepresentable<Content: View>: UIViewRepresentable {
         hostingView.frame = CGRect(x: 0, y: 0, width: contentWidth, height: contentHeight)
         scrollView.contentSize = CGSize(width: contentWidth, height: contentHeight)
         
+        if scrollView.contentInset != contentInsets {
+            DispatchQueue.main.async {
+                scrollView.contentInset = contentInsets
+            }
+        }
+        
         if scrollView.contentOffset != scrollOffset {
             DispatchQueue.main.async {
-                scrollView.setContentOffset(scrollOffset, animated: true)
+                scrollView.setContentOffset(scrollOffset, animated: false)
             }
         }
     }
