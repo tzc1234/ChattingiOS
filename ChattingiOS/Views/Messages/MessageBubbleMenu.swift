@@ -31,9 +31,9 @@ struct MessageBubbleMenu: View {
     
     private var message: DisplayedMessage { selectedBubble.message }
     private var bubbleFrame: CGRect { selectedBubble.frame }
+    private var verticalSpacing: CGFloat { 8 }
     private var menuOffsetY: CGFloat {
-        let spacing: CGFloat = 8
-        let offsetY = (menuFrame.height + bubbleFrame.height) / 2 + spacing
+        let offsetY = (menuFrame.height + bubbleFrame.height) / 2 + verticalSpacing
         let menuMaxY = bubbleFrame.maxY + menuFrame.height
         let bottom = screenSize.height - bottomInset
         return menuMaxY < bottom ? offsetY : -offsetY
@@ -53,7 +53,7 @@ struct MessageBubbleMenu: View {
             ) {
                 ZStack {
                     Color.white.opacity(0.01)
-                        .onTapGesture { showBubbleMenu = false }
+                        .onTapGesture { dismiss() }
                     
                     ZStack {
                         bubbleContent
@@ -65,9 +65,8 @@ struct MessageBubbleMenu: View {
             }
             .onChange(of: editAreaFrame) { _ in
                 if editAreaFrame.height >= oldEditAreaFrame.height {
-                    let spacing: CGFloat = 8
-                    let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + spacing
-                    if diffY > .zero {
+                    let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + verticalSpacing
+                    if diffY > 0 {
                         scrollOffset.y += diffY
                         scrollOffsetDiffYs.append(diffY)
                     }
@@ -80,9 +79,8 @@ struct MessageBubbleMenu: View {
             .onChange(of: keyboardHeight) { _ in
                 if keyboardHeight > 0 {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        let spacing: CGFloat = 8
-                        let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + spacing
-                        if diffY > .zero {
+                        let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + verticalSpacing
+                        if diffY > 0 {
                             scrollOffset.y += diffY
                             scrollOffsetDiffYs.append(diffY)
                         }
@@ -115,9 +113,7 @@ struct MessageBubbleMenu: View {
         .defaultAnimation(duration: 0.5, value: showEditArea)
         .ignoresSafeArea()
         .keyboardHeight($keyboardHeight)
-        .onAppear {
-            showMenuItems = true
-        }
+        .onAppear { showMenuItems = true }
     }
     
     private var bubbleContent: some View {
@@ -194,10 +190,7 @@ struct MessageBubbleMenu: View {
                 
                 Spacer()
                 
-                CTCloseButton(size: 24, fontSize: 12) {
-                    showEditArea = false
-                    editAreaFocused = false
-                }
+                CTCloseButton(size: 24, fontSize: 12, tapAction: dismiss)
             }
             .padding(.top, 12)
             .padding(.horizontal, 22)
@@ -225,6 +218,12 @@ struct MessageBubbleMenu: View {
                 return Color.clear
             }
         }
+    }
+    
+    private func dismiss() {
+        showMenuItems = false
+        showEditArea = false
+        showBubbleMenu = false
     }
 }
 
