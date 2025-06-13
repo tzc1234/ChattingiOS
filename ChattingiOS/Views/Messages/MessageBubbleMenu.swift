@@ -18,15 +18,14 @@ struct MessageBubbleMenu: View {
     @FocusState private var editAreaFocused: Bool
     @State private var showMenuItems = false
     @State private var showEditArea = false
+    @State private var scrollViewContentID = UUID()
     
-    @State private var keyboardHeight: CGFloat = 0
+    @State private var keyboardHeight: CGFloat = .zero
     @State private var bubbleDifferenceY: CGFloat = .zero
     @State private var menuFrame: CGRect = .zero
     @State private var editText = ""
     @State private var editAreaFrame: CGRect = .zero
-    @State private var oldEditAreaFrame: CGRect = .zero
     @State private var currentBubbleFrame: CGRect = .zero
-    @State private var scrollOffsetDiffYs = [CGFloat]()
     @State private var scrollOffset: CGPoint = .zero
     
     private var message: DisplayedMessage { selectedBubble.message }
@@ -64,45 +63,19 @@ struct MessageBubbleMenu: View {
                 }
             }
             .onChange(of: editAreaFrame) { _ in
-                if editAreaFrame.height >= oldEditAreaFrame.height {
-                    let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + verticalSpacing
-                    if diffY > 0 {
-                        scrollOffset.y += diffY
-                        scrollOffsetDiffYs.append(diffY)
-                    }
-                } else {
-                    if let oldDiffY = scrollOffsetDiffYs.popLast() {
-                        scrollOffset.y -= oldDiffY
-                    }
-                }
-            }
-            .onChange(of: keyboardHeight) { _ in
-                if keyboardHeight > 0 {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        let diffY = currentBubbleFrame.maxY - editAreaFrame.minY + verticalSpacing
-                        if diffY > 0 {
-                            scrollOffset.y += diffY
-                            scrollOffsetDiffYs.append(diffY)
-                        }
-                    }
-                }
-            }
-            .onChange(of: showEditArea) { newValue in
-                if !newValue {
-                    scrollOffset.y = 0
-                    scrollOffsetDiffYs.removeAll()
-                }
+                guard editAreaFrame.maxY > 0 else { return }
+                
+                scrollOffset.y += currentBubbleFrame.maxY - editAreaFrame.minY + verticalSpacing
             }
             
             if showEditArea {
                 editArea
-                    .offset(y: -max((keyboardHeight-bottomInset), 0))
             }
         }
         .background(.ultraThinMaterial)
         .background {
             GeometryReader { proxy -> Color in
-                DispatchQueue.main.async {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     let frame = proxy.frame(in: .global)
                     bubbleDifferenceY = frame.midY - bubbleFrame.midY
                 }
@@ -113,7 +86,10 @@ struct MessageBubbleMenu: View {
         .defaultAnimation(duration: 0.5, value: showEditArea)
         .ignoresSafeArea()
         .keyboardHeight($keyboardHeight)
-        .onAppear { showMenuItems = true }
+        .onAppear {
+            showMenuItems = true
+            scrollViewContentID = UUID()
+        }
     }
     
     private var bubbleContent: some View {
@@ -124,7 +100,7 @@ struct MessageBubbleMenu: View {
                 .frame(width: bubbleFrame.width, height: bubbleFrame.height)
                 .background {
                     GeometryReader { proxy -> Color in
-                        DispatchQueue.main.async {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             let frame = proxy.frame(in: .global)
                             if currentBubbleFrame != frame {
                                 currentBubbleFrame = frame
@@ -165,7 +141,7 @@ struct MessageBubbleMenu: View {
             .padding(.horizontal, 20)
             .background {
                 GeometryReader { proxy -> Color in
-                    DispatchQueue.main.async {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         let menuFrame = proxy.frame(in: .global)
                         if self.menuFrame != menuFrame {
                             self.menuFrame = menuFrame
@@ -207,17 +183,16 @@ struct MessageBubbleMenu: View {
         .background(.ultraThinMaterial)
         .background {
             GeometryReader { proxy -> Color in
-                DispatchQueue.main.async {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     let frame = proxy.frame(in: .global)
-                    if editAreaFrame == frame {
-                        oldEditAreaFrame = frame
-                    } else {
+                    if editAreaFrame != frame {
                         editAreaFrame = frame
                     }
                 }
                 return Color.clear
             }
         }
+        .offset(y: -max((keyboardHeight-bottomInset), 0))
     }
     
     private func dismiss() {
