@@ -28,8 +28,6 @@ struct MessageBubbleMenu: View {
     
     @State private var contentMinY: CGFloat = .zero
     @State private var bubbleDifferenceMinY: CGFloat = .zero
-    @State private var currentBubbleMaxY: CGFloat = .zero
-    @State private var editAreaMinY: CGFloat = .zero
     
     private var message: DisplayedMessage { selectedBubble.message }
     private var bubbleFrame: CGRect { selectedBubble.frame }
@@ -90,7 +88,14 @@ struct MessageBubbleMenu: View {
     
     private func updateScrollOffsetY() {
         let verticalSpacing: CGFloat = 8
-        scrollOffset.y += currentBubbleMaxY - editAreaMinY + verticalSpacing
+        var diffY = currentBubbleFrame.maxY - editAreaFrame.minY + verticalSpacing
+
+        let expectedCurrentBubbleMinY = currentBubbleFrame.minY - diffY
+        if expectedCurrentBubbleMinY < contentMinY {
+            diffY -= contentMinY - expectedCurrentBubbleMinY
+        }
+        
+        scrollOffset.y += diffY
     }
     
     private var bubbleContent: some View {
@@ -103,13 +108,8 @@ struct MessageBubbleMenu: View {
                     GeometryReader { proxy -> Color in
                         DispatchQueue.main.async {
                             let frame = proxy.frame(in: .global)
-                            if currentBubbleMaxY != frame.maxY.rounded() {
-                                currentBubbleMaxY = frame.maxY.rounded()
-                            }
-                            
                             if currentBubbleFrame != frame {
                                 currentBubbleFrame = frame
-                                print("currentBubbleFrame maxY: \(currentBubbleFrame.maxY)")
                             }
                         }
                         return Color.clear
@@ -178,13 +178,8 @@ struct MessageBubbleMenu: View {
             GeometryReader { proxy -> Color in
                 DispatchQueue.main.async {
                     let frame = proxy.frame(in: .global)
-                    if editAreaMinY != frame.minY.rounded() {
-                        editAreaMinY = frame.minY.rounded()
-                    }
-                    
                     if editAreaFrame != frame {
                         editAreaFrame = frame
-                        print("editAreaFrame maxY: \(editAreaFrame.minY)")
                     }
                 }
                 return Color.clear
