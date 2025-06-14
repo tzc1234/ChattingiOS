@@ -216,5 +216,11 @@ struct MessageBubbleMenuButton: View {
                 .foregroundColor(style.message.bubbleMenu.foregroundColor)
                 .background(style.message.bubbleMenu.backgroundColor)
         }
+        .highPriorityGesture(
+            TapGesture()
+                .onEnded { _ in
+                    action()
+                }
+        )
     }
 }
