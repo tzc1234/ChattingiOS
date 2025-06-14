@@ -21,15 +21,18 @@ struct MessageBubbleMenu: View {
     
     @State private var keyboardHeight: CGFloat = .zero
     @State private var menuFrame: CGRect = .zero
+    @State private var currentBubbleFrame: CGRect = .zero
     @State private var editText = ""
     @State private var editAreaFrame: CGRect = .zero
     @State private var scrollOffset: CGPoint = .zero
     
+    @State private var contentMinY: CGFloat = .zero
     @State private var bubbleDifferenceMinY: CGFloat = .zero
+    @State private var currentBubbleMaxY: CGFloat = .zero
+    @State private var editAreaMinY: CGFloat = .zero
     
     private var message: DisplayedMessage { selectedBubble.message }
     private var bubbleFrame: CGRect { selectedBubble.frame }
-    private let verticalSpacing: CGFloat = 8
     
     let screenSize: CGSize
     let bottomInset: CGFloat
@@ -50,6 +53,7 @@ struct MessageBubbleMenu: View {
             GeometryReader { proxy in
                 DispatchQueue.main.async {
                     let frame = proxy.frame(in: .global)
+                    contentMinY = frame.minY
                     bubbleDifferenceMinY = bubbleFrame.minY - frame.minY
                 }
                 return Color.white.opacity(0.01)
@@ -72,11 +76,21 @@ struct MessageBubbleMenu: View {
                     editArea
                 }
             }
+            .onChange(of: keyboardHeight) { _ in
+                if keyboardHeight > 0 {
+                    updateScrollOffsetY()
+                }
+            }
         }
         .background(.ultraThinMaterial)
         .defaultAnimation(duration: 0.3, value: showMenuItems)
         .defaultAnimation(duration: 0.5, value: showEditArea)
-        .keyboardHeight($keyboardHeight)
+        .keyboardHeight($keyboardHeight, type: .didShow)
+    }
+    
+    private func updateScrollOffsetY() {
+        let verticalSpacing: CGFloat = 8
+        scrollOffset.y += currentBubbleMaxY - editAreaMinY + verticalSpacing
     }
     
     private var bubbleContent: some View {
@@ -85,15 +99,26 @@ struct MessageBubbleMenu: View {
             
             MessageBubbleContent(message: message)
                 .frame(width: bubbleFrame.width, height: bubbleFrame.height)
+                .background {
+                    GeometryReader { proxy -> Color in
+                        DispatchQueue.main.async {
+                            let frame = proxy.frame(in: .global)
+                            if currentBubbleMaxY != frame.maxY.rounded() {
+                                currentBubbleMaxY = frame.maxY.rounded()
+                            }
+                            
+                            if currentBubbleFrame != frame {
+                                currentBubbleFrame = frame
+                                print("currentBubbleFrame maxY: \(currentBubbleFrame.maxY)")
+                            }
+                        }
+                        return Color.clear
+                    }
+                }
             
             if !message.isMine { Spacer() }
         }
         .padding(.horizontal, 20)
-    }
-    
-    private var menuOffsetY: CGFloat {
-        let offsetY = (menuFrame.height + bubbleFrame.height) / 2 + verticalSpacing
-        return bubbleFrame.midY < screenSize.height / 2 ? offsetY : -offsetY
     }
     
     private var menuItems: some View {
@@ -149,17 +174,22 @@ struct MessageBubbleMenu: View {
             )
         }
         .background(.ultraThinMaterial)
-//        .background {
-//            GeometryReader { proxy -> Color in
-//                DispatchQueue.main.async {
-//                    let frame = proxy.frame(in: .global)
-//                    if editAreaFrame != frame {
-//                        editAreaFrame = frame
-//                    }
-//                }
-//                return Color.clear
-//            }
-//        }
+        .background {
+            GeometryReader { proxy -> Color in
+                DispatchQueue.main.async {
+                    let frame = proxy.frame(in: .global)
+                    if editAreaMinY != frame.minY.rounded() {
+                        editAreaMinY = frame.minY.rounded()
+                    }
+                    
+                    if editAreaFrame != frame {
+                        editAreaFrame = frame
+                        print("editAreaFrame maxY: \(editAreaFrame.minY)")
+                    }
+                }
+                return Color.clear
+            }
+        }
     }
     
     private func dismiss() {

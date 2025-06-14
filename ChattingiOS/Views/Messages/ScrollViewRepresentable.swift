@@ -48,7 +48,7 @@ struct ScrollViewRepresentable<Content: View>: UIViewRepresentable {
         
         if scrollView.contentOffset != scrollOffset {
             DispatchQueue.main.async {
-                scrollView.setContentOffset(scrollOffset, animated: false)
+                scrollView.setContentOffset(scrollOffset, animated: true)
             }
         }
     }
