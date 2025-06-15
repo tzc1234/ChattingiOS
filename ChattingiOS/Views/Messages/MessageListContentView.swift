@@ -183,7 +183,7 @@ struct MessageListContentView: View {
                 bottomInset: bottomInset,
                 selectedBubble: selectedBubble,
                 showBubbleMenu: $showBubbleMenu,
-                copyAction: {
+                onCopy: {
                     UIPasteboard.general.string = selectedBubble.message.text
                     showBubbleMenu = false
                 }

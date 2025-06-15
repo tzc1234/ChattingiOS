@@ -20,27 +20,26 @@ struct MessageBubbleMenu: View {
     @State private var showEditArea = false
     
     @State private var keyboardHeight: CGFloat = .zero
-    @State private var menuFrame: CGRect = .zero
     @State private var currentBubbleFrame: CGRect = .zero
     @State private var editText = ""
-    @State private var editAreaFrame: CGRect = .zero
+    @State private var editAreaMinY: CGFloat = .zero
     @State private var scrollOffset: CGPoint = .zero
-    
     @State private var contentMinY: CGFloat = .zero
     @State private var bubbleDifferenceMinY: CGFloat = .zero
     
     private var message: DisplayedMessage { selectedBubble.message }
     private var bubbleFrame: CGRect { selectedBubble.frame }
+    private let verticalSpacing: CGFloat = 8
     
     let screenSize: CGSize
     let bottomInset: CGFloat
     let selectedBubble: SelectedBubble
     @Binding var showBubbleMenu: Bool
-    let copyAction: () -> Void
+    let onCopy: () -> Void
     
     private var contentInsets: UIEdgeInsets {
         if bubbleDifferenceMinY > 0 {
-            UIEdgeInsets(top: bubbleDifferenceMinY, left: 0, bottom: 0, right: 0)
+            UIEdgeInsets(top: bubbleDifferenceMinY, left: 0, bottom: verticalSpacing, right: 0)
         } else {
             UIEdgeInsets(top: 0, left: 0, bottom: abs(bubbleDifferenceMinY), right: 0)
         }
@@ -61,11 +60,14 @@ struct MessageBubbleMenu: View {
                 ScrollViewRepresentable(
                     scrollOffset: $scrollOffset,
                     contentInsets: contentInsets,
-                    onBackgroundTap: { dismiss() }
+                    onBackgroundTap: dismiss
                 ) {
                     VStack {
                         bubbleContent
-                        menuItems
+                        
+                        if showMenuItems {
+                            menuItems
+                        }
                     }
                     .frame(width: screenSize.width)
                 }
@@ -87,15 +89,17 @@ struct MessageBubbleMenu: View {
     }
     
     private func updateScrollOffsetY() {
-        let verticalSpacing: CGFloat = 8
-        var diffY = currentBubbleFrame.maxY - editAreaFrame.minY + verticalSpacing
-
-        let expectedCurrentBubbleMinY = currentBubbleFrame.minY - diffY
-        if expectedCurrentBubbleMinY < contentMinY {
-            diffY -= contentMinY - expectedCurrentBubbleMinY
+        if currentBubbleFrame.maxY > editAreaMinY {
+            let diffY = currentBubbleFrame.maxY - editAreaMinY + verticalSpacing
+            let expectedCurrentBubbleMinY = currentBubbleFrame.minY - diffY
+            let offsetYAdjustment = if expectedCurrentBubbleMinY < contentMinY {
+                diffY - (contentMinY - expectedCurrentBubbleMinY)
+            } else {
+                diffY
+            }
+            
+            scrollOffset.y += offsetYAdjustment
         }
-        
-        scrollOffset.y += diffY
     }
     
     private var bubbleContent: some View {
@@ -126,7 +130,7 @@ struct MessageBubbleMenu: View {
             if message.isMine { Spacer() }
             
             VStack(spacing: 0) {
-                MessageBubbleMenuButton(title: "Copy", icon: "doc.on.doc", action: copyAction)
+                MessageBubbleMenuButton(title: "Copy", icon: "doc.on.doc", action: onCopy)
                 
                 Rectangle()
                     .frame(height: 1)
@@ -148,7 +152,6 @@ struct MessageBubbleMenu: View {
             
             if !message.isMine { Spacer() }
         }
-        .opacity(showMenuItems ? 1 : 0)
     }
     
     private var editArea: some View {
@@ -177,9 +180,9 @@ struct MessageBubbleMenu: View {
         .background {
             GeometryReader { proxy -> Color in
                 DispatchQueue.main.async {
-                    let frame = proxy.frame(in: .global)
-                    if editAreaFrame != frame {
-                        editAreaFrame = frame
+                    let minY = proxy.frame(in: .global).minY
+                    if editAreaMinY != minY {
+                        editAreaMinY = minY
                     }
                 }
                 return Color.clear
