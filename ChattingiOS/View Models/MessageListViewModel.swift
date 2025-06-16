@@ -303,6 +303,12 @@ final class MessageListViewModel: ObservableObject {
         messages[index] = message
         return true
     }
+    
+    func canEdit(_ message: DisplayedMessage) -> Bool {
+        guard !isLoading, isConnecting, !isBlocked else { return false }
+        
+        return Date.now.timeIntervalSince(message.createdAt) < 60 * 15 // within 15 mins
+    }
 }
 
 private extension Message {
@@ -312,6 +318,7 @@ private extension Message {
             text: text,
             isMine: senderID == currentUserID,
             isRead: isRead,
+            createdAt: createdAt,
             date: createdAt.formatted(date: .abbreviated, time: .omitted),
             time: editedAt.map { "Edited \($0.formatted(date: .omitted, time: .shortened))" } ??
                 createdAt.formatted(date: .omitted, time: .shortened)

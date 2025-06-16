@@ -21,13 +21,16 @@ struct MessageListView: View {
             isBlocked: viewModel.isBlocked,
             setupError: $viewModel.setupError,
             inputMessage: $viewModel.inputMessage,
+            editMessageText: $viewModel.editMessage,
             listPositionMessageID: $viewModel.messageIDForListPosition,
             setupList: viewModel.setupMessageList,
             sendMessage: viewModel.sendMessage,
             loadPreviousMessages: viewModel.loadPreviousMessages,
             loadMoreMessages: viewModel.loadMoreMessages,
             readMessages: viewModel.readMessages,
-            isConnecting: viewModel.isConnecting
+            editMessage: viewModel.editMessage(messageID:),
+            isConnecting: viewModel.isConnecting,
+            canEdit: viewModel.canEdit(_:)
         )
         .toolbar(.hidden, for: .tabBar)
         .task { await viewModel.loadAvatarData() }

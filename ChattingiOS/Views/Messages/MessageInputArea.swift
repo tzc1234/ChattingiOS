@@ -12,6 +12,7 @@ struct MessageInputArea: View {
     
     @Binding var inputMessage: String
     @FocusState var focused: Bool
+    let sendButtonIcon: String
     let sendButtonActive: Bool
     let isLoading: Bool
     let sendAction: () -> Void
@@ -57,9 +58,9 @@ struct MessageInputArea: View {
             ProgressView()
                 .tint(style.message.input.spinnerColor)
         } else {
-            Image(systemName: "paperplane.fill")
+            Image(systemName: sendButtonIcon)
+                .font(.system(size: 18).weight(.medium))
                 .foregroundColor(style.message.input.iconColor)
-                .font(.system(size: 18))
         }
     }
 }

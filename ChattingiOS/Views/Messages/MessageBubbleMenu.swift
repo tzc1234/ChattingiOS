@@ -19,7 +19,6 @@ struct MessageBubbleMenu: View {
     @State private var showEditArea = false
     @State private var keyboardHeight: CGFloat = .zero
     @State private var currentBubbleFrame: CGRect = .zero
-    @State private var editText = ""
     @State private var editAreaMinY: CGFloat = .zero
     @State private var scrollOffset: CGPoint = .zero
     @State private var contentMinY: CGFloat = .zero
@@ -31,8 +30,11 @@ struct MessageBubbleMenu: View {
     
     let screenSize: CGSize
     let selectedBubble: SelectedBubble
-    @Binding var showBubbleMenu: Bool
+    @Binding var editMessageText: String
+    let canEdit: Bool
     let onCopy: () -> Void
+    let onEdit: () -> Void
+    let onClose: () -> Void
     
     private var contentInsets: UIEdgeInsets {
         if bubbleDifferenceMinY > 0 {
@@ -129,15 +131,17 @@ struct MessageBubbleMenu: View {
             VStack(spacing: 0) {
                 MessageBubbleMenuButton(title: "Copy", icon: "doc.on.doc", action: onCopy)
                 
-                Rectangle()
-                    .frame(height: 1)
-                    .foregroundStyle(style.message.bubbleMenu.strokeColor)
-                
-                MessageBubbleMenuButton(title: "Edit", icon: "square.and.pencil") {
-                    showMenuItems = false
-                    editAreaFocused = true
-                    editText = message.text
-                    showEditArea = true
+                if message.isMine, canEdit {
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundStyle(style.message.bubbleMenu.strokeColor)
+                    
+                    MessageBubbleMenuButton(title: "Edit", icon: "square.and.pencil") {
+                        showMenuItems = false
+                        editAreaFocused = true
+                        editMessageText = message.text
+                        showEditArea = true
+                    }
                 }
             }
             .frame(width: 200)
@@ -166,11 +170,12 @@ struct MessageBubbleMenu: View {
             .padding(.horizontal, 22)
 
             MessageInputArea(
-                inputMessage: $editText,
+                inputMessage: $editMessageText,
                 focused: _editAreaFocused,
-                sendButtonActive: !editText.isEmpty,
+                sendButtonIcon: "checkmark",
+                sendButtonActive: !editMessageText.isEmpty,
                 isLoading: false,
-                sendAction: {}
+                sendAction: onEdit
             )
         }
         .background(.ultraThinMaterial)
@@ -190,7 +195,7 @@ struct MessageBubbleMenu: View {
     private func dismiss() {
         showMenuItems = false
         showEditArea = false
-        showBubbleMenu = false
+        onClose()
     }
 }
 

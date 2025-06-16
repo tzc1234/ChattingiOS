@@ -35,13 +35,16 @@ struct MessageListContentView: View {
     let isBlocked: Bool
     @Binding var setupError: String?
     @Binding var inputMessage: String
+    @Binding var editMessageText: String
     @Binding var listPositionMessageID: Int?
     let setupList: () -> Void
     let sendMessage: () -> Void
     let loadPreviousMessages: () -> Void
     let loadMoreMessages: () -> Void
     let readMessages: (Int) -> Void
+    let editMessage: (Int) -> Void
     let isConnecting: Bool
+    let canEdit: (DisplayedMessage) -> Bool
     
     var body: some View {
         ZStack {
@@ -178,11 +181,17 @@ struct MessageListContentView: View {
             MessageBubbleMenu(
                 screenSize: screenSize,
                 selectedBubble: selectedBubble,
-                showBubbleMenu: $showBubbleMenu,
+                editMessageText: $editMessageText,
+                canEdit: canEdit(selectedBubble.message),
                 onCopy: {
                     UIPasteboard.general.string = selectedBubble.message.text
                     showBubbleMenu = false
-                }
+                },
+                onEdit: {
+                    editMessage(selectedBubble.message.id)
+                    showBubbleMenu = false
+                },
+                onClose: { showBubbleMenu = false }
             )
             .opacity(showBubbleMenu ? 1 : 0)
         }
@@ -253,6 +262,7 @@ struct MessageListContentView: View {
         MessageInputArea(
             inputMessage: $inputMessage,
             focused: _messageInputFocused,
+            sendButtonIcon: "paperplane.fill",
             sendButtonActive: sendButtonActive,
             isLoading: isLoading,
             sendAction: sendMessage
@@ -354,23 +364,26 @@ struct MessageBubble: View {
             responderName: "Jack",
             avatarData: nil,
             messages: [
-                .init(id: 0, text: "Hi!", isMine: false, isRead: true, date:  "1 Jan 2025", time: "10:00"),
-                .init(id: 1, text: "How are you?", isMine: false, isRead: true, date:  "1 Jan 2025", time: "10:05"),
-                .init(id: 2, text: "Not bad.", isMine: true, isRead: true, date: "2 Jan 2025", time: "12:45"),
-                .init(id: 3, text: "Long time no see\nHow are you?", isMine: true, isRead: true, date: "2 Jan 2025", time: "13:00"),
-                .init(id: 4, text: "What are you doing now?", isMine: false, isRead: true, date:  "3 Jan 2025", time: "11:00"),
+                .init(id: 0, text: "Hi!", isMine: false, isRead: true, createdAt: .now, date:  "1 Jan 2025", time: "10:00"),
+                .init(id: 1, text: "How are you?", isMine: false, isRead: true, createdAt: .now, date:  "1 Jan 2025", time: "10:05"),
+                .init(id: 2, text: "Not bad.", isMine: true, isRead: true, createdAt: .now, date: "2 Jan 2025", time: "12:45"),
+                .init(id: 3, text: "Long time no see\nHow are you?", isMine: true, isRead: true, createdAt: .now, date: "2 Jan 2025", time: "13:00"),
+                .init(id: 4, text: "What are you doing now?", isMine: false, isRead: true, createdAt: .now, date:  "3 Jan 2025", time: "11:00"),
             ],
             isLoading: false,
             isBlocked: false,
             setupError: .constant("Error occurred!"),
             inputMessage: .constant(""),
+            editMessageText: .constant(""),
             listPositionMessageID: .constant(nil),
             setupList: {},
             sendMessage: {},
             loadPreviousMessages: {},
             loadMoreMessages: {},
             readMessages: { _ in },
-            isConnecting: true
+            editMessage: { _ in },
+            isConnecting: true,
+            canEdit: { _ in true }
         )
     }
     .environmentObject(ViewStyleManager())
