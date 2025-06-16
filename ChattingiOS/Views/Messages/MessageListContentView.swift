@@ -16,7 +16,6 @@ struct MessageListContentView: View {
     @State private var selectedBubble: SelectedBubble?
     @State private var avatarImage: UIImage?
     @State private var screenSize: CGSize = .zero
-    @State private var bottomInset: CGFloat = .zero
     @State private var showBubbleMenu = false
     
     private var sendButtonActive: Bool {
@@ -108,10 +107,8 @@ struct MessageListContentView: View {
             }
         }
         .onAppear {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
                 screenSize = windowScene.screen.bounds.size
-                bottomInset = keyWindow.safeAreaInsets.bottom
             }
         }
     }
@@ -180,7 +177,6 @@ struct MessageListContentView: View {
         if let selectedBubble {
             MessageBubbleMenu(
                 screenSize: screenSize,
-                bottomInset: bottomInset,
                 selectedBubble: selectedBubble,
                 showBubbleMenu: $showBubbleMenu,
                 onCopy: {

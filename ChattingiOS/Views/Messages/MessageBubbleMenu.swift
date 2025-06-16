@@ -14,11 +14,9 @@ struct SelectedBubble: Equatable {
 
 struct MessageBubbleMenu: View {
     @EnvironmentObject private var style: ViewStyleManager
-    
     @FocusState private var editAreaFocused: Bool
     @State private var showMenuItems = true
     @State private var showEditArea = false
-    
     @State private var keyboardHeight: CGFloat = .zero
     @State private var currentBubbleFrame: CGRect = .zero
     @State private var editText = ""
@@ -32,7 +30,6 @@ struct MessageBubbleMenu: View {
     private let verticalSpacing: CGFloat = 8
     
     let screenSize: CGSize
-    let bottomInset: CGFloat
     let selectedBubble: SelectedBubble
     @Binding var showBubbleMenu: Bool
     let onCopy: () -> Void
