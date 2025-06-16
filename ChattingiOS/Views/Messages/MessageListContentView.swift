@@ -8,6 +8,12 @@
 import SwiftUI
 
 struct MessageListContentView: View {
+    struct EditMessageAttributes {
+        @Binding var editMessageText: String
+        let editMessage: (Int) -> Void
+        let canEdit: (DisplayedMessage) -> Bool
+    }
+    
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var messageInputFocused: Bool
     @State private var scrollToMessageID: Int?
@@ -33,18 +39,16 @@ struct MessageListContentView: View {
     let messages: [DisplayedMessage]
     let isLoading: Bool
     let isBlocked: Bool
+    let isConnecting: Bool
     @Binding var setupError: String?
     @Binding var inputMessage: String
-    @Binding var editMessageText: String
     @Binding var listPositionMessageID: Int?
     let setupList: () -> Void
     let sendMessage: () -> Void
     let loadPreviousMessages: () -> Void
     let loadMoreMessages: () -> Void
     let readMessages: (Int) -> Void
-    let editMessage: (Int) -> Void
-    let isConnecting: Bool
-    let canEdit: (DisplayedMessage) -> Bool
+    let editMessage: EditMessageAttributes
     
     var body: some View {
         ZStack {
@@ -181,14 +185,14 @@ struct MessageListContentView: View {
             MessageBubbleMenu(
                 screenSize: screenSize,
                 selectedBubble: selectedBubble,
-                editMessageText: $editMessageText,
-                canEdit: canEdit(selectedBubble.message),
+                editMessageText: editMessage.$editMessageText,
+                canEdit: editMessage.canEdit(selectedBubble.message),
                 onCopy: {
                     UIPasteboard.general.string = selectedBubble.message.text
                     showBubbleMenu = false
                 },
                 onEdit: {
-                    editMessage(selectedBubble.message.id)
+                    editMessage.editMessage(selectedBubble.message.id)
                     showBubbleMenu = false
                 },
                 onClose: { showBubbleMenu = false }
@@ -372,18 +376,16 @@ struct MessageBubble: View {
             ],
             isLoading: false,
             isBlocked: false,
+            isConnecting: true,
             setupError: .constant("Error occurred!"),
             inputMessage: .constant(""),
-            editMessageText: .constant(""),
             listPositionMessageID: .constant(nil),
             setupList: {},
             sendMessage: {},
             loadPreviousMessages: {},
             loadMoreMessages: {},
             readMessages: { _ in },
-            editMessage: { _ in },
-            isConnecting: true,
-            canEdit: { _ in true }
+            editMessage: .init(editMessageText: .constant(""), editMessage: { _ in }, canEdit: { _ in true })
         )
     }
     .environmentObject(ViewStyleManager())
