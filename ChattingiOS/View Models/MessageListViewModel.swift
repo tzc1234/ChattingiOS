@@ -117,8 +117,7 @@ final class MessageListViewModel: ObservableObject {
                         }
                         
                         let receivedMessage = message.toDisplayedModel(currentUserID: currentUserID)
-                        let updateMessageSuccess = updateMessageSuccess(receivedMessage)
-                        if !updateMessageSuccess {
+                        if !updateMessageSuccess(receivedMessage) {
                             messages.append(receivedMessage)
                             canLoadMore = false
                             
@@ -139,6 +138,20 @@ final class MessageListViewModel: ObservableObject {
                 setupError = "Connection error occurred."
             }
         }
+    }
+    
+    private func updateMessageSuccess(_ message: DisplayedMessage) -> Bool {
+        for index in (0..<messages.count).reversed() {
+            let oldMessage = messages[index]
+            
+            if oldMessage.id < message.id { return false }
+            if oldMessage.id == message.id {
+                messages[index] = message
+                return true
+            }
+        }
+        
+        return false
     }
     
     private func loadMissingMessages(to newLastID: Int) async throws(UseCaseError) {
@@ -295,13 +308,6 @@ final class MessageListViewModel: ObservableObject {
                 messages[index] = message.newReadInstance()
             }
         }
-    }
-    
-    private func updateMessageSuccess(_ message: DisplayedMessage) -> Bool {
-        guard let index = messages.firstIndex(where: { $0.id == message.id }) else { return false }
-        
-        messages[index] = message
-        return true
     }
     
     func canEdit(_ message: DisplayedMessage) -> Bool {
