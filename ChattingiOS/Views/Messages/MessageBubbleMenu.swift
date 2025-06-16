@@ -75,8 +75,8 @@ struct MessageBubbleMenu: View {
                     editArea
                 }
             }
-            .onChange(of: keyboardHeight) { _ in
-                if keyboardHeight > 0 {
+            .onChange(of: keyboardHeight) { newValue in
+                if newValue > 0 {
                     updateScrollOffsetY()
                 }
             }

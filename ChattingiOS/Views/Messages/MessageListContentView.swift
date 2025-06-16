@@ -209,17 +209,19 @@ struct MessageListContentView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     
-                    MessageBubble(message: message, selectedBubble: $selectedBubble)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .id(message.id)
-                        .onAppear {
-                            visibleMessageIndex.insert(index)
-                            if message == messages.first { loadPreviousMessages() }
-                            if message == messages.last { loadMoreMessages() }
-                            if message.isUnread { readMessages(message.id) }
-                        }
-                        .onDisappear { visibleMessageIndex.remove(index) }
+                    MessageBubble(message: message, selectedBubble: $selectedBubble, readEditedMessage: {
+                        readMessages(message.id)
+                    })
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .id(message.id)
+                    .onAppear {
+                        visibleMessageIndex.insert(index)
+                        if message == messages.first { loadPreviousMessages() }
+                        if message == messages.last { loadMoreMessages() }
+                        if message.isUnread { readMessages(message.id) }
+                    }
+                    .onDisappear { visibleMessageIndex.remove(index) }
                 }
                 .listRowInsets(.init(top: 8, leading: 20, bottom: 8, trailing: 20))
             }
@@ -291,6 +293,12 @@ struct MessageBubbleContent: View {
     }
     
     let message: DisplayedMessage
+    let readEditedMessage: (() -> Void)?
+    
+    init(message: DisplayedMessage, readEditedMessage: (() -> Void)? = nil) {
+        self.message = message
+        self.readEditedMessage = readEditedMessage
+    }
     
     var body: some View {
         Text(message.text)
@@ -306,6 +314,9 @@ struct MessageBubbleContent: View {
                 style.message.bubble.strokeColor(isMine: isMine),
                 in: .rect(cornerRadii: cornerRadii).stroke(lineWidth: 1)
             )
+            .onChange(of: message) { newValue in
+                if newValue.isUnread { readEditedMessage?() }
+            }
     }
 }
 
@@ -318,13 +329,14 @@ struct MessageBubble: View {
     
     let message: DisplayedMessage
     @Binding var selectedBubble: SelectedBubble?
+    let readEditedMessage: () -> Void
     
     var body: some View {
         HStack {
             if isMine { Spacer() }
             
             VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
-                MessageBubbleContent(message: message)
+                MessageBubbleContent(message: message, readEditedMessage: readEditedMessage)
                     .background {
                         GeometryReader { proxy in
                             DispatchQueue.main.async {
