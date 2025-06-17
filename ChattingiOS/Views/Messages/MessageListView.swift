@@ -21,13 +21,16 @@ struct MessageListView: View {
             isBlocked: viewModel.isBlocked,
             isConnecting: viewModel.isConnecting,
             setupError: $viewModel.setupError,
-            inputMessage: $viewModel.inputMessage,
             listPositionMessageID: $viewModel.messageIDForListPosition,
             setupList: viewModel.setupMessageList,
-            sendMessage: viewModel.sendMessage,
             loadPreviousMessages: viewModel.loadPreviousMessages,
             loadMoreMessages: viewModel.loadMoreMessages,
             readMessages: viewModel.readMessages,
+            sendMessage: .init(
+                inputMessage: $viewModel.inputMessage,
+                canSendMessage: viewModel.canSendMessage,
+                sendMessage: viewModel.sendMessage
+            ),
             editMessage: .init(
                 editMessageInput: $viewModel.editMessageInput,
                 editMessage: viewModel.editMessage(messageID:),

@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+struct SendMessageAttributes {
+    @Binding var inputMessage: String
+    let canSendMessage: () -> Bool
+    let sendMessage: () -> Void
+}
+
 struct EditMessageAttributes {
     @Binding var editMessageInput: String
     let editMessage: (Int) -> Void
@@ -25,10 +31,6 @@ struct MessageListContentView: View {
     @State private var screenSize: CGSize = .zero
     @State private var showBubbleMenu = false
     
-    private var sendButtonActive: Bool {
-        !isLoading && !inputMessage.isEmpty && isConnecting
-    }
-    
     private var showScrollToBottomButton: Bool {
         guard let maxIndex = visibleMessageIndex.max() else { return false }
         
@@ -42,13 +44,12 @@ struct MessageListContentView: View {
     let isBlocked: Bool
     let isConnecting: Bool
     @Binding var setupError: String?
-    @Binding var inputMessage: String
     @Binding var listPositionMessageID: Int?
     let setupList: () -> Void
-    let sendMessage: () -> Void
     let loadPreviousMessages: () -> Void
     let loadMoreMessages: () -> Void
     let readMessages: (Int) -> Void
+    let sendMessage: SendMessageAttributes
     let editMessage: EditMessageAttributes
     
     var body: some View {
@@ -268,12 +269,12 @@ struct MessageListContentView: View {
     
     private var messageInputArea: some View {
         MessageInputArea(
-            inputMessage: $inputMessage,
+            inputMessage: sendMessage.$inputMessage,
             focused: _messageInputFocused,
             sendButtonIcon: "paperplane.fill",
-            sendButtonActive: sendButtonActive,
+            sendButtonActive: sendMessage.canSendMessage(),
             isLoading: isLoading,
-            sendAction: sendMessage
+            sendAction: sendMessage.sendMessage
         )
         .background { style.message.input.sectionBackground }
         .brightness(isLoading || !isConnecting ? -0.1 : 0)
@@ -386,13 +387,16 @@ struct MessageBubble: View {
             isBlocked: false,
             isConnecting: true,
             setupError: .constant("Error occurred!"),
-            inputMessage: .constant(""),
             listPositionMessageID: .constant(nil),
             setupList: {},
-            sendMessage: {},
             loadPreviousMessages: {},
             loadMoreMessages: {},
             readMessages: { _ in },
+            sendMessage: .init(
+                inputMessage: .constant(""),
+                canSendMessage: { true },
+                sendMessage: {},
+            ),
             editMessage: .init(
                 editMessageInput: .constant(""),
                 editMessage: { _ in },

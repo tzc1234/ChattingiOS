@@ -225,8 +225,13 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
+    func canSendMessage() -> Bool {
+        !isLoading && isConnecting && !inputMessage.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+    
     func sendMessage() {
-        guard !inputMessage.isEmpty else { return }
+        let trimmedInput = inputMessage.trimmingCharacters(in: .whitespaces)
+        guard !trimmedInput.isEmpty else { return }
         
         isLoading = true
         sendMessageTask = Task {
@@ -234,7 +239,7 @@ final class MessageListViewModel: ObservableObject {
             
             do {
                 try await loadMoreMessageToTheEnd()
-                try await connection?.send(text: inputMessage)
+                try await connection?.send(text: trimmedInput)
                 inputMessage = ""
             } catch let error as UseCaseError {
                 generalError = error.toGeneralErrorMessage()
