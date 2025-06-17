@@ -25,6 +25,7 @@ extension MessageWithMetadata {
             let is_read: Bool
             let created_at: Date
             let edited_at: Date?
+            let deleted_at: Date?
             
             init(_ message: Message) {
                 self.id = message.id
@@ -33,6 +34,7 @@ extension MessageWithMetadata {
                 self.is_read = message.isRead
                 self.created_at = message.createdAt
                 self.edited_at = message.editedAt
+                self.deleted_at = message.deletedAt
             }
         }
         

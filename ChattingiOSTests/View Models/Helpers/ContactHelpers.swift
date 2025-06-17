@@ -41,9 +41,10 @@ func makeMessageWithMeta(id: Int = 99,
                          isRead: Bool = false,
                          createdAt: Date = .now,
                          editedAt: Date? = nil,
+                         deletedAt: Date? = nil,
                          previousID: Int? = nil) -> MessageWithMetadata {
     MessageWithMetadata(
-        message: .init(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt, editedAt: editedAt),
+        message: .init(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt, editedAt: editedAt, deletedAt: deletedAt),
         metadata: .init(previousID: previousID)
     )
 }
@@ -53,6 +54,7 @@ func makeMessage(id: Int = 99,
                  senderID: Int = 99,
                  isRead: Bool = false,
                  createdAt: Date = .now,
-                 editedAt: Date? = nil) -> Message {
-    Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt, editedAt: editedAt)
+                 editedAt: Date? = nil,
+                 deletedAt: Date? = nil) -> Message {
+    Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt, editedAt: editedAt, deletedAt: deletedAt)
 }

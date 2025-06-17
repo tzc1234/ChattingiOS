@@ -154,15 +154,15 @@ final class MessageChannelTests: XCTestCase {
         let now = Date.now.removeTimeIntervalDecimal()
         let messages = [
             makeWebSocketMessage(
-                Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture, editedAt: nil),
+                Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture, editedAt: nil, deletedAt: nil),
                 previousID: nil
             ),
             makeWebSocketMessage(
-                Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast, editedAt: nil),
+                Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast, editedAt: nil, deletedAt: nil),
                 previousID: 0
             ),
             makeWebSocketMessage(
-                Message(id: 2, text: "another text 2", senderID: 0, isRead: false, createdAt: now, editedAt: .distantFuture),
+                Message(id: 2, text: "another text 2", senderID: 0, isRead: false, createdAt: now, editedAt: .distantFuture, deletedAt: .distantFuture),
                 previousID: 1
             )
         ]

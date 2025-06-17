@@ -191,7 +191,15 @@ extension ManagedMessage {
     static var entityName: String { String(describing: Self.self) }
     
     func toMessage() -> Message {
-        Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt, editedAt: editedAt)
+        Message(
+            id: id,
+            text: text,
+            senderID: senderID,
+            isRead: isRead,
+            createdAt: createdAt,
+            editedAt: editedAt,
+            deletedAt: nil
+        )
     }
 }
 

@@ -338,7 +338,8 @@ private extension Message {
             isRead: isRead,
             createdAt: createdAt,
             date: createdAt.formatted(date: .abbreviated, time: .omitted),
-            time: editedAt.map { "Edited \($0.formatted(date: .omitted, time: .shortened))" } ??
+            time: deletedAt.map { "Deleted \($0.formatted(date: .omitted, time: .shortened))" } ??
+                editedAt.map { "Edited \($0.formatted(date: .omitted, time: .shortened))" } ??
                 createdAt.formatted(date: .omitted, time: .shortened)
         )
     }
