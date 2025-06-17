@@ -14,10 +14,9 @@ struct SendMessageAttributes {
 }
 
 struct EditMessageAttributes {
-    @Binding var editMessageInput: String
-    let editMessage: (Int) -> Void
     let shouldShowEdit: (DisplayedMessage) -> Bool
-    let canEdit: (DisplayedMessage) -> Bool
+    let canEdit: (DisplayedMessage, String) -> Bool
+    let editMessage: (Int, String) -> Void
 }
 
 struct DeleteMessageAttributes {
@@ -193,16 +192,15 @@ struct MessageListContentView: View {
             MessageBubbleMenu(
                 screenSize: screenSize,
                 selectedBubble: selectedBubble,
-                editMessageInput: editMessage.$editMessageInput,
                 shouldShowEdit: editMessage.shouldShowEdit(selectedBubble.message),
                 shouldShowDelete: deleteMessage.shouldShowDelete(selectedBubble.message),
-                canEdit: { editMessage.canEdit(selectedBubble.message) },
+                canEdit: { editMessage.canEdit(selectedBubble.message, $0) },
                 onCopy: {
                     UIPasteboard.general.string = selectedBubble.message.text
                     showBubbleMenu = false
                 },
                 onEdit: {
-                    editMessage.editMessage(selectedBubble.message.id)
+                    editMessage.editMessage(selectedBubble.message.id, $0)
                     showBubbleMenu = false
                 },
                 onDelete: {
@@ -410,10 +408,9 @@ struct MessageBubble: View {
                 sendMessage: {},
             ),
             editMessage: .init(
-                editMessageInput: .constant(""),
-                editMessage: { _ in },
                 shouldShowEdit: { _ in true },
-                canEdit: { _ in true }
+                canEdit: { _, _ in true },
+                editMessage: { _, _ in }
             ), deleteMessage: .init(
                 shouldShowDelete: { _ in true },
                 deleteMessage: { _ in }

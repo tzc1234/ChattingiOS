@@ -13,7 +13,6 @@ final class MessageListViewModel: ObservableObject {
     @Published var generalError: String?
     @Published var setupError: String?
     @Published var inputMessage = ""
-    @Published var editMessageInput = ""
     @Published private(set) var isLoading = false
     @Published var messageIDForListPosition: Int?
     @Published private(set) var avatarData: Data?
@@ -256,22 +255,21 @@ final class MessageListViewModel: ObservableObject {
         return Date.now.timeIntervalSince(message.createdAt) < 60 * 15 // within 15 mins
     }
     
-    func canEdit(for message: DisplayedMessage) -> Bool {
-        let trimmedEditMessageInput = editMessageInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !trimmedEditMessageInput.isEmpty && message.text != trimmedEditMessageInput
+    func canEdit(for message: DisplayedMessage, text: String) -> Bool {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmedText.isEmpty && message.text != trimmedText
     }
     
-    func editMessage(messageID: Int) {
-        let trimmedEditMessageInput = editMessageInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedEditMessageInput.isEmpty else { return }
+    func editMessage(messageID: Int, text: String) {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else { return }
         
         isLoading = true
         editMessageTask = Task {
             defer { isLoading = false }
             
             do {
-                try await connection?.send(editMessageID: messageID, text: trimmedEditMessageInput)
-                editMessageInput = ""
+                try await connection?.send(editMessageID: messageID, text: trimmedText)
             } catch {
                 print("edit message fail.")
             }

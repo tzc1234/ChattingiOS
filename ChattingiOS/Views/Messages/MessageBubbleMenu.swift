@@ -24,6 +24,7 @@ struct MessageBubbleMenu: View {
     @State private var contentMinY: CGFloat = .zero
     @State private var bubbleDifferenceMinY: CGFloat = .zero
     @State private var showDeleteMessageAlert = false
+    @State private var editText = ""
     
     private var message: DisplayedMessage { selectedBubble.message }
     private var bubbleFrame: CGRect { selectedBubble.frame }
@@ -31,12 +32,11 @@ struct MessageBubbleMenu: View {
     
     let screenSize: CGSize
     let selectedBubble: SelectedBubble
-    @Binding var editMessageInput: String
     let shouldShowEdit: Bool
     let shouldShowDelete: Bool
-    let canEdit: () -> Bool
+    let canEdit: (String) -> Bool
     let onCopy: () -> Void
-    let onEdit: () -> Void
+    let onEdit: (String) -> Void
     let onDelete: () -> Void
     let onClose: () -> Void
     
@@ -143,7 +143,7 @@ struct MessageBubbleMenu: View {
                     MessageBubbleMenuButton(title: "Edit", icon: "square.and.pencil") {
                         showMenuItems = false
                         editAreaFocused = true
-                        editMessageInput = message.text
+                        editText = message.text
                         showEditArea = true
                     }
                 }
@@ -190,12 +190,12 @@ struct MessageBubbleMenu: View {
             .padding(.horizontal, 22)
 
             MessageInputArea(
-                inputMessage: $editMessageInput,
+                inputMessage: $editText,
                 focused: _editAreaFocused,
                 sendButtonIcon: "checkmark",
-                sendButtonActive: canEdit(),
+                sendButtonActive: canEdit(editText),
                 isLoading: false,
-                sendAction: onEdit
+                sendAction: { onEdit(editText) }
             )
         }
         .background(.ultraThinMaterial)

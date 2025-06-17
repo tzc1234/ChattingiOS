@@ -32,10 +32,9 @@ struct MessageListView: View {
                 sendMessage: viewModel.sendMessage
             ),
             editMessage: .init(
-                editMessageInput: $viewModel.editMessageInput,
-                editMessage: viewModel.editMessage(messageID:),
                 shouldShowEdit: viewModel.shouldShowEdit(_:),
-                canEdit: viewModel.canEdit(for:)
+                canEdit: viewModel.canEdit(for:text:),
+                editMessage: viewModel.editMessage(messageID:text:),
             ),
             deleteMessage: .init(
                 shouldShowDelete: viewModel.shouldShowDelete(_:),
