@@ -226,11 +226,11 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func canSendMessage() -> Bool {
-        !isLoading && isConnecting && !inputMessage.trimmingCharacters(in: .whitespaces).isEmpty
+        !isLoading && isConnecting && !inputMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     func sendMessage() {
-        let trimmedInput = inputMessage.trimmingCharacters(in: .whitespaces)
+        let trimmedInput = inputMessage.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedInput.isEmpty else { return }
         
         isLoading = true
@@ -256,18 +256,20 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func canEdit(for message: DisplayedMessage) -> Bool {
-        !editMessageInput.isEmpty && message.text != editMessageInput
+        let trimmedEditMessageInput = editMessageInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmedEditMessageInput.isEmpty && message.text != trimmedEditMessageInput
     }
     
     func editMessage(messageID: Int) {
-        guard !editMessageInput.isEmpty else { return }
+        let trimmedEditMessageInput = editMessageInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedEditMessageInput.isEmpty else { return }
         
         isLoading = true
         editMessageTask = Task {
             defer { isLoading = false }
             
             do {
-                try await connection?.send(editMessageID: messageID, text: editMessageInput)
+                try await connection?.send(editMessageID: messageID, text: trimmedEditMessageInput)
                 editMessageInput = ""
             } catch {
                 print("edit message fail.")
