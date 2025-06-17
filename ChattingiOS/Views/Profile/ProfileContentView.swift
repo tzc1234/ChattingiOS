@@ -50,7 +50,7 @@ struct ProfileContentView: View {
             }
         }
         .alert("Sign Out", isPresented: $showSignOutAlert) {
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) {}
             Button("Sign Out", role: .destructive, action: signOutAction)
         } message: {
             Text("Are you sure you want to sign out?")

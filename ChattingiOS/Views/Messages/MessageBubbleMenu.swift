@@ -23,6 +23,7 @@ struct MessageBubbleMenu: View {
     @State private var scrollOffset: CGPoint = .zero
     @State private var contentMinY: CGFloat = .zero
     @State private var bubbleDifferenceMinY: CGFloat = .zero
+    @State private var showDeleteMessageAlert = false
     
     private var message: DisplayedMessage { selectedBubble.message }
     private var bubbleFrame: CGRect { selectedBubble.frame }
@@ -152,7 +153,9 @@ struct MessageBubbleMenu: View {
                         .frame(height: 1)
                         .foregroundStyle(style.message.bubbleMenu.strokeColor)
                     
-                    MessageBubbleMenuButton(title: "Delete", icon: "trash", action: onDelete)
+                    MessageBubbleMenuButton(title: "Delete", icon: "trash") {
+                        showDeleteMessageAlert = true
+                    }
                 }
             }
             .frame(width: 200)
@@ -163,6 +166,12 @@ struct MessageBubbleMenu: View {
             .padding(.horizontal, 20)
             
             if !message.isMine { Spacer() }
+        }
+        .alert("Delete Message", isPresented: $showDeleteMessageAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive, action: onDelete)
+        } message: {
+            Text("Are you sure you want to delete this message?")
         }
     }
     
