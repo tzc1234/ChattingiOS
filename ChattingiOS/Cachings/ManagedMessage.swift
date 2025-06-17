@@ -15,6 +15,7 @@ final class ManagedMessage: NSManagedObject {
     @NSManaged var isRead: Bool
     @NSManaged var createdAt: Date
     @NSManaged var editedAt: Date?
+    @NSManaged var deletedAt: Date?
     @NSManaged var userID: Int
     @NSManaged var contact: ManagedContact
 }
@@ -198,7 +199,7 @@ extension ManagedMessage {
             isRead: isRead,
             createdAt: createdAt,
             editedAt: editedAt,
-            deletedAt: nil
+            deletedAt: deletedAt
         )
     }
 }
