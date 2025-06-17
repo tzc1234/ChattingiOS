@@ -13,7 +13,7 @@ final class MessageListViewModel: ObservableObject {
     @Published var generalError: String?
     @Published var setupError: String?
     @Published var inputMessage = ""
-    @Published var editMessage = ""
+    @Published var editMessageInput = ""
     @Published private(set) var isLoading = false
     @Published var messageIDForListPosition: Int?
     @Published private(set) var avatarData: Data?
@@ -244,15 +244,26 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
+    func shouldShowEdit(_ message: DisplayedMessage) -> Bool {
+        guard !isLoading, isConnecting, !isBlocked else { return false }
+        
+        return Date.now.timeIntervalSince(message.createdAt) < 60 * 15 // within 15 mins
+    }
+    
+    func canEdit(for message: DisplayedMessage) -> Bool {
+        !editMessageInput.isEmpty && message.text != editMessageInput
+    }
+    
     func editMessage(messageID: Int) {
-        guard !editMessage.isEmpty else { return }
+        guard !editMessageInput.isEmpty else { return }
         
         isLoading = true
         editMessageTask = Task {
             defer { isLoading = false }
             
             do {
-                try await connection?.send(editMessageID: messageID, text: editMessage)
+                try await connection?.send(editMessageID: messageID, text: editMessageInput)
+                editMessageInput = ""
             } catch {
                 print("edit message fail.")
             }
@@ -308,12 +319,6 @@ final class MessageListViewModel: ObservableObject {
                 messages[index] = message.newReadInstance()
             }
         }
-    }
-    
-    func canEdit(_ message: DisplayedMessage) -> Bool {
-        guard !isLoading, isConnecting, !isBlocked else { return false }
-        
-        return Date.now.timeIntervalSince(message.createdAt) < 60 * 15 // within 15 mins
     }
 }
 

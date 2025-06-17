@@ -7,13 +7,14 @@
 
 import SwiftUI
 
+struct EditMessageAttributes {
+    @Binding var editMessageInput: String
+    let editMessage: (Int) -> Void
+    let shouldShowEdit: (DisplayedMessage) -> Bool
+    let canEdit: (DisplayedMessage) -> Bool
+}
+
 struct MessageListContentView: View {
-    struct EditMessageAttributes {
-        @Binding var editMessageText: String
-        let editMessage: (Int) -> Void
-        let canEdit: (DisplayedMessage) -> Bool
-    }
-    
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var messageInputFocused: Bool
     @State private var scrollToMessageID: Int?
@@ -185,8 +186,9 @@ struct MessageListContentView: View {
             MessageBubbleMenu(
                 screenSize: screenSize,
                 selectedBubble: selectedBubble,
-                editMessageText: editMessage.$editMessageText,
-                canEdit: editMessage.canEdit(selectedBubble.message),
+                editMessageInput: editMessage.$editMessageInput,
+                shouldShowEdit: editMessage.shouldShowEdit(selectedBubble.message),
+                canEdit: { editMessage.canEdit(selectedBubble.message) },
                 onCopy: {
                     UIPasteboard.general.string = selectedBubble.message.text
                     showBubbleMenu = false
@@ -391,7 +393,12 @@ struct MessageBubble: View {
             loadPreviousMessages: {},
             loadMoreMessages: {},
             readMessages: { _ in },
-            editMessage: .init(editMessageText: .constant(""), editMessage: { _ in }, canEdit: { _ in true })
+            editMessage: .init(
+                editMessageInput: .constant(""),
+                editMessage: { _ in },
+                shouldShowEdit: { _ in true },
+                canEdit: { _ in true }
+            )
         )
     }
     .environmentObject(ViewStyleManager())

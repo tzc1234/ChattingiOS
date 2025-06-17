@@ -30,8 +30,9 @@ struct MessageBubbleMenu: View {
     
     let screenSize: CGSize
     let selectedBubble: SelectedBubble
-    @Binding var editMessageText: String
-    let canEdit: Bool
+    @Binding var editMessageInput: String
+    let shouldShowEdit: Bool
+    let canEdit: () -> Bool
     let onCopy: () -> Void
     let onEdit: () -> Void
     let onClose: () -> Void
@@ -131,7 +132,7 @@ struct MessageBubbleMenu: View {
             VStack(spacing: 0) {
                 MessageBubbleMenuButton(title: "Copy", icon: "doc.on.doc", action: onCopy)
                 
-                if message.isMine, canEdit {
+                if message.isMine, shouldShowEdit {
                     Rectangle()
                         .frame(height: 1)
                         .foregroundStyle(style.message.bubbleMenu.strokeColor)
@@ -139,7 +140,7 @@ struct MessageBubbleMenu: View {
                     MessageBubbleMenuButton(title: "Edit", icon: "square.and.pencil") {
                         showMenuItems = false
                         editAreaFocused = true
-                        editMessageText = message.text
+                        editMessageInput = message.text
                         showEditArea = true
                     }
                 }
@@ -170,10 +171,10 @@ struct MessageBubbleMenu: View {
             .padding(.horizontal, 22)
 
             MessageInputArea(
-                inputMessage: $editMessageText,
+                inputMessage: $editMessageInput,
                 focused: _editAreaFocused,
                 sendButtonIcon: "checkmark",
-                sendButtonActive: !editMessageText.isEmpty,
+                sendButtonActive: canEdit(),
                 isLoading: false,
                 sendAction: onEdit
             )

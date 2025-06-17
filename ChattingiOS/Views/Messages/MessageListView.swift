@@ -29,9 +29,10 @@ struct MessageListView: View {
             loadMoreMessages: viewModel.loadMoreMessages,
             readMessages: viewModel.readMessages,
             editMessage: .init(
-                editMessageText: $viewModel.editMessage,
+                editMessageInput: $viewModel.editMessageInput,
                 editMessage: viewModel.editMessage(messageID:),
-                canEdit: viewModel.canEdit(_:)
+                shouldShowEdit: viewModel.shouldShowEdit(_:),
+                canEdit: viewModel.canEdit(for:)
             )
         )
         .toolbar(.hidden, for: .tabBar)
