@@ -80,6 +80,12 @@ actor DefaultMessageChannel: MessageChannel {
             try await webSocket.send(data: binary.binaryData)
         }
         
+        func send(deleteMessageID: Int) async throws {
+            let data = try MessageChannelDeleteMessageEncoder.encode(deleteMessageID)
+            let binary = MessageChannelOutgoingBinary(type: .deleteMessage, payload: data)
+            try await webSocket.send(data: binary.binaryData)
+        }
+        
         func close() async throws {
             try await webSocket.close()
         }

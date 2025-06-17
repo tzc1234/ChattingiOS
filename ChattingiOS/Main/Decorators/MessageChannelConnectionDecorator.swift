@@ -75,6 +75,9 @@ struct MessageChannelConnectionDecorator: MessageChannelConnection {
         try await connection.send(editMessageID: editMessageID, text: text)
     }
     
+    func send(deleteMessageID: Int) async throws {
+        try await connection.send(deleteMessageID: deleteMessageID)
+    }
     
     func close() async throws {
         try await connection.close()

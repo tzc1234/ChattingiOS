@@ -791,6 +791,7 @@ final class MessageListViewModelTests: XCTestCase {
             text: text,
             isMine: senderID == currentUserID,
             isRead: isRead,
+            isDeleted: deletedAt != nil,
             createdAt: createdAt,
             date: createdAt.formatted(date: .abbreviated, time: .omitted),
             time: createdAt.formatted(date: .omitted, time: .shortened)

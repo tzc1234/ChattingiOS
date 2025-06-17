@@ -37,6 +37,7 @@ final class MessageListViewModel: ObservableObject {
     private(set) var loadMoreMessagesTask: Task<Void, Never>?
     private(set) var sendMessageTask: Task<Void, Never>?
     private(set) var editMessageTask: Task<Void, Never>?
+    private(set) var deleteMessagesTask: Task<Void, Never>?
     private(set) var readMessagesTask: Task<Void, Never>?
     
     private let currentUserID: Int
@@ -250,7 +251,7 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func shouldShowEdit(_ message: DisplayedMessage) -> Bool {
-        guard !isLoading, isConnecting, !isBlocked else { return false }
+        guard !isLoading, isConnecting, !isBlocked, !message.isDeleted else { return false }
         
         return Date.now.timeIntervalSince(message.createdAt) < 60 * 15 // within 15 mins
     }
@@ -273,6 +274,25 @@ final class MessageListViewModel: ObservableObject {
                 editMessageInput = ""
             } catch {
                 print("edit message fail.")
+            }
+        }
+    }
+    
+    func shouldShowDelete(_ message: DisplayedMessage) -> Bool {
+        !isLoading && isConnecting && !isBlocked && !message.isDeleted
+    }
+    
+    func deleteMessage(_ message: DisplayedMessage) {
+        guard !message.isDeleted else { return }
+        
+        isLoading = true
+        deleteMessagesTask = Task {
+            defer { isLoading = false }
+            
+            do {
+                try await connection?.send(deleteMessageID: message.id)
+            } catch {
+                print("delete message fail.")
             }
         }
     }
@@ -336,6 +356,7 @@ private extension Message {
             text: text,
             isMine: senderID == currentUserID,
             isRead: isRead,
+            isDeleted: deletedAt != nil,
             createdAt: createdAt,
             date: createdAt.formatted(date: .abbreviated, time: .omitted),
             time: deletedAt.map { "Deleted \($0.formatted(date: .omitted, time: .shortened))" } ??
