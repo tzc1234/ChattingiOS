@@ -378,6 +378,7 @@ struct MessageBubble: View {
             
             if !isMine { Spacer() }
         }
+        .id(message.text)
     }
 }
 
