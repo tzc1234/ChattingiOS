@@ -293,12 +293,6 @@ struct MessageBubbleContent: View {
     }
     
     let message: DisplayedMessage
-    let readEditedMessage: (() -> Void)?
-    
-    init(message: DisplayedMessage, readEditedMessage: (() -> Void)? = nil) {
-        self.message = message
-        self.readEditedMessage = readEditedMessage
-    }
     
     var body: some View {
         Text(message.text)
@@ -314,9 +308,6 @@ struct MessageBubbleContent: View {
                 style.message.bubble.strokeColor(isMine: isMine),
                 in: .rect(cornerRadii: cornerRadii).stroke(lineWidth: 1)
             )
-            .onChange(of: message) { newValue in
-                if newValue.isUnread { readEditedMessage?() }
-            }
     }
 }
 
@@ -336,7 +327,10 @@ struct MessageBubble: View {
             if isMine { Spacer() }
             
             VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
-                MessageBubbleContent(message: message, readEditedMessage: readEditedMessage)
+                MessageBubbleContent(message: message)
+                    .onChange(of: message) { newValue in
+                        if message.text != newValue.text, newValue.isUnread { readEditedMessage() }
+                    }
                     .background {
                         GeometryReader { proxy in
                             DispatchQueue.main.async {
