@@ -20,6 +20,11 @@ struct EditMessageAttributes {
     let canEdit: (DisplayedMessage) -> Bool
 }
 
+struct DeleteMessageAttributes {
+    let shouldShowDelete: (DisplayedMessage) -> Bool
+    let deleteMessage: (DisplayedMessage) -> Void
+}
+
 struct MessageListContentView: View {
     @EnvironmentObject private var style: ViewStyleManager
     @FocusState private var messageInputFocused: Bool
@@ -51,6 +56,7 @@ struct MessageListContentView: View {
     let readMessages: (Int) -> Void
     let sendMessage: SendMessageAttributes
     let editMessage: EditMessageAttributes
+    let deleteMessage: DeleteMessageAttributes
     
     var body: some View {
         ZStack {
@@ -189,6 +195,7 @@ struct MessageListContentView: View {
                 selectedBubble: selectedBubble,
                 editMessageInput: editMessage.$editMessageInput,
                 shouldShowEdit: editMessage.shouldShowEdit(selectedBubble.message),
+                shouldShowDelete: deleteMessage.shouldShowDelete(selectedBubble.message),
                 canEdit: { editMessage.canEdit(selectedBubble.message) },
                 onCopy: {
                     UIPasteboard.general.string = selectedBubble.message.text
@@ -196,6 +203,10 @@ struct MessageListContentView: View {
                 },
                 onEdit: {
                     editMessage.editMessage(selectedBubble.message.id)
+                    showBubbleMenu = false
+                },
+                onDelete: {
+                    deleteMessage.deleteMessage(selectedBubble.message)
                     showBubbleMenu = false
                 },
                 onClose: { showBubbleMenu = false }
@@ -300,6 +311,7 @@ struct MessageBubbleContent: View {
     var body: some View {
         Text(message.text)
             .font(.callout)
+            .italic(message.isDeleted)
             .foregroundColor(style.message.bubble.foregroundColor(isMine: isMine))
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -358,7 +370,7 @@ struct MessageBubble: View {
                         .font(.caption)
                         .foregroundColor(style.message.bubble.timeColor)
                     
-                    if isMine {
+                    if isMine, !message.isDeleted {
                         Image(systemName: message.isRead ? "checkmark.circle.fill" : "checkmark.circle")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(style.message.bubble.readIconColor(isRead: message.isRead))
@@ -381,7 +393,7 @@ struct MessageBubble: View {
                 .init(id: 1, text: "How are you?", isMine: false, isRead: true, isDeleted: false, createdAt: .now, date:  "1 Jan 2025", time: "10:05"),
                 .init(id: 2, text: "Not bad.", isMine: true, isRead: true, isDeleted: false, createdAt: .now, date: "2 Jan 2025", time: "12:45"),
                 .init(id: 3, text: "Long time no see\nHow are you?", isMine: true, isRead: true, isDeleted: false, createdAt: .now, date: "2 Jan 2025", time: "13:00"),
-                .init(id: 4, text: "What are you doing now?", isMine: false, isRead: true, isDeleted: false, createdAt: .now, date:  "3 Jan 2025", time: "11:00"),
+                .init(id: 4, text: "Message deleted.", isMine: false, isRead: true, isDeleted: true, createdAt: .now, date:  "3 Jan 2025", time: "11:00"),
             ],
             isLoading: false,
             isBlocked: false,
@@ -402,6 +414,9 @@ struct MessageBubble: View {
                 editMessage: { _ in },
                 shouldShowEdit: { _ in true },
                 canEdit: { _ in true }
+            ), deleteMessage: .init(
+                shouldShowDelete: { _ in true },
+                deleteMessage: { _ in }
             )
         )
     }

@@ -36,6 +36,10 @@ struct MessageListView: View {
                 editMessage: viewModel.editMessage(messageID:),
                 shouldShowEdit: viewModel.shouldShowEdit(_:),
                 canEdit: viewModel.canEdit(for:)
+            ),
+            deleteMessage: .init(
+                shouldShowDelete: viewModel.shouldShowDelete(_:),
+                deleteMessage: viewModel.deleteMessage(_:)
             )
         )
         .toolbar(.hidden, for: .tabBar)

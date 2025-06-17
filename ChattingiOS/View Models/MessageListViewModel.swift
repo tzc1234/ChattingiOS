@@ -251,7 +251,7 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func shouldShowEdit(_ message: DisplayedMessage) -> Bool {
-        guard !isLoading, isConnecting, !isBlocked, !message.isDeleted else { return false }
+        guard !isLoading, isConnecting, !isBlocked, message.isMine, !message.isDeleted else { return false }
         
         return Date.now.timeIntervalSince(message.createdAt) < 60 * 15 // within 15 mins
     }
@@ -279,7 +279,7 @@ final class MessageListViewModel: ObservableObject {
     }
     
     func shouldShowDelete(_ message: DisplayedMessage) -> Bool {
-        !isLoading && isConnecting && !isBlocked && !message.isDeleted
+        !isLoading && isConnecting && !isBlocked && message.isMine && !message.isDeleted
     }
     
     func deleteMessage(_ message: DisplayedMessage) {

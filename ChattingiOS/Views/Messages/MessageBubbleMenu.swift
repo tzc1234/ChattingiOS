@@ -32,9 +32,11 @@ struct MessageBubbleMenu: View {
     let selectedBubble: SelectedBubble
     @Binding var editMessageInput: String
     let shouldShowEdit: Bool
+    let shouldShowDelete: Bool
     let canEdit: () -> Bool
     let onCopy: () -> Void
     let onEdit: () -> Void
+    let onDelete: () -> Void
     let onClose: () -> Void
     
     private var contentInsets: UIEdgeInsets {
@@ -132,7 +134,7 @@ struct MessageBubbleMenu: View {
             VStack(spacing: 0) {
                 MessageBubbleMenuButton(title: "Copy", icon: "doc.on.doc", action: onCopy)
                 
-                if message.isMine, shouldShowEdit {
+                if shouldShowEdit {
                     Rectangle()
                         .frame(height: 1)
                         .foregroundStyle(style.message.bubbleMenu.strokeColor)
@@ -143,6 +145,14 @@ struct MessageBubbleMenu: View {
                         editMessageInput = message.text
                         showEditArea = true
                     }
+                }
+                
+                if shouldShowDelete {
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundStyle(style.message.bubbleMenu.strokeColor)
+                    
+                    MessageBubbleMenuButton(title: "Delete", icon: "trash", action: onDelete)
                 }
             }
             .frame(width: 200)
