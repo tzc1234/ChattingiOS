@@ -358,8 +358,10 @@ struct MessageBubble: View {
                     .onLongPressGesture(
                         minimumDuration: 0.1,
                         perform: {
-                            impactFeedback.impactOccurred()
-                            selectedBubble = .init(frame: contentFrame, message: message)
+                            if !message.isDeleted {
+                                impactFeedback.impactOccurred()
+                                selectedBubble = .init(frame: contentFrame, message: message)
+                            }
                         }
                     )
                 
