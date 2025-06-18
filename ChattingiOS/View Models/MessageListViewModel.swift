@@ -357,8 +357,8 @@ private extension Message {
             isDeleted: deletedAt != nil,
             createdAt: createdAt,
             date: createdAt.formatted(date: .abbreviated, time: .omitted),
-            time: deletedAt.map { "Deleted \($0.formatted(date: .omitted, time: .shortened))" } ??
-                editedAt.map { "Edited \($0.formatted(date: .omitted, time: .shortened))" } ??
+            time: deletedAt.map { _ in "Deleted \(createdAt.formatted(date: .omitted, time: .shortened))" } ??
+            editedAt.map { _ in "Edited \(createdAt.formatted(date: .omitted, time: .shortened))" } ??
                 createdAt.formatted(date: .omitted, time: .shortened)
         )
     }
