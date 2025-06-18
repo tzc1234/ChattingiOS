@@ -12,6 +12,8 @@ struct DisplayedMessage: Identifiable, Equatable {
     let text: String
     let isMine: Bool
     let isRead: Bool
+    let isDeleted: Bool
+    let createdAt: Date
     let date: String
     let time: String
     
@@ -25,6 +27,8 @@ extension DisplayedMessage {
             text: text,
             isMine: isMine,
             isRead: true,
+            isDeleted: isDeleted,
+            createdAt: createdAt,
             date: date,
             time: time
         )

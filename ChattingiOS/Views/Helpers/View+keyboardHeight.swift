@@ -8,12 +8,36 @@
 import SwiftUI
 
 struct KeyboardHeightProvider: ViewModifier {
+    enum KeyboardNotificationType {
+        case willShow
+        case didShow
+    }
+    
     @Binding var keyboardHeight: CGFloat
+    let type: KeyboardNotificationType
+    
+    private var keyboardShownNotification: Notification.Name {
+        switch type {
+        case .willShow:
+            UIResponder.keyboardWillShowNotification
+        case .didShow:
+            UIResponder.keyboardDidShowNotification
+        }
+    }
+    
+    private var keyboardHidNotification: Notification.Name {
+        switch type {
+        case .willShow:
+            UIResponder.keyboardWillHideNotification
+        case .didShow:
+            UIResponder.keyboardDidHideNotification
+        }
+    }
     
     func body(content: Content) -> some View {
         content
             .onReceive(
-                NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification),
+                NotificationCenter.default.publisher(for: keyboardShownNotification),
                 perform: { notification in
                     guard let rect = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
                         return
@@ -23,7 +47,7 @@ struct KeyboardHeightProvider: ViewModifier {
                 }
             )
             .onReceive(
-                NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification),
+                NotificationCenter.default.publisher(for: keyboardHidNotification),
                 perform: { _ in
                     withAnimation { keyboardHeight = 0 }
                 }
@@ -32,7 +56,8 @@ struct KeyboardHeightProvider: ViewModifier {
 }
 
 extension View {
-    func keyboardHeight(_ state: Binding<CGFloat>) -> some View {
-        modifier(KeyboardHeightProvider(keyboardHeight: state))
+    func keyboardHeight(_ state: Binding<CGFloat>,
+                        type: KeyboardHeightProvider.KeyboardNotificationType = .willShow) -> some View {
+        modifier(KeyboardHeightProvider(keyboardHeight: state, type: type))
     }
 }

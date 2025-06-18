@@ -35,6 +35,8 @@ final class MessageListViewModel: ObservableObject {
     private(set) var loadPreviousMessagesTask: Task<Void, Never>?
     private(set) var loadMoreMessagesTask: Task<Void, Never>?
     private(set) var sendMessageTask: Task<Void, Never>?
+    private(set) var editMessageTask: Task<Void, Never>?
+    private(set) var deleteMessagesTask: Task<Void, Never>?
     private(set) var readMessagesTask: Task<Void, Never>?
     
     private let currentUserID: Int
@@ -114,23 +116,42 @@ final class MessageListViewModel: ObservableObject {
                             try await loadMissingMessages(to: message.id)
                         }
                         
-                        messages.append(message.toDisplayedModel(currentUserID: currentUserID))
-                        canLoadMore = false
-                        
-                        if messageIDForListPosition == nil {
-                            messageIDForListPosition = message.id
+                        let receivedMessage = message.toDisplayedModel(currentUserID: currentUserID)
+                        if !updateMessageSuccess(receivedMessage) {
+                            messages.append(receivedMessage)
+                            canLoadMore = false
+                            
+                            if messageIDForListPosition == nil {
+                                messageIDForListPosition = message.id
+                            }
                         }
                     case let .readMessages(readMessages):
                         updateReadMessages(
                             contactID: readMessages.contactID,
                             untilMessageID: readMessages.untilMessageID
                         )
+                    case let .errorReason(reason):
+                        generalError = reason
                     }
                 }
             } catch {
                 setupError = "Connection error occurred."
             }
         }
+    }
+    
+    private func updateMessageSuccess(_ message: DisplayedMessage) -> Bool {
+        for index in (0..<messages.count).reversed() {
+            let oldMessage = messages[index]
+            
+            if oldMessage.id < message.id { return false }
+            if oldMessage.id == message.id {
+                messages[index] = message
+                return true
+            }
+        }
+        
+        return false
     }
     
     private func loadMissingMessages(to newLastID: Int) async throws(UseCaseError) {
@@ -204,8 +225,13 @@ final class MessageListViewModel: ObservableObject {
         }
     }
     
+    func canSendMessage() -> Bool {
+        !isLoading && isConnecting && !inputMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
     func sendMessage() {
-        guard !inputMessage.isEmpty else { return }
+        let trimmedInput = inputMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedInput.isEmpty else { return }
         
         isLoading = true
         sendMessageTask = Task {
@@ -213,12 +239,58 @@ final class MessageListViewModel: ObservableObject {
             
             do {
                 try await loadMoreMessageToTheEnd()
-                try await connection?.send(text: inputMessage)
+                try await connection?.send(text: trimmedInput)
                 inputMessage = ""
             } catch let error as UseCaseError {
                 generalError = error.toGeneralErrorMessage()
             } catch {
                 generalError = "Cannot send the message, please try it again later."
+            }
+        }
+    }
+    
+    func shouldShowEdit(_ message: DisplayedMessage) -> Bool {
+        guard !isLoading, isConnecting, !isBlocked, message.isMine, !message.isDeleted else { return false }
+        
+        return Date.now.timeIntervalSince(message.createdAt) < 60 * 15 // within 15 mins
+    }
+    
+    func canEdit(for message: DisplayedMessage, text: String) -> Bool {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmedText.isEmpty && message.text != trimmedText
+    }
+    
+    func editMessage(messageID: Int, text: String) {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else { return }
+        
+        isLoading = true
+        editMessageTask = Task {
+            defer { isLoading = false }
+            
+            do {
+                try await connection?.send(editMessageID: messageID, text: trimmedText)
+            } catch {
+                print("edit message fail.")
+            }
+        }
+    }
+    
+    func shouldShowDelete(_ message: DisplayedMessage) -> Bool {
+        !isLoading && isConnecting && !isBlocked && message.isMine && !message.isDeleted
+    }
+    
+    func deleteMessage(_ message: DisplayedMessage) {
+        guard !message.isDeleted else { return }
+        
+        isLoading = true
+        deleteMessagesTask = Task {
+            defer { isLoading = false }
+            
+            do {
+                try await connection?.send(deleteMessageID: message.id)
+            } catch {
+                print("delete message fail.")
             }
         }
     }
@@ -282,8 +354,12 @@ private extension Message {
             text: text,
             isMine: senderID == currentUserID,
             isRead: isRead,
+            isDeleted: deletedAt != nil,
+            createdAt: createdAt,
             date: createdAt.formatted(date: .abbreviated, time: .omitted),
-            time: createdAt.formatted(date: .omitted, time: .shortened)
+            time: deletedAt.map { "Deleted \($0.formatted(date: .omitted, time: .shortened))" } ??
+                editedAt.map { "Edited \($0.formatted(date: .omitted, time: .shortened))" } ??
+                createdAt.formatted(date: .omitted, time: .shortened)
         )
     }
 }

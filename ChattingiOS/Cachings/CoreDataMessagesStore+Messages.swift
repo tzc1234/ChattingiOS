@@ -104,6 +104,8 @@ private extension Message {
             "senderID": senderID,
             "isRead": isRead,
             "createdAt": createdAt,
+            "editedAt": editedAt as Any,
+            "deletedAt": deletedAt as Any,
             "contactID": contactID,
             "userID": userID
         ]

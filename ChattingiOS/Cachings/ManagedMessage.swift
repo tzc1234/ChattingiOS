@@ -14,6 +14,8 @@ final class ManagedMessage: NSManagedObject {
     @NSManaged var senderID: Int
     @NSManaged var isRead: Bool
     @NSManaged var createdAt: Date
+    @NSManaged var editedAt: Date?
+    @NSManaged var deletedAt: Date?
     @NSManaged var userID: Int
     @NSManaged var contact: ManagedContact
 }
@@ -190,7 +192,15 @@ extension ManagedMessage {
     static var entityName: String { String(describing: Self.self) }
     
     func toMessage() -> Message {
-        Message(id: id, text: text, senderID: senderID, isRead: isRead, createdAt: createdAt)
+        Message(
+            id: id,
+            text: text,
+            senderID: senderID,
+            isRead: isRead,
+            createdAt: createdAt,
+            editedAt: editedAt,
+            deletedAt: deletedAt
+        )
     }
 }
 

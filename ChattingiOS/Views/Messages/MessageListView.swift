@@ -19,15 +19,27 @@ struct MessageListView: View {
             messages: viewModel.messages,
             isLoading: viewModel.isLoading,
             isBlocked: viewModel.isBlocked,
+            isConnecting: viewModel.isConnecting,
             setupError: $viewModel.setupError,
-            inputMessage: $viewModel.inputMessage,
             listPositionMessageID: $viewModel.messageIDForListPosition,
             setupList: viewModel.setupMessageList,
-            sendMessage: viewModel.sendMessage,
             loadPreviousMessages: viewModel.loadPreviousMessages,
             loadMoreMessages: viewModel.loadMoreMessages,
             readMessages: viewModel.readMessages,
-            isConnecting: viewModel.isConnecting
+            sendMessage: .init(
+                inputMessage: $viewModel.inputMessage,
+                canSendMessage: viewModel.canSendMessage,
+                sendMessage: viewModel.sendMessage
+            ),
+            editMessage: .init(
+                shouldShowEdit: viewModel.shouldShowEdit(_:),
+                canEdit: viewModel.canEdit(for:text:),
+                editMessage: viewModel.editMessage(messageID:text:),
+            ),
+            deleteMessage: .init(
+                shouldShowDelete: viewModel.shouldShowDelete(_:),
+                deleteMessage: viewModel.deleteMessage(_:)
+            )
         )
         .toolbar(.hidden, for: .tabBar)
         .task { await viewModel.loadAvatarData() }

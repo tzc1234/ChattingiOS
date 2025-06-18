@@ -140,6 +140,8 @@ final class MessageChannelTests: XCTestCase {
                     logger.append(message)
                 case .readMessages:
                     break
+                case .errorReason:
+                    break
                 }
             }
         }) { error in
@@ -152,15 +154,15 @@ final class MessageChannelTests: XCTestCase {
         let now = Date.now.removeTimeIntervalDecimal()
         let messages = [
             makeWebSocketMessage(
-                Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture),
+                Message(id: 0, text: "any text", senderID: 0, isRead: true, createdAt: .distantFuture, editedAt: nil, deletedAt: nil),
                 previousID: nil
             ),
             makeWebSocketMessage(
-                Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast),
+                Message(id: 1, text: "another text", senderID: 1, isRead: true, createdAt: .distantPast, editedAt: nil, deletedAt: nil),
                 previousID: 0
             ),
             makeWebSocketMessage(
-                Message(id: 2, text: "another text 2", senderID: 0, isRead: false, createdAt: now),
+                Message(id: 2, text: "another text 2", senderID: 0, isRead: false, createdAt: now, editedAt: .distantFuture, deletedAt: .distantFuture),
                 previousID: 1
             )
         ]
@@ -173,6 +175,8 @@ final class MessageChannelTests: XCTestCase {
                 case let .message(message):
                     logger.append(message)
                 case .readMessages:
+                    break
+                case .errorReason:
                     break
                 }
             }
@@ -315,7 +319,7 @@ final class MessageChannelTests: XCTestCase {
         func start() async {
             if !messageDataStubs.isEmpty {
                 messageDataStubs.forEach { data in
-                    continuation.yield(MessageChannelBinary(type: .message, payload: data).binaryData)
+                    continuation.yield(MessageChannelIncomingBinary(type: .message, payload: data).binaryData)
                 }
                 continuation.finish()
             }
@@ -347,6 +351,6 @@ private extension String {
     }
     
     var toBinaryData: Data {
-        MessageChannelBinary(type: .message, payload: toData).binaryData
+        MessageChannelOutgoingBinary(type: .message, payload: toData).binaryData
     }
 }

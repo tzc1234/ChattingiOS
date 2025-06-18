@@ -31,7 +31,7 @@ actor DefaultMessageChannel: MessageChannel {
                 let task = Task {
                     do {
                         for try await data in webSocket.outputStream {
-                            guard let binary = MessageChannelBinary.convert(from: data) else {
+                            guard let binary = MessageChannelIncomingBinary.convert(from: data) else {
                                 throw MessageChannelConnectionError.unsupportedData
                             }
 
@@ -42,6 +42,10 @@ actor DefaultMessageChannel: MessageChannel {
                             case .readMessages:
                                 let readMessages = try MessageChannelUpdatedReadMessagesMapper.map(binary.payload)
                                 continuation.yield(.readMessages(readMessages))
+                            case .error:
+                                if let reason = ErrorResponseMapper.map(errorData: binary.payload) {
+                                    continuation.yield(.errorReason(reason))
+                                }
                             }
                         }
                         continuation.finish()
@@ -60,13 +64,25 @@ actor DefaultMessageChannel: MessageChannel {
         
         func send(text: String) async throws {
             let data = try MessageChannelSentTextEncoder.encode(text)
-            let binary = MessageChannelBinary(type: .message, payload: data)
+            let binary = MessageChannelOutgoingBinary(type: .message, payload: data)
             try await webSocket.send(data: binary.binaryData)
         }
         
         func send(readUntilMessageID: Int) async throws {
             let data = try MessageChannelReadMessageEncoder.encode(readUntilMessageID)
-            let binary = MessageChannelBinary(type: .readMessages, payload: data)
+            let binary = MessageChannelOutgoingBinary(type: .readMessages, payload: data)
+            try await webSocket.send(data: binary.binaryData)
+        }
+        
+        func send(editMessageID: Int, text: String) async throws {
+            let data = try MessageChannelEditMessageEncoder.encode(messageID: editMessageID, text: text)
+            let binary = MessageChannelOutgoingBinary(type: .editMessage, payload: data)
+            try await webSocket.send(data: binary.binaryData)
+        }
+        
+        func send(deleteMessageID: Int) async throws {
+            let data = try MessageChannelDeleteMessageEncoder.encode(deleteMessageID)
+            let binary = MessageChannelOutgoingBinary(type: .deleteMessage, payload: data)
             try await webSocket.send(data: binary.binaryData)
         }
         

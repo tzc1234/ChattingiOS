@@ -27,4 +27,6 @@ struct Message: Equatable {
     let senderID: Int
     let isRead: Bool
     let createdAt: Date
+    let editedAt: Date?
+    let deletedAt: Date?
 }

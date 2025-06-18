@@ -37,7 +37,10 @@ extension CoreDataMessagesStore {
     
     private static func loadContainer(for url: URL, with model: NSManagedObjectModel) throws -> NSPersistentContainer {
         let container = NSPersistentContainer(name: modelName, managedObjectModel: model)
-        container.persistentStoreDescriptions = [NSPersistentStoreDescription(url: url)]
+        let description = NSPersistentStoreDescription(url: url)
+        description.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
+        description.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
+        container.persistentStoreDescriptions = [description]
         
         var loadError: Error?
         container.loadPersistentStores { loadError = $1 }

@@ -222,7 +222,7 @@ struct ContactRow: View {
                     createdAt: .now,
                     lastUpdate: .distantPast,
                     lastMessage: MessageWithMetadata(
-                        message: .init(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now),
+                        message: .init(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now, editedAt: nil, deletedAt: nil),
                         metadata: .init(previousID: nil)
                     )
                 )

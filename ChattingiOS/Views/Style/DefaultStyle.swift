@@ -251,6 +251,7 @@ extension DefaultStyle {
                     )
                 )
         }
+        var spinnerColor: Color { .white }
     }
 }
 

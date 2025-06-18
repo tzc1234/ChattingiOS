@@ -5,6 +5,9 @@
 <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/signin.jpeg" alt="signin" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/add_contact.jpeg" alt="add_contact" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/contacts.jpeg" alt="contacts" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/messages.jpeg" alt="messages" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/message_notification.jpeg" alt="message_notification" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/profile.jpeg" alt="profile" width="256" height="555"/>
 
 ### Retrospective
+#### Re-render message bubble after edit message
+After the message is edited, if bubbles increase lines of text (to become "taller"), the message bubble view will not expand vertically correctly. I think it's the list row height calculation issue of SwiftUI `List`. It's time to use the good old trick, change the id of the view (use `.id()` modifier), and force SwiftUI to recreate it.
+
 #### Unify the binary for web socket
 Before, the read messages endpoint was using HTTP request, now using web socket to read messages. Since the read message request only contains one `untilMessageID` parameter, it is lightweight enough to utilise webSocket for fast, efficient transfer. But then the binary for web socket must be reorganised, unifying from different heartbeat, message, readMessage binary responses to one `MessageChannelBinary`. In order to distinguish the binary data, the first byte(UInt8) is used to determine the response type, and the remaining bytes are the payload. For heartbeat is 0, message is 1, and readMessages is 2, represented by an enum. This approach will also benefit for the future when more different binary data types are needed.
 
@@ -69,3 +72,4 @@ The compiler will complain if something is not thread-safe, non-sendable. In ord
 * Version 1.3 contacts caching
 * Version 1.4 new UI design
 * Version 1.5 unify web socket binary types
+* Version 1.6 edit/delete message

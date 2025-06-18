@@ -27,6 +27,8 @@ protocol MessageChannelConnection: Sendable {
     
     func send(text: String) async throws
     func send(readUntilMessageID: Int) async throws
+    func send(editMessageID: Int, text: String) async throws
+    func send(deleteMessageID: Int) async throws
     func close() async throws
 }
 
@@ -39,4 +41,5 @@ enum MessageChannelConnectionError: Error {
 enum MessageStreamResult {
     case message(MessageWithMetadata)
     case readMessages(ReadMessages)
+    case errorReason(String)
 }

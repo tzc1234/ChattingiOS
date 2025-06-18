@@ -30,9 +30,6 @@ struct ProfileContentView: View {
                 Spacer()
             }
             .padding(.horizontal, 24)
-            
-            CTLoadingView()
-                .opacity(isLoading ? 1 : 0)
         }
         .disabled(isLoading)
         .navigationTitle("Profile")
@@ -50,7 +47,7 @@ struct ProfileContentView: View {
             }
         }
         .alert("Sign Out", isPresented: $showSignOutAlert) {
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) {}
             Button("Sign Out", role: .destructive, action: signOutAction)
         } message: {
             Text("Are you sure you want to sign out?")
@@ -70,17 +67,23 @@ struct ProfileContentView: View {
                     .blur(radius: 15)
                 
                 CTIconView {
-                    if let avatarImage {
-                        Image(uiImage: avatarImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 105, height: 105)
-                            .clipShape(.circle)
+                    if isLoading {
+                        ProgressView()
+                            .controlSize(.large)
+                            .tint(style.profile.spinnerColor)
                     } else {
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 75, weight: .medium))
-                            .foregroundColor(style.common.iconColor)
-                        
+                        if let avatarImage {
+                            Image(uiImage: avatarImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 105, height: 105)
+                                .clipShape(.circle)
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 75, weight: .medium))
+                                .foregroundColor(style.common.iconColor)
+                            
+                        }
                     }
                 }
                 .frame(width: 110, height: 110)

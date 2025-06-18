@@ -7,25 +7,33 @@
 
 import SwiftUI
 
+struct SendMessageAttributes {
+    @Binding var inputMessage: String
+    let canSendMessage: () -> Bool
+    let sendMessage: () -> Void
+}
+
+struct EditMessageAttributes {
+    let shouldShowEdit: (DisplayedMessage) -> Bool
+    let canEdit: (DisplayedMessage, String) -> Bool
+    let editMessage: (Int, String) -> Void
+}
+
+struct DeleteMessageAttributes {
+    let shouldShowDelete: (DisplayedMessage) -> Bool
+    let deleteMessage: (DisplayedMessage) -> Void
+}
+
 struct MessageListContentView: View {
-    struct SelectedBubble {
-        let frame: CGRect
-        let message: DisplayedMessage
-    }
-    
     @EnvironmentObject private var style: ViewStyleManager
-    @FocusState private var textEditorFocused: Bool
+    @FocusState private var messageInputFocused: Bool
     @State private var scrollToMessageID: Int?
     @State private var visibleMessageIndex = Set<Int>()
     @State private var isScrollToBottom = false
     @State private var selectedBubble: SelectedBubble?
-    @State private var screenSize: CGSize = .zero
-    @State private var bottomInset: CGFloat = .zero
     @State private var avatarImage: UIImage?
-    
-    private var sendButtonActive: Bool {
-        !isLoading && !inputMessage.isEmpty && isConnecting
-    }
+    @State private var screenSize: CGSize = .zero
+    @State private var showBubbleMenu = false
     
     private var showScrollToBottomButton: Bool {
         guard let maxIndex = visibleMessageIndex.max() else { return false }
@@ -38,15 +46,16 @@ struct MessageListContentView: View {
     let messages: [DisplayedMessage]
     let isLoading: Bool
     let isBlocked: Bool
+    let isConnecting: Bool
     @Binding var setupError: String?
-    @Binding var inputMessage: String
     @Binding var listPositionMessageID: Int?
     let setupList: () -> Void
-    let sendMessage: () -> Void
     let loadPreviousMessages: () -> Void
     let loadMoreMessages: () -> Void
     let readMessages: (Int) -> Void
-    let isConnecting: Bool
+    let sendMessage: SendMessageAttributes
+    let editMessage: EditMessageAttributes
+    let deleteMessage: DeleteMessageAttributes
     
     var body: some View {
         ZStack {
@@ -70,15 +79,8 @@ struct MessageListContentView: View {
             
             messageBubbleMenu
         }
-        .defaultAnimation(duration: 0.3, value: selectedBubble == nil)
-        .onAppear {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
-                screenSize = windowScene.screen.bounds.size
-                bottomInset = keyWindow.safeAreaInsets.bottom
-            }
-        }
-        .onTapGesture { textEditorFocused = false }
+        .defaultAnimation(duration: 0.3, value: showBubbleMenu)
+        .onTapGesture { messageInputFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -106,6 +108,21 @@ struct MessageListContentView: View {
         .onChange(of: avatarData) { newValue in
             if let newValue {
                 avatarImage = UIImage(data: newValue)
+            }
+        }
+        .onChange(of: selectedBubble) { newValue in
+            showBubbleMenu = selectedBubble != nil
+        }
+        .onChange(of: showBubbleMenu) { newValue in
+            if !newValue {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    selectedBubble = nil
+                }
+            }
+        }
+        .onAppear {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                screenSize = windowScene.screen.bounds.size
             }
         }
     }
@@ -172,64 +189,27 @@ struct MessageListContentView: View {
     @ViewBuilder
     private var messageBubbleMenu: some View {
         if let selectedBubble {
-            let message = selectedBubble.message
-            let bubbleFrame = selectedBubble.frame
-            
-            ZStack {
-                Color.white.opacity(0.01)
-                
-                MessageBubbleContent(message: message)
-                    .frame(width: bubbleFrame.width, height: bubbleFrame.height)
-                    .position(x: bubbleFrame.midX, y: bubbleFrame.midY)
-                
-                let menuWidth: CGFloat = 200
-                let widthDiff = screenSize.width - menuWidth
-                let horizontalSpacing: CGFloat = 20
-                let verticalSpacing: CGFloat = 12
-                let buttonHeight: CGFloat = 36
-                let buttonVerticalPadding: CGFloat = 8
-                let dividerHeight: CGFloat = 1
-                let buttonCount: CGFloat = 1
-                let menuHeight = (buttonHeight + buttonVerticalPadding*2) * buttonCount +
-                    dividerHeight * (buttonCount-1)
-                
-                let menuPositionY = if bubbleFrame.maxY + menuHeight + verticalSpacing < screenSize.height - bottomInset {
-                    bubbleFrame.maxY + menuHeight/2 + verticalSpacing
-                } else {
-                    bubbleFrame.minY - menuHeight/2 - verticalSpacing
-                }
-                
-                VStack(spacing: 0) {
-                    Button {
-                        UIPasteboard.general.string = message.text
-                        self.selectedBubble = nil
-                    } label: {
-                        Text("Copy")
-                            .font(.headline)
-                            .frame(height: buttonHeight)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, buttonVerticalPadding)
-                            .padding(.horizontal, 12)
-                            .foregroundColor(style.message.bubbleMenu.foregroundColor)
-                            .background(style.message.bubbleMenu.backgroundColor)
-                    }
-                }
-                .frame(width: menuWidth)
-                .clipShape(.rect(cornerRadius: style.message.bubbleMenu.cornerRadius))
-                .overlay(
-                    style.message.bubbleMenu.strokeColor,
-                    in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1))
-                .position(
-                    x: message.isMine ?
-                        (screenSize.width+widthDiff)/2 - horizontalSpacing :
-                        (screenSize.width-widthDiff)/2 + horizontalSpacing,
-                    y: menuPositionY
-                )
-            }
-            .ignoresSafeArea()
-            .background(.ultraThinMaterial)
-            .onTapGesture { self.selectedBubble = nil }
-            .opacity(self.selectedBubble == nil ? 0 : 1)
+            MessageBubbleMenu(
+                screenSize: screenSize,
+                selectedBubble: selectedBubble,
+                shouldShowEdit: editMessage.shouldShowEdit(selectedBubble.message),
+                shouldShowDelete: deleteMessage.shouldShowDelete(selectedBubble.message),
+                canEdit: { editMessage.canEdit(selectedBubble.message, $0) },
+                onCopy: {
+                    UIPasteboard.general.string = selectedBubble.message.text
+                    showBubbleMenu = false
+                },
+                onEdit: {
+                    editMessage.editMessage(selectedBubble.message.id, $0)
+                    showBubbleMenu = false
+                },
+                onDelete: {
+                    deleteMessage.deleteMessage(selectedBubble.message)
+                    showBubbleMenu = false
+                },
+                onClose: { showBubbleMenu = false }
+            )
+            .opacity(showBubbleMenu ? 1 : 0)
         }
     }
     
@@ -241,17 +221,19 @@ struct MessageListContentView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     
-                    MessageBubble(message: message, selectedBubble: $selectedBubble)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                        .id(message.id)
-                        .onAppear {
-                            visibleMessageIndex.insert(index)
-                            if message == messages.first { loadPreviousMessages() }
-                            if message == messages.last { loadMoreMessages() }
-                            if message.isUnread { readMessages(message.id) }
-                        }
-                        .onDisappear { visibleMessageIndex.remove(index) }
+                    MessageBubble(message: message, selectedBubble: $selectedBubble, readEditedMessage: {
+                        readMessages(message.id)
+                    })
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .id(message.id)
+                    .onAppear {
+                        visibleMessageIndex.insert(index)
+                        if message == messages.first { loadPreviousMessages() }
+                        if message == messages.last { loadMoreMessages() }
+                        if message.isUnread { readMessages(message.id) }
+                    }
+                    .onDisappear { visibleMessageIndex.remove(index) }
                 }
                 .listRowInsets(.init(top: 8, leading: 20, bottom: 8, trailing: 20))
             }
@@ -295,53 +277,17 @@ struct MessageListContentView: View {
     }
     
     private var messageInputArea: some View {
-        HStack(spacing: 12) {
-            TextEditor(text: $inputMessage)
-                .focused($textEditorFocused)
-                .font(.callout)
-                .foregroundColor(style.message.input.foregroundColor)
-                .scrollContentBackground(.hidden)
-                .frame(minHeight: 35, maxHeight: 100)
-                .padding(.horizontal, 8)
-                .background {
-                    RoundedRectangle(cornerRadius: style.message.input.cornerRadius)
-                        .fill(style.message.input.backgroundColor)
-                        .overlay(
-                            style.message.input.strokeColor,
-                            in: .rect(cornerRadius: style.message.input.cornerRadius).stroke(lineWidth: 1)
-                        )
-                }
-                .fixedSize(horizontal: false, vertical: true)
-            
-            Button {
-                sendMessage()
-                textEditorFocused = false
-            } label: {
-                loadingButtonLabel
-                    .frame(width: 35, height: 35)
-                    .background(style.message.input.sendButtonBackground(isActive: sendButtonActive), in: .circle)
-                    .scaleEffect(sendButtonActive ? 1 : 0.9)
-                    .defaultAnimation(value: sendButtonActive)
-            }
-            .disabled(!sendButtonActive)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 8)
+        MessageInputArea(
+            inputMessage: sendMessage.$inputMessage,
+            focused: _messageInputFocused,
+            sendButtonIcon: "paperplane.fill",
+            sendButtonActive: sendMessage.canSendMessage(),
+            isLoading: isLoading,
+            sendAction: sendMessage.sendMessage
+        )
         .background { style.message.input.sectionBackground }
         .brightness(isLoading || !isConnecting ? -0.1 : 0)
         .disabled(isLoading || !isConnecting)
-    }
-    
-    @ViewBuilder
-    private var loadingButtonLabel: some View {
-        if isLoading {
-            ProgressView()
-                .tint(style.message.input.spinnerColor)
-        } else {
-            Image(systemName: "paperplane.fill")
-                .foregroundColor(style.message.input.iconColor)
-                .font(.system(size: 18))
-        }
     }
 }
 
@@ -363,6 +309,7 @@ struct MessageBubbleContent: View {
     var body: some View {
         Text(message.text)
             .font(.callout)
+            .italic(message.isDeleted)
             .foregroundColor(style.message.bubble.foregroundColor(isMine: isMine))
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -385,7 +332,8 @@ struct MessageBubble: View {
     private var isMine: Bool { message.isMine }
     
     let message: DisplayedMessage
-    @Binding var selectedBubble: MessageListContentView.SelectedBubble?
+    @Binding var selectedBubble: SelectedBubble?
+    let readEditedMessage: () -> Void
     
     var body: some View {
         HStack {
@@ -393,6 +341,9 @@ struct MessageBubble: View {
             
             VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
                 MessageBubbleContent(message: message)
+                    .onChange(of: message) { newValue in
+                        if message.text != newValue.text, newValue.isUnread { readEditedMessage() }
+                    }
                     .background {
                         GeometryReader { proxy in
                             DispatchQueue.main.async {
@@ -407,8 +358,10 @@ struct MessageBubble: View {
                     .onLongPressGesture(
                         minimumDuration: 0.1,
                         perform: {
-                            impactFeedback.impactOccurred()
-                            selectedBubble = .init(frame: contentFrame, message: message)
+                            if !message.isDeleted {
+                                impactFeedback.impactOccurred()
+                                selectedBubble = .init(frame: contentFrame, message: message)
+                            }
                         }
                     )
                 
@@ -417,7 +370,7 @@ struct MessageBubble: View {
                         .font(.caption)
                         .foregroundColor(style.message.bubble.timeColor)
                     
-                    if isMine {
+                    if isMine, !message.isDeleted {
                         Image(systemName: message.isRead ? "checkmark.circle.fill" : "checkmark.circle")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(style.message.bubble.readIconColor(isRead: message.isRead))
@@ -427,6 +380,7 @@ struct MessageBubble: View {
             
             if !isMine { Spacer() }
         }
+        .id(message.text)
     }
 }
 
@@ -436,23 +390,34 @@ struct MessageBubble: View {
             responderName: "Jack",
             avatarData: nil,
             messages: [
-                .init(id: 0, text: "Hi!", isMine: false, isRead: true, date:  "1 Jan 2025", time: "10:00"),
-                .init(id: 1, text: "How are you?", isMine: false, isRead: true, date:  "1 Jan 2025", time: "10:05"),
-                .init(id: 2, text: "Not bad.", isMine: true, isRead: true, date: "2 Jan 2025", time: "12:45"),
-                .init(id: 3, text: "Long time no see", isMine: true, isRead: true, date: "2 Jan 2025", time: "13:00"),
-                .init(id: 4, text: "What are you doing now?", isMine: false, isRead: true, date:  "3 Jan 2025", time: "11:00"),
+                .init(id: 0, text: "Hi!", isMine: false, isRead: true, isDeleted: false, createdAt: .now, date:  "1 Jan 2025", time: "10:00"),
+                .init(id: 1, text: "How are you?", isMine: false, isRead: true, isDeleted: false, createdAt: .now, date:  "1 Jan 2025", time: "10:05"),
+                .init(id: 2, text: "Not bad.", isMine: true, isRead: true, isDeleted: false, createdAt: .now, date: "2 Jan 2025", time: "12:45"),
+                .init(id: 3, text: "Long time no see\nHow are you?", isMine: true, isRead: true, isDeleted: false, createdAt: .now, date: "2 Jan 2025", time: "13:00"),
+                .init(id: 4, text: "Message deleted.", isMine: false, isRead: true, isDeleted: true, createdAt: .now, date:  "3 Jan 2025", time: "11:00"),
             ],
             isLoading: false,
             isBlocked: false,
+            isConnecting: true,
             setupError: .constant("Error occurred!"),
-            inputMessage: .constant(""),
             listPositionMessageID: .constant(nil),
             setupList: {},
-            sendMessage: {},
             loadPreviousMessages: {},
             loadMoreMessages: {},
             readMessages: { _ in },
-            isConnecting: true
+            sendMessage: .init(
+                inputMessage: .constant(""),
+                canSendMessage: { true },
+                sendMessage: {},
+            ),
+            editMessage: .init(
+                shouldShowEdit: { _ in true },
+                canEdit: { _, _ in true },
+                editMessage: { _, _ in }
+            ), deleteMessage: .init(
+                shouldShowDelete: { _ in true },
+                deleteMessage: { _ in }
+            )
         )
     }
     .environmentObject(ViewStyleManager())
