@@ -134,6 +134,7 @@ struct MessageBubbleMenu: View {
             
             VStack(spacing: 0) {
                 MessageBubbleMenuButton(title: "Copy", icon: "doc.on.doc", action: onCopy)
+                    .foregroundColor(style.message.bubbleMenu.foregroundColor)
                 
                 if shouldShowEdit {
                     Rectangle()
@@ -146,6 +147,7 @@ struct MessageBubbleMenu: View {
                         editText = message.text
                         showEditArea = true
                     }
+                    .foregroundColor(style.message.bubbleMenu.foregroundColor)
                 }
                 
                 if shouldShowDelete {
@@ -156,6 +158,7 @@ struct MessageBubbleMenu: View {
                     MessageBubbleMenuButton(title: "Delete", icon: "trash") {
                         showDeleteMessageAlert = true
                     }
+                    .foregroundColor(style.message.bubbleMenu.destructionColor)
                 }
             }
             .frame(width: 200)
@@ -233,7 +236,6 @@ struct MessageBubbleMenuButton: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 12)
                 .padding(.horizontal, 20)
-                .foregroundColor(style.message.bubbleMenu.foregroundColor)
                 .background(style.message.bubbleMenu.backgroundColor)
         }
         .highPriorityGesture(

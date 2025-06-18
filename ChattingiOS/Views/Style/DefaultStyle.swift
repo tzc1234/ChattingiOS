@@ -212,6 +212,7 @@ extension DefaultStyle {
             var backgroundColor: Color { .gray.opacity(0.1) }
             var strokeColor: Color { .gray.opacity(0.3) }
             var cornerRadius: CGFloat { 16 }
+            var destructionColor: Color { .red }
         }
         
         let input = Input()
