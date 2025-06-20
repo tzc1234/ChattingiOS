@@ -130,8 +130,9 @@ extension DefaultStyle {
     struct Notice {
         struct Button {
             var foregroundColor: Color { .blue }
-            var backgroundColor: Color { .white.opacity(0.4) }
-            var strokeColor: Color { .white.opacity(0.5) }
+            var backgroundColor: Color { .white.opacity(0.8) }
+            var strokeColor: Color { .clear }
+            var cornerRadius: CGFloat { 8 }
         }
         
         var cornerRadius: CGFloat { 16 }
@@ -212,7 +213,7 @@ extension DefaultStyle {
             var backgroundColor: Color { .gray.opacity(0.1) }
             var strokeColor: Color { .gray.opacity(0.3) }
             var cornerRadius: CGFloat { 16 }
-            var destructionColor: Color { .red }
+            var destructionColor: Color { .red.opacity(0.8) }
         }
         
         let input = Input()

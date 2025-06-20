@@ -144,12 +144,12 @@ struct MessageListContentView: View {
                             .font(.footnote.weight(.medium))
                             .padding(10)
                             .background(
-                                style.button.backgroundColor,
-                                in: .rect(cornerRadius: style.button.cornerRadius)
+                                style.notice.button.backgroundColor,
+                                in: .rect(cornerRadius: style.notice.button.cornerRadius)
                             )
                             .overlay(
                                 style.notice.button.strokeColor,
-                                in: .rect(cornerRadius: style.message.bubbleMenu.cornerRadius).stroke(lineWidth: 1)
+                                in: .rect(cornerRadius: style.notice.button.cornerRadius).stroke(lineWidth: 1)
                             )
                     }
                 }
