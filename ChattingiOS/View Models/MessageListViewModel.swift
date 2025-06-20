@@ -271,7 +271,7 @@ final class MessageListViewModel: ObservableObject {
             do {
                 try await connection?.send(editMessageID: messageID, text: trimmedText)
             } catch {
-                print("edit message fail.")
+                generalError = "Cannot edit the message, please try it again later."
             }
         }
     }
@@ -290,7 +290,7 @@ final class MessageListViewModel: ObservableObject {
             do {
                 try await connection?.send(deleteMessageID: message.id)
             } catch {
-                print("delete message fail.")
+                generalError = "Cannot delete the message, please try it again later."
             }
         }
     }
