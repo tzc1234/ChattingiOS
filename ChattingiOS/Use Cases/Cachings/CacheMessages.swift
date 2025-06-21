@@ -20,6 +20,11 @@ actor CacheMessages {
         guard let currentUserID = await currentUserID(), !messages.isEmpty else { return }
         
         do {
+            // This array of message already includes all the messages, just cache it.
+            if previousID == nil, nextID == nil {
+                return try await store.saveMessages(messages, for: contactID, userID: currentUserID)
+            }
+            
             // Keep messages data intact. Prevent missing message(s) in the middle.
             if let previousID, try await store.retrieveMessage(by: previousID, userID: currentUserID) != nil {
                 return try await store.saveMessages(messages, for: contactID, userID: currentUserID)
