@@ -12,15 +12,15 @@ final class SignInViewModel: ObservableObject {
     @Published var emailInput = ""
     @Published var passwordInput = ""
     @Published var generalError: String?
-    @Published private(set) var isLoading = false
     @Published private(set) var isSignInSuccess = false
     
+    var isLoading: Bool { task != nil }
     var canSignIn: Bool { email.isValid && password.isValid }
     var email: Email { Email(emailInput) }
     var password: Password { Password(passwordInput) }
     
     // Expose for testing.
-    private(set) var task: Task<Void, Never>?
+    @Published private(set) var task: Task<Void, Never>?
     
     // Using typed throws in closure will cash in iOS17, this should be a bug!
     private let userSignIn: (UserSignInParams) async throws -> Void
@@ -30,10 +30,11 @@ final class SignInViewModel: ObservableObject {
     }
     
     func signIn() {
-        guard let email = email.value, let password = password.value else { return }
+        guard let email = email.value, let password = password.value, task == nil else { return }
         
-        isLoading = true
         task = Task {
+            defer { task = nil }
+            
             do {
                 let param = UserSignInParams(email: email, password: password)
                 try await userSignIn(param)
@@ -41,8 +42,6 @@ final class SignInViewModel: ObservableObject {
             } catch {
                 generalError = (error as? UseCaseError)?.toGeneralErrorMessage()
             }
-            
-            isLoading = false
         }
     }
 }
