@@ -52,7 +52,7 @@ struct ProfileContentView: View {
         } message: {
             Text("Are you sure you want to sign out?")
         }
-        .onChange(of: avatarData) { newValue in
+        .onChange(of: avatarData) { _, newValue in
             if let newValue {
                 avatarImage = UIImage(data: newValue)
             }

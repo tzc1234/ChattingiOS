@@ -45,7 +45,7 @@ struct MessageListView: View {
         .task { await viewModel.loadAvatarData() }
         .onAppear { viewModel.setupMessageList() }
         .onDisappear { viewModel.closeMessageChannel() }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 viewModel.setupMessageList()
             } else if phase == .inactive {

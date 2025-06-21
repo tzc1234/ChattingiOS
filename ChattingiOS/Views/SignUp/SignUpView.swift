@@ -29,7 +29,7 @@ struct SignUpView: View {
             signUpTapped: viewModel.signUp
         )
         .interactiveDismissDisabled(viewModel.isLoading)
-        .onChange(of: viewModel.isSignUpSuccess) { isSignUpSuccess in
+        .onChange(of: viewModel.isSignUpSuccess) { _, isSignUpSuccess in
             if isSignUpSuccess {
                 dismiss()
             }

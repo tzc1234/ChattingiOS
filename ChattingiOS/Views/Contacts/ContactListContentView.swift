@@ -47,7 +47,7 @@ struct ContactListContentView: View {
         .navigationTitle("Contacts")
         .defaultAnimation(value: message)
         .defaultAnimation(duration: 0.3, value: isLoading)
-        .onChange(of: message) { _ in
+        .onChange(of: message) { _, _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { message = nil }
         }
     }

@@ -26,7 +26,7 @@ struct NewContactView: View {
             submitTapped: viewModel.addNewContact
         )
         .onDisappear(perform: onDisappear)
-        .onChange(of: viewModel.contact) { contact in
+        .onChange(of: viewModel.contact) { _, contact in
             if contact != nil {
                 // Fix animation when closing the custom alert.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

@@ -59,7 +59,7 @@ struct SignUpContentView: View {
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(selectedImage: $selectedImage)
         }
-        .onChange(of: selectedImage) { newValue in
+        .onChange(of: selectedImage) { _, newValue in
             avatarData = newValue?.jpegData(compressionQuality: 0.8)
         }
     }

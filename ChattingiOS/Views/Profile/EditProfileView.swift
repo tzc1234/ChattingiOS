@@ -29,7 +29,7 @@ struct EditProfileView: View {
         } message: {
             Text(viewModel.generalError ?? "")
         }
-        .onChange(of: viewModel.saveSuccess) { newValue in
+        .onChange(of: viewModel.saveSuccess) { _, newValue in
             if newValue {
                 dismiss()
             }
@@ -143,7 +143,7 @@ struct EditProfileContentView: View {
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(selectedImage: $selectedImage)
         }
-        .onChange(of: selectedImage) { newValue in
+        .onChange(of: selectedImage) { _, newValue in
             avatarDataInput = selectedImage?.jpegData(compressionQuality: 0.8)
         }
     }

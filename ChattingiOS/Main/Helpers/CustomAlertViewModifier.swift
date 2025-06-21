@@ -102,7 +102,7 @@ private struct AlertModifier<AlertContent: View>: ViewModifier {
     
     func body(content: Content) -> some View {
         content
-            .onChange(of: alertState.isPresenting) { newValue in
+            .onChange(of: alertState.isPresenting) { _, newValue in
                 if newValue {
                     sceneDelegate.showAlert(alertState: $alertState, content: alertContent)
                 } else {

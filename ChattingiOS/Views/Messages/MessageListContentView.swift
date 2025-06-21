@@ -105,15 +105,15 @@ struct MessageListContentView: View {
                 }
             }
         }
-        .onChange(of: avatarData) { newValue in
+        .onChange(of: avatarData) { _, newValue in
             if let newValue {
                 avatarImage = UIImage(data: newValue)
             }
         }
-        .onChange(of: selectedBubble) { newValue in
+        .onChange(of: selectedBubble) { _, newValue in
             showBubbleMenu = selectedBubble != nil
         }
-        .onChange(of: showBubbleMenu) { newValue in
+        .onChange(of: showBubbleMenu) { _, newValue in
             if !newValue {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     selectedBubble = nil
@@ -238,19 +238,19 @@ struct MessageListContentView: View {
                 .listRowInsets(.init(top: 8, leading: 20, bottom: 8, trailing: 20))
             }
             .padding(.top, 20)
-            .onChange(of: messages) { newValue in
+            .onChange(of: messages) { _, newValue in
                 if messages.isEmpty { visibleMessageIndex.removeAll() }
             }
-            .onChange(of: listPositionMessageID) { messageID in
+            .onChange(of: listPositionMessageID) { _, messageID in
                 if let messageID {
                     withAnimation { scrollToMessageID = messageID }
                     listPositionMessageID = nil
                 }
             }
-            .onChange(of: scrollToMessageID) { messageID in
+            .onChange(of: scrollToMessageID) { _, messageID in
                 proxy.scrollTo(messageID, anchor: .top)
             }
-            .onChange(of: isScrollToBottom) { newValue in
+            .onChange(of: isScrollToBottom) { _, newValue in
                 if newValue {
                     withAnimation { proxy.scrollTo(messages.last?.id, anchor: .top) }
                     isScrollToBottom = false
@@ -341,7 +341,7 @@ struct MessageBubble: View {
             
             VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
                 MessageBubbleContent(message: message)
-                    .onChange(of: message) { newValue in
+                    .onChange(of: message) { _, newValue in
                         if message.text != newValue.text, newValue.isUnread { readEditedMessage() }
                     }
                     .background {
