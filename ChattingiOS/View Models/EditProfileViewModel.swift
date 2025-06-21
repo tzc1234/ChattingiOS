@@ -11,12 +11,12 @@ import Foundation
 final class EditProfileViewModel: ObservableObject {
     @Published var avatarDataInput: Data?
     @Published var generalError: String?
-    @Published private(set) var isLoading = false
     @Published private(set) var saveSuccess = false
     
+    var isLoading: Bool { saveTask != nil }
     var canSave: Bool { username.isValid }
     var username: Username { Username(nameInput) }
-    private var saveTask: Task<Void, Never>?
+    @Published private var saveTask: Task<Void, Never>?
     
     @Published private(set) var user: User
     @Published var nameInput: String
@@ -33,12 +33,8 @@ final class EditProfileViewModel: ObservableObject {
     func save() {
         guard let name = username.value, saveTask == nil else { return }
         
-        isLoading = true
         saveTask = Task {
-            defer {
-                isLoading = false
-                saveTask = nil
-            }
+            defer { saveTask = nil }
             
             do throws(UseCaseError) {
                 let avatar = avatarDataInput.map { AvatarParams(data: $0, fileType: "jpeg") }
