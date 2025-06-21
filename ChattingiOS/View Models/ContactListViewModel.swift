@@ -12,14 +12,14 @@ final class ContactListViewModel: ObservableObject {
     @Published private(set) var contacts = [Contact]()
     @Published var generalError: String?
     @Published var message: String?
-    @Published private(set) var isLoading = false
+    var isLoading: Bool { blockContactTask ?? unblockContactTask != nil }
     
     private var canLoadMore = true
     
     // Expose for testing.
     private(set) var loadMoreTask: Task<Void, Never>?
-    private(set) var blockContactTask: Task<Void, Never>?
-    private(set) var unblockContactTask: Task<Void, Never>?
+    @Published private(set) var blockContactTask: Task<Void, Never>?
+    @Published private(set) var unblockContactTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let getContacts: GetContacts
@@ -89,39 +89,39 @@ final class ContactListViewModel: ObservableObject {
     
     func blockContact(contactID: Int) {
         guard let index = contacts.firstIndex(where: { $0.id == contactID }),
-              contacts[index].blockedByUserID == nil else {
+              contacts[index].blockedByUserID == nil,
+              blockContactTask == nil else {
             return
         }
         
-        isLoading = true
         blockContactTask = Task {
+            defer { blockContactTask = nil }
+            
             do throws(UseCaseError) {
                 let blockedContact = try await blockContact.block(for: contactID)
                 contacts[index] = blockedContact
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
-            
-            isLoading = false
         }
     }
     
     func unblockContact(contactID: Int) {
         guard let index = contacts.firstIndex(where: { $0.id == contactID }),
-                contacts[index].blockedByUserID != nil else {
+              contacts[index].blockedByUserID != nil,
+              unblockContactTask == nil else {
             return
         }
         
-        isLoading = true
         unblockContactTask = Task {
+            defer { unblockContactTask = nil }
+            
             do throws(UseCaseError) {
                 let unblockedContact = try await unblockContact.unblock(for: contactID)
                 contacts[index] = unblockedContact
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }
-            
-            isLoading = false
         }
     }
     
