@@ -27,7 +27,6 @@ final class Flow {
     
     private weak var messageListViewModel: MessageListViewModel?
     private var editProfileTask: Task<Void, Never>?
-    private var newContactTask: Task<Void, Never>?
     var deviceToken: String? {
         didSet {
             Task { await updateDeviceToken() }
@@ -269,18 +268,8 @@ final class Flow {
     
     private func newContactView(with alertState: Binding<AlertState>) -> some View {
         let viewModel = NewContactViewModel(newContact: dependencies.newContact)
-        newContactTask?.cancel()
-        newContactTask = Task { [unowned self] in
-            for await contact in viewModel.$contact.values {
-                if let contact, let contactListViewModel {
-                    try? await Task.sleep(for: .seconds(0.5)) // Wait for New Contact Popup disappeared.
-                    contactListViewModel.addToTop(contact: contact, message: "New contact added.")
-                }
-            }
-        }
-        return NewContactView(viewModel: viewModel, alertState: alertState, onDisappear: { [unowned self] in
-            newContactTask?.cancel()
-            newContactTask = nil
+        return NewContactView(viewModel: viewModel, alertState: alertState, onDismiss: { [unowned self] contact in
+            contactListViewModel?.addToTop(contact: contact, message: "New contact added.")
         })
         .preferredColorScheme(.light)
         .environmentObject(style)

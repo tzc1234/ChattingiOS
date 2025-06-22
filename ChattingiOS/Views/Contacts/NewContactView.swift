@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct NewContactView: View {
-    @ObservedObject var viewModel: NewContactViewModel
+    @Bindable var viewModel: NewContactViewModel
     @Binding var alertState: AlertState
-    let onDisappear: (() -> Void)?
+    let onDismiss: (Contact) -> Void
     
     var body: some View {
         NewContactContentView(
@@ -25,12 +25,12 @@ struct NewContactView: View {
             },
             submitTapped: viewModel.addNewContact
         )
-        .onDisappear(perform: onDisappear)
         .onChange(of: viewModel.contact) { _, contact in
-            if contact != nil {
+            if let contact {
                 // Fix animation when closing the custom alert.
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     withAnimation { alertState.dismiss() }
+                    onDismiss(contact)
                 }
             }
         }
