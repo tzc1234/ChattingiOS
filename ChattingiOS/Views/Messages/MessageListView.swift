@@ -10,7 +10,7 @@ import SwiftUI
 struct MessageListView: View {
     @Environment(\.scenePhase) private var scenePhase
     
-    @ObservedObject var viewModel: MessageListViewModel
+    @Bindable var viewModel: MessageListViewModel
     
     var body: some View {
         MessageListContentView(

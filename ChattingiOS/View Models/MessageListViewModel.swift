@@ -7,15 +7,15 @@
 
 import Foundation
 
-@MainActor
-final class MessageListViewModel: ObservableObject {
-    @Published private(set) var messages = [DisplayedMessage]()
-    @Published var generalError: String?
-    @Published var setupError: String?
-    @Published var inputMessage = ""
-    @Published private(set) var isLoading = false
-    @Published var messageIDForListPosition: Int?
-    @Published private(set) var avatarData: Data?
+@MainActor @Observable
+final class MessageListViewModel {
+    private(set) var messages = [DisplayedMessage]()
+    var generalError: String?
+    var setupError: String?
+    var inputMessage = ""
+    private(set) var isLoading = false
+    var messageIDForListPosition: Int?
+    private(set) var avatarData: Data?
     
     private var contactID: Int { contact.id }
     var username: String { contact.responder.name }
@@ -24,7 +24,7 @@ final class MessageListViewModel: ObservableObject {
     private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
     private var isReadOnlyMode: Bool { setupError != nil }
     
-    @Published private var connection: MessageChannelConnection?
+    private var connection: MessageChannelConnection?
     private var canLoadPrevious = false
     private var canLoadMore = false
     private var messagesToBeReadIDs = Set<Int>()
