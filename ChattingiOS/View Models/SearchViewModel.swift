@@ -7,15 +7,15 @@
 
 import Foundation
 
-@MainActor
-final class SearchViewModel: ObservableObject {
-    @Published private(set) var contacts = [Contact]()
-    @Published var searchTerm = ""
-    @Published private(set) var generalError: String?
+@MainActor @Observable
+final class SearchViewModel {
+    private(set) var contacts = [Contact]()
+    var searchTerm = ""
+    private(set) var generalError: String?
     var isLoading: Bool { searchContactsTask ?? searchMoreContactsTask != nil }
     
-    @Published private var searchContactsTask: Task<Void, Never>?
-    @Published private var searchMoreContactsTask: Task<Void, Never>?
+    private var searchContactsTask: Task<Void, Never>?
+    private var searchMoreContactsTask: Task<Void, Never>?
     private var hasMoreContacts = false
     
     private let searchContactsUseCase: SearchContacts
