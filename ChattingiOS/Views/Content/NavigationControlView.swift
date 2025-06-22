@@ -7,9 +7,10 @@
 
 import SwiftUI
 
-final class NavigationControlViewModel: ObservableObject {
-    @Published var path = NavigationPath()
-    @Published private(set) var contentID = UUID()
+@Observable
+final class NavigationControlViewModel {
+    var path = NavigationPath()
+    private(set) var contentID = UUID()
     
     func show(next: some Hashable) {
         path.append(next)
@@ -25,7 +26,7 @@ final class NavigationControlViewModel: ObservableObject {
 }
 
 struct NavigationControlView<Content: View>: View {
-    @ObservedObject var viewModel: NavigationControlViewModel
+    @Bindable var viewModel: NavigationControlViewModel
     let content: () -> Content
     
     var body: some View {

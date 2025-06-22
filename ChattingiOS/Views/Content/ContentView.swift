@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView<SignedInContent: View, SignInContent: View, Sheet: View>: View {
-    @ObservedObject var viewModel: ContentViewModel
+    @Bindable var viewModel: ContentViewModel
     @ViewBuilder let signedInContent: (User) -> SignedInContent
     @ViewBuilder let signInContent: () -> SignInContent
     @ViewBuilder let sheet: () -> Sheet
