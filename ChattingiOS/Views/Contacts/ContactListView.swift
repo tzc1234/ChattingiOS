@@ -11,7 +11,7 @@ struct ContactListView<AlertContent: View>: View {
     @EnvironmentObject private var style: ViewStyleManager
     @State private var alertState = AlertState()
     
-    @ObservedObject var viewModel: ContactListViewModel
+    @Bindable var viewModel: ContactListViewModel
     @ViewBuilder let alertContent: (Binding<AlertState>) -> AlertContent
     let rowTapped: (Contact) -> Void
     

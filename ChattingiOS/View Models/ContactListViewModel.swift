@@ -7,19 +7,19 @@
 
 import Foundation
 
-@MainActor
-final class ContactListViewModel: ObservableObject {
-    @Published private(set) var contacts = [Contact]()
-    @Published var generalError: String?
-    @Published var message: String?
-    var isLoading: Bool { blockContactTask ?? unblockContactTask != nil }
+@MainActor @Observable
+final class ContactListViewModel {
+    private(set) var contacts = [Contact]()
+    var generalError: String?
+    var message: String?
     
+    var isLoading: Bool { blockContactTask ?? unblockContactTask != nil }
     private var canLoadMore = true
     
     // Expose for testing.
     private(set) var loadMoreTask: Task<Void, Never>?
-    @Published private(set) var blockContactTask: Task<Void, Never>?
-    @Published private(set) var unblockContactTask: Task<Void, Never>?
+    private(set) var blockContactTask: Task<Void, Never>?
+    private(set) var unblockContactTask: Task<Void, Never>?
     
     private let currentUserID: Int
     private let getContacts: GetContacts
