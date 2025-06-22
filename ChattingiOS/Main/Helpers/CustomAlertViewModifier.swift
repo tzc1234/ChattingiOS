@@ -7,7 +7,8 @@
 
 import SwiftUI
 
-final class SceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
+@Observable
+final class SceneDelegate: NSObject, UIWindowSceneDelegate {
     var window: UIWindow?
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
@@ -95,7 +96,7 @@ extension View {
 }
 
 private struct AlertModifier<AlertContent: View>: ViewModifier {
-    @EnvironmentObject private var sceneDelegate: SceneDelegate
+    @Environment(SceneDelegate.self) private var sceneDelegate
     
     @Binding var alertState: AlertState
     @ViewBuilder let alertContent: () -> AlertContent

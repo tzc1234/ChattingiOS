@@ -8,7 +8,8 @@
 import UIKit
 @preconcurrency import UserNotifications
 
-final class AppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
+@Observable
+final class AppDelegate: NSObject, UIApplicationDelegate {
     var onReceiveDeviceToken: ((String) -> Void)?
     var onReceiveReadMessages: ((UserID, ReadMessages) -> Void)?
     

@@ -29,7 +29,7 @@ struct ChattingiOSApp: App {
     var body: some Scene {
         WindowGroup {
             flow.startView()
-                .environmentObject(appDelegate)
+                .environment(appDelegate)
         }
     }
 }
