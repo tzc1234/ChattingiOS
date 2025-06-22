@@ -10,8 +10,8 @@ import SwiftUI
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     
-    @ObservedObject var viewModel: EditProfileViewModel
-    let onDisappear: () -> Void
+    @Bindable var viewModel: EditProfileViewModel
+    let onDismiss: (User) -> Void
     
     var body: some View {
         EditProfileContentView(
@@ -29,12 +29,12 @@ struct EditProfileView: View {
         } message: {
             Text(viewModel.generalError ?? "")
         }
-        .onChange(of: viewModel.saveSuccess) { _, newValue in
-            if newValue {
+        .onChange(of: viewModel.saveSuccess) { _, success in
+            if success {
                 dismiss()
+                onDismiss(viewModel.user)
             }
         }
-        .onDisappear(perform: onDisappear)
     }
 }
 

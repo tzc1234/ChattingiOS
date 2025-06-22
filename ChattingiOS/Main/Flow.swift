@@ -24,9 +24,7 @@ final class Flow {
     // Let Flow manage the lifetime of the ContactListViewModel instance. Since there's a weird behaviour,
     // the ContactListView sometime will not update if let it manage its own ContactListViewModel.
     private var contactListViewModel: ContactListViewModel?
-    
     private weak var messageListViewModel: MessageListViewModel?
-    private var editProfileTask: Task<Void, Never>?
     var deviceToken: String? {
         didSet {
             Task { await updateDeviceToken() }
@@ -204,19 +202,19 @@ final class Flow {
             currentAvatarData: avatarData,
             updateCurrentUser: dependencies.updateCurrentUser
         )
-        editProfileTask?.cancel()
-        editProfileTask = Task { [unowned self] in
-            defer { editProfileTask = nil }
-            
-            for await editedUser in viewModel.$user.values {
-                guard editedUser != user else { continue }
+        let editProfileView = EditProfileView(viewModel: viewModel, onDismiss: { editedUser in
+            Task { [unowned self] in
+                guard editedUser != user else { return }
                 
                 if let currentUser = await currentUserVault.retrieveCurrentUser() {
                     do {
                         // Save edited user into current user vault.
                         try await currentUserVault.saveCurrentUserWithoutNotifyObservers(
                             user: editedUser,
-                            token: Token(accessToken: currentUser.accessToken, refreshToken: currentUser.refreshToken)
+                            token: Token(
+                                accessToken: currentUser.accessToken,
+                                refreshToken: currentUser.refreshToken
+                            )
                         )
                         
                         await contentViewModel.set(signInState: .signedIn(editedUser, to: .profile))
@@ -225,16 +223,10 @@ final class Flow {
                         // If save error occurred, delete the current user, force user sign in.
                         try? await currentUserVault.deleteCurrentUser()
                     }
-                    
-                    // Release this task after user update process.
-                    editProfileTask?.cancel()
                 } else {
                     assertionFailure("CurrentUser should not be nil just after edit profile.")
                 }
             }
-        }
-        let editProfileView = EditProfileView(viewModel: viewModel, onDisappear: { [unowned self] in
-            editProfileTask?.cancel()
         })
         navigationControlForProfile.show(next: NavigationDestination(editProfileView))
     }

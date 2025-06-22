@@ -7,19 +7,19 @@
 
 import Foundation
 
-@MainActor
-final class EditProfileViewModel: ObservableObject {
-    @Published var avatarDataInput: Data?
-    @Published var generalError: String?
-    @Published private(set) var saveSuccess = false
+@MainActor @Observable
+final class EditProfileViewModel {
+    var avatarDataInput: Data?
+    var generalError: String?
+    private(set) var saveSuccess = false
     
     var isLoading: Bool { saveTask != nil }
     var canSave: Bool { username.isValid }
     var username: Username { Username(nameInput) }
-    @Published private var saveTask: Task<Void, Never>?
+    private var saveTask: Task<Void, Never>?
     
-    @Published private(set) var user: User
-    @Published var nameInput: String
+    private(set) var user: User
+    var nameInput: String
     let currentAvatarData: Data?
     private let updateCurrentUser: UpdateCurrentUser
     
