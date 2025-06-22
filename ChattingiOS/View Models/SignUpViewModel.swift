@@ -7,15 +7,15 @@
 
 import Foundation
 
-@MainActor
-final class SignUpViewModel: ObservableObject {
-    @Published var nameInput = ""
-    @Published var emailInput = ""
-    @Published var passwordInput = ""
-    @Published var confirmPasswordInput = ""
-    @Published var generalError: String?
-    @Published var avatarData: Data?
-    @Published private(set) var isSignUpSuccess = false
+@MainActor @Observable
+final class SignUpViewModel {
+    var nameInput = ""
+    var emailInput = ""
+    var passwordInput = ""
+    var confirmPasswordInput = ""
+    var generalError: String?
+    var avatarData: Data?
+    private(set) var isSignUpSuccess = false
     
     var isLoading: Bool { task != nil }
     var canSignUp: Bool { username.isValid && email.isValid && password.isValid && confirmPassword.isValid }
@@ -25,7 +25,7 @@ final class SignUpViewModel: ObservableObject {
     var confirmPassword: ConfirmPassword { ConfirmPassword((confirmPasswordInput, passwordInput)) }
     
     // Expose for testing.
-    @Published private(set) var task: Task<Void, Never>?
+    private(set) var task: Task<Void, Never>?
     
     // Using typed throws in closure will cash in iOS17, this should be a bug!
     private let userSignUp: (UserSignUpParams) async throws -> Void

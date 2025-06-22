@@ -5,13 +5,12 @@
 //  Created by Tsz-Lung on 11/12/2024.
 //
 
-import PhotosUI
 import SwiftUI
 
 struct SignUpView: View {
     @Environment(\.dismiss) private var dismiss
     
-    @ObservedObject var viewModel: SignUpViewModel
+    @Bindable var viewModel: SignUpViewModel
     
     var body: some View {
         SignUpContentView(
