@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SignInView: View {
-    @ObservedObject var viewModel: SignInViewModel
+    @Bindable var viewModel: SignInViewModel
     let signUpTapped: () -> Void
     
     var body: some View {
