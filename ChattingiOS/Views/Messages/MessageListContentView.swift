@@ -258,6 +258,7 @@ struct MessageListContentView: View {
             }
             .listStyle(.plain)
         }
+        .padding(.top, 8)
     }
     
     @ViewBuilder
