@@ -7,12 +7,12 @@
 
 import Foundation
 
-@MainActor
-final class ProfileViewModel: ObservableObject {
-    @Published private(set) var avatarData: Data?
+@MainActor @Observable
+final class ProfileViewModel {
+    private(set) var avatarData: Data?
     var isLoading: Bool { loadAvatarTask != nil }
     
-    @Published private var loadAvatarTask: Task<Void, Never>?
+    private var loadAvatarTask: Task<Void, Never>?
     
     let user: User
     private let loadImageData: LoadImageData

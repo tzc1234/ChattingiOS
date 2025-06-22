@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(ViewStyleManager.self) private var style
-    @ObservedObject var viewModel: ProfileViewModel
+    
+    let viewModel: ProfileViewModel
     let editAction: (Data?) -> Void
     let signOutAction: () -> Void
     
