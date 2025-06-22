@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CTLoadingView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     var body: some View {
         VStack(spacing: 16) {
@@ -36,6 +36,6 @@ struct CTLoadingView: View {
     ZStack {
         Color.white
         CTLoadingView()
-            .environmentObject(ViewStyleManager())
+            .environment(ViewStyleManager())
     }
 }

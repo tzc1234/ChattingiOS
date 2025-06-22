@@ -25,7 +25,7 @@ struct DeleteMessageAttributes {
 }
 
 struct MessageListContentView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @FocusState private var messageInputFocused: Bool
     @State private var scrollToMessageID: Int?
     @State private var visibleMessageIndex = Set<Int>()
@@ -292,7 +292,7 @@ struct MessageListContentView: View {
 }
 
 struct MessageBubbleContent: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     private var isMine: Bool { message.isMine }
     private var cornerRadii: RectangleCornerRadii {
@@ -325,7 +325,7 @@ struct MessageBubbleContent: View {
 }
 
 struct MessageBubble: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @State private var contentFrame: CGRect = .zero
     
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -420,6 +420,6 @@ struct MessageBubble: View {
             )
         )
     }
-    .environmentObject(ViewStyleManager())
+    .environment(ViewStyleManager())
     .preferredColorScheme(.light)
 }

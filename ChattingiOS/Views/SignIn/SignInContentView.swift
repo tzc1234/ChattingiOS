@@ -12,7 +12,7 @@ struct SignInContentView: View {
         case email, password
     }
     
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @FocusState private var focused: FocusedField?
     
     @Binding var email: String
@@ -157,5 +157,5 @@ struct SignInContentView: View {
         signInTapped: {},
         signUpTapped: {}
     )
-    .environmentObject(ViewStyleManager())
+    .environment(ViewStyleManager())
 }

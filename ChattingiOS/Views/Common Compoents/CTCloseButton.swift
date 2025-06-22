@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CTCloseButton: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     private let size: CGFloat
     private let fontSize: CGFloat
@@ -35,6 +35,6 @@ struct CTCloseButton: View {
     ZStack {
         Color.black
         CTCloseButton(tapAction: {})
-            .environmentObject(ViewStyleManager())
+            .environment(ViewStyleManager())
     }
 }

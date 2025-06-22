@@ -7,7 +7,8 @@
 
 import SwiftUI
 
-final class ViewStyleManager: ObservableObject {
+@Observable
+final class ViewStyleManager {
     private let style = DefaultStyle()
     
     var common: DefaultStyle.Common { style.common }

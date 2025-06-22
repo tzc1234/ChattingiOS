@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CTButton<V: View>: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     private let icon: String
     private let title: String

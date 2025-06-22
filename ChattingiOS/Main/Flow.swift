@@ -152,7 +152,7 @@ final class Flow {
             signUpView()
         }
         .preferredColorScheme(.light)
-        .environmentObject(style)
+        .environment(style)
     }
     
     private func signInView() -> SignInView {
@@ -272,7 +272,7 @@ final class Flow {
             contactListViewModel?.addToTop(contact: contact, message: "New contact added.")
         })
         .preferredColorScheme(.light)
-        .environmentObject(style)
+        .environment(style)
     }
     
     private func showMessageListView(currentUserID: Int, contact: Contact) {

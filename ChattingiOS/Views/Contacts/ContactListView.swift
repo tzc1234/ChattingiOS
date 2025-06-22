@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContactListView<AlertContent: View>: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @State private var alertState = AlertState()
     
     @Bindable var viewModel: ContactListViewModel

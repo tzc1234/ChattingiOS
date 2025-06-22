@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MessageInputArea: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     @Binding var inputMessage: String
     @FocusState var focused: Bool

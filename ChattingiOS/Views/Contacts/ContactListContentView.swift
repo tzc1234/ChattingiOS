@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContactListContentView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @State private var selectedContactID: Int?
     
     let contacts: [Contact]
@@ -105,7 +105,7 @@ struct ContactListContentView: View {
 }
 
 struct ContactRow: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     let contact: Contact
     let isPressed: Bool
@@ -237,6 +237,6 @@ struct ContactRow: View {
             loadAvatarData: { _ in nil }
         )
     }
-    .environmentObject(ViewStyleManager())
+    .environment(ViewStyleManager())
     .preferredColorScheme(.light)
 }

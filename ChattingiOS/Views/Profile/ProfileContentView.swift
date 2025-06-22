@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ProfileContentView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @State private var showSignOutAlert = false
     @State private var avatarImage: UIImage?
     
@@ -142,7 +142,7 @@ struct ProfileContentView: View {
 }
 
 struct ProfileInfoCard: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     let icon: String
     let title: String
@@ -200,6 +200,6 @@ struct ProfileInfoCard: View {
         editAction: { _ in },
         signOutAction: {}
     )
-    .environmentObject(ViewStyleManager())
+    .environment(ViewStyleManager())
     .preferredColorScheme(.light)
 }

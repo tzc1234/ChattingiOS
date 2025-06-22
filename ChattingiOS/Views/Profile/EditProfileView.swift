@@ -39,7 +39,7 @@ struct EditProfileView: View {
 }
 
 struct EditProfileContentView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @State private var showImagePicker = false
     @State private var showActionSheet = false
     @State private var selectedImage: UIImage?
@@ -161,6 +161,6 @@ struct EditProfileContentView: View {
             saveAction: {}
         )
         .preferredColorScheme(.light)
-        .environmentObject(ViewStyleManager())
+        .environment(ViewStyleManager())
     }
 }

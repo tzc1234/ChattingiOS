@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CTNotice<Button: View>: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     let text: String
     let backgroundColor: Color
