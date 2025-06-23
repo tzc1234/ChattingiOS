@@ -15,6 +15,7 @@ struct SearchContentView: View {
     
     @Environment(ViewStyleManager.self) private var style
     @FocusState private var focused: Bool
+    @State private var isInit = true
     @State private var searchScope: SearchScope = .contacts
     @State private var selectedContactID: Int?
     
@@ -49,7 +50,12 @@ struct SearchContentView: View {
             .padding(.top, 12)
         }
         .navigationTitle("Search")
-        .onAppear { focused = true }
+        .onAppear {
+            if isInit {
+                focused = true
+                isInit = false
+            }
+        }
         .onChange(of: searchTerm) { _, _ in
             searchContacts()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
