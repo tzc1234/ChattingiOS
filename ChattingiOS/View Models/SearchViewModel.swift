@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SearchContactsResult {
+struct SearchContactsResult: Equatable {
     let contacts: [Contact]
     let total: Int
 }
@@ -17,7 +17,7 @@ final class SearchViewModel {
     private(set) var contactsResult = SearchContactsResult(contacts: [], total: 0)
     var searchTerm = ""
     var generalError: String?
-    var isLoading: Bool { searchContactsTask != nil }
+    private(set) var isLoading = false
     
     private var searchContactsTask: Task<Void, Never>?
     private var searchMoreContactsTask: Task<Void, Never>?
@@ -32,19 +32,23 @@ final class SearchViewModel {
     }
     
     func searchContacts() {
-        guard !searchTerm.isEmpty, searchContactsTask == nil else { return }
+        guard !searchTerm.isEmpty else { return }
         
+        searchContactsTask?.cancel()
         searchContactsTask = Task {
-            defer { searchContactsTask = nil }
+            defer { isLoading = false }
             
-            try? await Task.sleep(for: .seconds(0.3)) // Debounce
-            guard !searchTerm.isEmpty else { return }
+            try? await Task.sleep(for: .seconds(0.5)) // Debounce
+            guard !searchTerm.isEmpty, !Task.isCancelled else { return }
             
+            isLoading = true
             do throws(UseCaseError) {
                 let param = SearchContactsParams(searchTerm: searchTerm)
                 let searched = try await searchContactsUseCase.search(by: param)
-                contactsResult = SearchContactsResult(contacts: searched.contacts, total: searched.total)
-                hasMoreContacts = searched.hasMore
+                if !Task.isCancelled {
+                    contactsResult = SearchContactsResult(contacts: searched.contacts, total: searched.total)
+                    hasMoreContacts = searched.hasMore
+                }
             } catch {
                 generalError = error.toGeneralErrorMessage()
             }

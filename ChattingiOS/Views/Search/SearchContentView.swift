@@ -49,8 +49,11 @@ struct SearchContentView: View {
         }
         .navigationTitle("Search")
         .onAppear { focused = true }
-        .onChange(of: searchTerm) { _, newValue in
-            if !newValue.isEmpty { searchContacts() }
+        .onChange(of: searchTerm) { _, _ in
+            searchContacts()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                focused = true
+            }
         }
     }
     
@@ -76,9 +79,6 @@ struct SearchContentView: View {
                 
                 Button {
                     searchTerm = ""
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        focused = true
-                    }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16))
