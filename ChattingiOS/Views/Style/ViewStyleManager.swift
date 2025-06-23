@@ -21,4 +21,5 @@ final class ViewStyleManager {
     var loadingView: DefaultStyle.LoadingView { style.loadingView }
     var message: DefaultStyle.Message { style.message}
     var profile: DefaultStyle.Profile { style.profile }
+    var search: DefaultStyle.Search { style.search }
 }

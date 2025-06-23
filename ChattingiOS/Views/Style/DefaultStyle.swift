@@ -18,6 +18,7 @@ struct DefaultStyle {
     let loadingView = LoadingView()
     let message = Message()
     let profile = Profile()
+    let search = Search()
 }
 
 extension DefaultStyle {
@@ -254,6 +255,38 @@ extension DefaultStyle {
                 )
         }
         var spinnerColor: Color { .white }
+    }
+}
+
+extension DefaultStyle {
+    struct Search {
+        struct Segment {
+            func textColor(isActive: Bool) -> Color { isActive ? .white : .blue }
+            var cornerRadius: CGFloat { 14 }
+            var backgroundColor: Color { .white.opacity(0.8) }
+            var strokeColor: Color { .gray.opacity(0.2) }
+            var activeStyle: LinearGradient {
+                LinearGradient(
+                    colors: [.blue, .purple],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
+    
+        var textColor: Color { .primary }
+        func iconColor(isActive: Bool) -> Color { isActive ? .blue : .gray }
+        var backgroundColor: Color { .white.opacity(0.8) }
+        var cornerRadius: CGFloat { 16 }
+        var defaultStrokeColor: Color { .gray.opacity(0.2) }
+        func outerStrokeStyle(isActive: Bool) -> LinearGradient {
+            LinearGradient(
+                colors: isActive ? [.blue.opacity(0.7), .purple.opacity(0.7)] : [.clear],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+        let segment = Segment()
     }
 }
 
