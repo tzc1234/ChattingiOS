@@ -349,7 +349,8 @@ final class MessageListViewModel {
 
 private extension Message {
     func toDisplayedModel(currentUserID: Int) -> DisplayedMessage {
-        DisplayedMessage(
+        let timePrefix = deletedAt != nil ? "Deleted " : editedAt != nil ? "Edited " : ""
+        return DisplayedMessage(
             id: id,
             text: text,
             isMine: senderID == currentUserID,
@@ -357,9 +358,7 @@ private extension Message {
             isDeleted: deletedAt != nil,
             createdAt: createdAt,
             date: createdAt.formatted(date: .abbreviated, time: .omitted),
-            time: deletedAt.map { _ in "Deleted \(createdAt.formatted(date: .omitted, time: .shortened))" } ??
-            editedAt.map { _ in "Edited \(createdAt.formatted(date: .omitted, time: .shortened))" } ??
-                createdAt.formatted(date: .omitted, time: .shortened)
+            time: timePrefix + createdAt.formatted(date: .omitted, time: .shortened)
         )
     }
 }
