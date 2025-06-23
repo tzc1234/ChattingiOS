@@ -48,6 +48,9 @@ struct SearchContentView: View {
             .defaultAnimation(duration: 0.3, value: searchScope)
             .padding(.top, 12)
             
+            CTLoadingView()
+                .ignoresSafeArea()
+                .opacity(isLoading ? 1 : 0)
         }
         .navigationTitle("Search")
     }
@@ -156,6 +159,7 @@ struct SearchContentView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 18)
+        .opacity(isLoading ? 0 : 1)
     }
     
     private var searchResultsList: some View {
@@ -229,6 +233,7 @@ struct SearchContentView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity)
+        .opacity(isLoading ? 0 : 1)
     }
 }
 

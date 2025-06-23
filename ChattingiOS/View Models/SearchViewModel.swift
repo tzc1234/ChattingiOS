@@ -12,7 +12,7 @@ final class SearchViewModel {
     private(set) var contacts = [Contact]()
     var searchTerm = ""
     private(set) var generalError: String?
-    var isLoading: Bool { searchContactsTask ?? searchMoreContactsTask != nil }
+    var isLoading: Bool { searchContactsTask != nil }
     
     private var searchContactsTask: Task<Void, Never>?
     private var searchMoreContactsTask: Task<Void, Never>?
