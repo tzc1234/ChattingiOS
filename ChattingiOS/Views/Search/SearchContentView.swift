@@ -164,7 +164,6 @@ struct SearchContentView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 18)
-        .opacity(isLoading ? 0 : 1)
     }
     
     private var searchResultsList: some View {
@@ -242,7 +241,6 @@ struct SearchContentView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity)
-        .opacity(isLoading ? 0 : 1)
     }
 }
 
