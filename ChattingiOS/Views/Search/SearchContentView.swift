@@ -14,6 +14,7 @@ struct SearchContentView: View {
     }
     
     @Environment(ViewStyleManager.self) private var style
+    @FocusState private var focused: Bool
     @State private var isSearchActive: Bool = false
     @State private var searchScope: SearchScope = .contacts
     @State private var selectedContactID: Int?
@@ -46,10 +47,6 @@ struct SearchContentView: View {
             .defaultAnimation(duration: 0.3, value: isSearchActive)
             .defaultAnimation(duration: 0.3, value: searchScope)
             .padding(.top, 12)
-            
-            CTLoadingView()
-                .ignoresSafeArea()
-                .opacity(isLoading ? 1 : 0)
         }
         .navigationTitle("Search")
     }
@@ -57,15 +54,22 @@ struct SearchContentView: View {
     private var enhancedSearchBar: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 18))
-                    .foregroundColor(style.search.iconColor(isActive: isSearchActive))
+                if isLoading {
+                    ProgressView()
+                        .controlSize(.regular)
+                        .tint(.blue)
+                } else {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 18))
+                        .foregroundColor(style.search.iconColor(isActive: isSearchActive))
+                }
                     
                 TextField(searchScope == .contacts ? "Search contacts..." : "Search messages...", text: $searchTerm)
                     .font(.body.weight(.medium))
                     .foregroundColor(style.search.textColor)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
+                    .focused($focused)
                     .onChange(of: searchTerm) { _, newValue in
                         if !newValue.isEmpty { searchContacts() }
                         isSearchActive = !newValue.isEmpty

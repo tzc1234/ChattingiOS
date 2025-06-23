@@ -14,12 +14,9 @@ final class Flow {
     private var pushNotificationHandler: PushNotificationsHandler { dependencies.pushNotificationHandler }
     private var style: ViewStyleManager { dependencies.viewStyleManager }
     
-    private var navigationControlForContacts: NavigationControlViewModel {
-        contentViewModel.navigationControlForContacts
-    }
-    private var navigationControlForProfile: NavigationControlViewModel {
-        contentViewModel.navigationControlForProfile
-    }
+    private var contactsNavigationControl: NavigationControlViewModel { contentViewModel.contactsNavigationControl }
+    private var searchNavigationControl: NavigationControlViewModel { contentViewModel.searchNavigationControl }
+    private var profileNavigationControl: NavigationControlViewModel { contentViewModel.profileNavigationControl }
     
     // Let Flow manage the lifetime of the ContactListViewModel instance. Since there's a weird behaviour,
     // the ContactListView sometime will not update if let it manage its own ContactListViewModel.
@@ -52,7 +49,7 @@ final class Flow {
             guard let user = await currentUserVault.retrieveCurrentUser()?.user else { return }
             
             await contentViewModel.set(signInState: .signedIn(user, to: .contacts))
-            navigationControlForContacts.forceReloadContent()
+            contactsNavigationControl.forceReloadContent()
         }
     }
     
@@ -73,7 +70,7 @@ final class Flow {
         // Order does matter!
         await contentViewModel.set(signInState: .signedIn(user, to: .contacts))
         contactListViewModel = nil
-        navigationControlForContacts.forceReloadContent()
+        contactsNavigationControl.forceReloadContent()
         await updateDeviceToken()
     }
     
@@ -97,7 +94,7 @@ final class Flow {
             guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
             
             // On contacts tab, not on MessageListView.
-            if contentViewModel.selectedTab == .contacts, navigationControlForContacts.path.count < 1 {
+            if contentViewModel.selectedTab == .contacts, contactsNavigationControl.path.count < 1 {
                 showMessageListView(currentUserID: currentUserID, contact: contact)
             }
             
@@ -132,13 +129,19 @@ final class Flow {
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { [unowned self] currentUser in
             TabView(selection: contentViewModel.selectedTabBinding) { [unowned self] in
-                NavigationControlView(viewModel: navigationControlForContacts) { [unowned self] in
+                NavigationControlView(viewModel: contactsNavigationControl) { [unowned self] in
                     contactListView(currentUserID: currentUser.id)
                 }
                 .tabItem { Label(TabItem.contacts.title, systemImage: TabItem.contacts.systemImage) }
                 .tag(TabItem.contacts)
                 
-                NavigationControlView(viewModel: navigationControlForProfile) { [unowned self] in
+                NavigationControlView(viewModel: searchNavigationControl) { [unowned self] in
+                    searchView()
+                }
+                .tabItem { Label(TabItem.search.title, systemImage: TabItem.search.systemImage) }
+                .tag(TabItem.search)
+                
+                NavigationControlView(viewModel: profileNavigationControl) { [unowned self] in
                     profileView(user: currentUser)
                 }
                 .tabItem { Label(TabItem.profile.title, systemImage: TabItem.profile.systemImage) }
@@ -218,7 +221,7 @@ final class Flow {
                         )
                         
                         await contentViewModel.set(signInState: .signedIn(editedUser, to: .profile))
-                        navigationControlForProfile.forceReloadContent()
+                        profileNavigationControl.forceReloadContent()
                     } catch {
                         // If save error occurred, delete the current user, force user sign in.
                         try? await currentUserVault.deleteCurrentUser()
@@ -228,7 +231,7 @@ final class Flow {
                 }
             }
         })
-        navigationControlForProfile.show(next: NavigationDestination(editProfileView))
+        profileNavigationControl.show(next: NavigationDestination(editProfileView))
     }
     
     private func contactListView(currentUserID: Int) -> some View {
@@ -278,6 +281,14 @@ final class Flow {
         messageListViewModel = viewModel
         
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
-        navigationControlForContacts.show(next: destination)
+        contactsNavigationControl.show(next: destination)
+    }
+    
+    private func searchView() -> some View {
+        let viewModel = SearchViewModel(
+            searchContacts: dependencies.searchContacts,
+            loadImageData: dependencies.decoratedLoadImageDataWithCache
+        )
+        return SearchView(viewModel: viewModel, rowTapped: { contact in })
     }
 }

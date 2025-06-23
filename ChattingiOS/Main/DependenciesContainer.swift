@@ -81,6 +81,11 @@ final class DependenciesContainer {
             try UpdateDeviceTokenEndpoint(accessToken: try await accessToken(), params: $0).request
         }
     }
+    var searchContacts: DefaultSearchContacts {
+        DefaultSearchContacts(client: refreshTokenHTTPClient) { [accessToken] in
+            SearchContactsEndpoint(accessToken: try await accessToken(), params: $0).request
+        }
+    }
     
     private var accessToken: (@Sendable () async throws -> AccessToken) {
         { [currentUserVault] in
