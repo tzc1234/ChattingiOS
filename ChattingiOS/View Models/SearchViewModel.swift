@@ -11,7 +11,7 @@ import Foundation
 final class SearchViewModel {
     private(set) var contacts = [Contact]()
     var searchTerm = ""
-    private(set) var generalError: String?
+    var generalError: String?
     var isLoading: Bool { searchContactsTask != nil }
     
     private var searchContactsTask: Task<Void, Never>?

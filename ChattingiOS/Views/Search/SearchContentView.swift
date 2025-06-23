@@ -20,7 +20,6 @@ struct SearchContentView: View {
     
     let contacts: [Contact]
     @Binding var searchTerm: String
-    @Binding var generalError: String?
     let isLoading: Bool
     let searchContacts: () -> Void
     let searchMoreContacts: () -> Void
@@ -280,7 +279,6 @@ struct SearchContentView: View {
                 )
             ],
             searchTerm: .constant("s"),
-            generalError: .constant(nil),
             isLoading: false,
             searchContacts: {},
             searchMoreContacts: {},
