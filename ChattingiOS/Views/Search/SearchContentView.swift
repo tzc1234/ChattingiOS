@@ -45,6 +45,7 @@ struct SearchContentView: View {
             }
             .defaultAnimation(duration: 0.3, value: searchTerm)
             .defaultAnimation(duration: 0.3, value: searchScope)
+            .defaultAnimation(duration: 0.3, value: contactsResult)
             .padding(.top, 12)
         }
         .navigationTitle("Search")
