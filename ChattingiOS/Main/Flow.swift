@@ -95,7 +95,11 @@ final class Flow {
             
             // On contacts tab, not on MessageListView.
             if contentViewModel.selectedTab == .contacts, contactsNavigationControl.path.count < 1 {
-                showMessageListView(currentUserID: currentUserID, contact: contact)
+                showMessageListView(
+                    currentUserID: currentUserID,
+                    contact: contact,
+                    navigationControl: contactsNavigationControl
+                )
             }
             
             cache(contact)
@@ -136,7 +140,7 @@ final class Flow {
                 .tag(TabItem.contacts)
                 
                 NavigationControlView(viewModel: searchNavigationControl) { [unowned self] in
-                    searchView()
+                    searchView(currentUserID: currentUser.id)
                 }
                 .tabItem { Label(TabItem.search.title, systemImage: TabItem.search.systemImage) }
                 .tag(TabItem.search)
@@ -256,7 +260,11 @@ final class Flow {
             alertContent: { [unowned self] alertState in
                 newContactView(with: alertState)
             }, rowTapped: { [unowned self] contact in
-                showMessageListView(currentUserID: currentUserID, contact: contact)
+                showMessageListView(
+                    currentUserID: currentUserID,
+                    contact: contact,
+                    navigationControl: contactsNavigationControl
+                )
             })
             .navigationDestinationFor(MessageListView.self)
     }
@@ -270,7 +278,9 @@ final class Flow {
         .environment(style)
     }
     
-    private func showMessageListView(currentUserID: Int, contact: Contact) {
+    private func showMessageListView(currentUserID: Int,
+                                     contact: Contact,
+                                     navigationControl: NavigationControlViewModel) {
         let viewModel = MessageListViewModel(
             currentUserID: currentUserID,
             contact: contact,
@@ -281,14 +291,21 @@ final class Flow {
         messageListViewModel = viewModel
         
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
-        contactsNavigationControl.show(next: destination)
+        navigationControl.show(next: destination)
     }
     
-    private func searchView() -> some View {
+    private func searchView(currentUserID: Int) -> some View {
         let viewModel = SearchViewModel(
             searchContacts: dependencies.searchContacts,
             loadImageData: dependencies.decoratedLoadImageDataWithCache
         )
-        return SearchView(viewModel: viewModel, rowTapped: { contact in })
+        return SearchView(viewModel: viewModel, rowTapped: { [unowned self] contact in
+            showMessageListView(
+                currentUserID: currentUserID,
+                contact: contact,
+                navigationControl: searchNavigationControl
+            )
+        })
+        .navigationDestinationFor(MessageListView.self)
     }
 }

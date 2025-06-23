@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SearchView: View {
-    @Bindable var viewModel: SearchViewModel
+    @State var viewModel: SearchViewModel
     let rowTapped: (Contact) -> Void
     
     var body: some View {
