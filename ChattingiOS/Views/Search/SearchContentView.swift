@@ -62,6 +62,7 @@ struct SearchContentView: View {
                 focused = true
             }
         }
+        .onTapGesture { focused = false }
     }
     
     private var enhancedSearchBar: some View {
