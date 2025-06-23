@@ -10,4 +10,5 @@ import Foundation
 struct SearchedContacts {
     let contacts: [Contact]
     let hasMore: Bool
+    let total: Int
 }
