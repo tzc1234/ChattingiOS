@@ -19,9 +19,11 @@ final class SearchViewModel {
     private var hasMoreContacts = false
     
     private let searchContactsUseCase: SearchContacts
+    private let loadImageData: LoadImageData
     
-    init(searchContacts: SearchContacts) {
+    init(searchContacts: SearchContacts, loadImageData: LoadImageData) {
         self.searchContactsUseCase = searchContacts
+        self.loadImageData = loadImageData
     }
     
     func searchContacts() {
@@ -59,5 +61,9 @@ final class SearchViewModel {
                 generalError = error.toGeneralErrorMessage()
             }
         }
+    }
+    
+    func loadAvatarData(url: URL) async -> Data? {
+        try? await loadImageData.load(for: url)
     }
 }
