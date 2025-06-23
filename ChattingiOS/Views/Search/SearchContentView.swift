@@ -89,14 +89,14 @@ struct SearchContentView: View {
                 RoundedRectangle(cornerRadius: style.search.cornerRadius)
                     .fill(style.search.backgroundColor)
                     .overlay(
-                        RoundedRectangle(cornerRadius: style.search.cornerRadius)
-                            .stroke(style.search.defaultStrokeColor, lineWidth: 1)
+                        style.search.defaultStrokeColor,
+                        in: .rect(cornerRadius: style.search.cornerRadius).stroke(lineWidth: 1)
                     )
             }
-            .overlay {
-                RoundedRectangle(cornerRadius: style.search.cornerRadius)
-                    .stroke(style.search.outerStrokeStyle(isActive: isSearchActive), lineWidth: 2)
-            }
+            .overlay(
+                style.search.outerStrokeStyle(isActive: isSearchActive),
+                in: .rect(cornerRadius: style.search.cornerRadius).stroke(lineWidth: 2)
+            )
             .defaultShadow(color: .blue.opacity(0.2), isActive: isSearchActive)
         }
     }
@@ -127,10 +127,10 @@ struct SearchContentView: View {
             .background {
                 RoundedRectangle(cornerRadius: style.search.segment.cornerRadius)
                     .fill(style.search.segment.backgroundColor)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: style.search.segment.cornerRadius)
-                            .stroke(style.search.segment.strokeColor, lineWidth: 1)
-                    }
+                    .overlay(
+                        style.search.segment.strokeColor,
+                        in: .rect(cornerRadius: style.search.segment.cornerRadius).stroke(lineWidth: 1)
+                    )
             }
             .defaultShadow(color: .blue.opacity(0.2))
         }
@@ -143,16 +143,16 @@ struct SearchContentView: View {
             
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 60))
-                .foregroundColor(.blue.opacity(0.6))
+                .foregroundColor(style.search.emptyState.iconColor)
             
             VStack(spacing: 8) {
                 Text("Search \(searchScope.rawValue)")
                     .font(.title2.weight(.semibold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(style.search.emptyState.titleColor)
                 
                 Text("Type to search for \(searchScope == .contacts ? "contact names" : "message content")")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(style.search.emptyState.subtitleColor)
             }
             
             Spacer()
@@ -216,18 +216,22 @@ struct SearchContentView: View {
         VStack(spacing: 16) {
             Spacer()
             
-            Image(systemName: searchScope == .contacts ? "person.crop.circle.badge.questionmark" : "questionmark.bubble")
-                .font(.system(size: 60))
-                .foregroundColor(.gray)
+            Image(
+                systemName: searchScope == .contacts ?
+                    "person.crop.circle.badge.questionmark" :
+                    "questionmark.bubble"
+            )
+            .font(.system(size: 60))
+            .foregroundColor(style.search.noResults.iconColor)
             
             VStack(spacing: 8) {
                 Text("No \(searchScope.rawValue.lowercased()) found")
                     .font(.title2.weight(.semibold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(style.search.noResults.titleColor)
                 
                 Text("Try searching for a different \(searchScope == .contacts ? "name" : "message")")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(style.search.noResults.subtitleColor)
             }
             
             Spacer()

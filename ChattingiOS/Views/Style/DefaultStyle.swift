@@ -273,6 +273,18 @@ extension DefaultStyle {
                 )
             }
         }
+        
+        struct EmptyState {
+            var iconColor: Color { .blue.opacity(0.6) }
+            var titleColor: Color { .primary }
+            var subtitleColor: Color { .secondary }
+        }
+        
+        struct NoResults {
+            var iconColor: Color { .gray }
+            var titleColor: Color { .primary }
+            var subtitleColor: Color { .secondary }
+        }
     
         var textColor: Color { .primary }
         func iconColor(isActive: Bool) -> Color { isActive ? .blue : .gray }
@@ -287,6 +299,8 @@ extension DefaultStyle {
             )
         }
         let segment = Segment()
+        let emptyState = EmptyState()
+        let noResults = NoResults()
     }
 }
 
