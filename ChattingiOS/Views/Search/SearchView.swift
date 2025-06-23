@@ -13,7 +13,7 @@ struct SearchView: View {
     
     var body: some View {
         SearchContentView(
-            contacts: viewModel.contacts,
+            contactsResult: viewModel.contactsResult,
             searchTerm: $viewModel.searchTerm,
             isLoading: viewModel.isLoading,
             searchContacts: viewModel.searchContacts,

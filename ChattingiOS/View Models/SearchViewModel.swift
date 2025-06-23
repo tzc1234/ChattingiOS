@@ -7,9 +7,14 @@
 
 import Foundation
 
+struct SearchContactsResult {
+    let contacts: [Contact]
+    let total: Int
+}
+
 @MainActor @Observable
 final class SearchViewModel {
-    private(set) var contacts = [Contact]()
+    private(set) var contactsResult = SearchContactsResult(contacts: [], total: 0)
     var searchTerm = ""
     var generalError: String?
     var isLoading: Bool { searchContactsTask != nil }
@@ -38,7 +43,7 @@ final class SearchViewModel {
             do throws(UseCaseError) {
                 let param = SearchContactsParams(searchTerm: searchTerm)
                 let searched = try await searchContactsUseCase.search(by: param)
-                contacts = searched.contacts
+                contactsResult = SearchContactsResult(contacts: searched.contacts, total: searched.total)
                 hasMoreContacts = searched.hasMore
             } catch {
                 generalError = error.toGeneralErrorMessage()
@@ -53,9 +58,15 @@ final class SearchViewModel {
             defer { searchMoreContactsTask = nil }
             
             do throws(UseCaseError) {
-                let param = SearchContactsParams(searchTerm: searchTerm, before: contacts.last?.lastUpdate)
+                let param = SearchContactsParams(
+                    searchTerm: searchTerm,
+                    before: contactsResult.contacts.last?.lastUpdate
+                )
                 let searched = try await searchContactsUseCase.search(by: param)
-                contacts += searched.contacts
+                contactsResult = SearchContactsResult(
+                    contacts: contactsResult.contacts + searched.contacts,
+                    total: searched.total
+                )
                 hasMoreContacts = searched.hasMore
             } catch {
                 generalError = error.toGeneralErrorMessage()

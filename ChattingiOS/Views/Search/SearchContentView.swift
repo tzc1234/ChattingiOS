@@ -15,11 +15,10 @@ struct SearchContentView: View {
     
     @Environment(ViewStyleManager.self) private var style
     @FocusState private var focused: Bool
-    @State private var isSearchActive: Bool = false
     @State private var searchScope: SearchScope = .contacts
     @State private var selectedContactID: Int?
     
-    let contacts: [Contact]
+    let contactsResult: SearchContactsResult
     @Binding var searchTerm: String
     let isLoading: Bool
     let searchContacts: () -> Void
@@ -44,11 +43,15 @@ struct SearchContentView: View {
                     searchResultsList
                 }
             }
-            .defaultAnimation(duration: 0.3, value: isSearchActive)
+            .defaultAnimation(duration: 0.3, value: searchTerm)
             .defaultAnimation(duration: 0.3, value: searchScope)
             .padding(.top, 12)
         }
         .navigationTitle("Search")
+        .onAppear { focused = true }
+        .onChange(of: searchTerm) { _, newValue in
+            if !newValue.isEmpty { searchContacts() }
+        }
     }
     
     private var enhancedSearchBar: some View {
@@ -61,7 +64,7 @@ struct SearchContentView: View {
                 } else {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 18))
-                        .foregroundColor(style.search.iconColor(isActive: isSearchActive))
+                        .foregroundColor(style.search.iconColor(isActive: !searchTerm.isEmpty))
                 }
                     
                 TextField(searchScope == .contacts ? "Search contacts..." : "Search messages...", text: $searchTerm)
@@ -70,14 +73,12 @@ struct SearchContentView: View {
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
                     .focused($focused)
-                    .onChange(of: searchTerm) { _, newValue in
-                        if !newValue.isEmpty { searchContacts() }
-                        isSearchActive = !newValue.isEmpty
-                    }
                 
                 Button {
                     searchTerm = ""
-                    isSearchActive = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        focused = true
+                    }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16))
@@ -97,10 +98,10 @@ struct SearchContentView: View {
                     )
             }
             .overlay(
-                style.search.outerStrokeStyle(isActive: isSearchActive),
+                style.search.outerStrokeStyle(isActive: !searchTerm.isEmpty),
                 in: .rect(cornerRadius: style.search.cornerRadius).stroke(lineWidth: 2)
             )
-            .defaultShadow(color: .blue.opacity(0.2), isActive: isSearchActive)
+            .defaultShadow(color: .blue.opacity(0.2), isActive: !searchTerm.isEmpty)
         }
     }
     
@@ -168,7 +169,7 @@ struct SearchContentView: View {
     private var searchResultsList: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text("\(contacts.count) \(searchScope.rawValue.lowercased()) found.")
+                Text("\(contactsResult.total) \(searchScope.rawValue.lowercased()) found.")
                     .font(.subheadline.weight(.medium))
                     .foregroundColor(.secondary)
                 
@@ -176,7 +177,7 @@ struct SearchContentView: View {
             }
             .padding(.horizontal, 20)
             
-            if contacts.isEmpty {
+            if contactsResult.contacts.isEmpty {
                 noResultsView
             } else {
                 contactList
@@ -186,7 +187,7 @@ struct SearchContentView: View {
     
     private var contactList: some View {
         List {
-            ForEach(contacts) { contact in
+            ForEach(contactsResult.contacts) { contact in
                 ContactRow(
                     contact: contact,
                     isPressed: selectedContactID == contact.id,
@@ -207,7 +208,7 @@ struct SearchContentView: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .onAppear {
-                    if contacts.last == contact { searchMoreContacts() }
+                    if contactsResult.contacts.last == contact { searchMoreContacts() }
                 }
             }
             .listRowInsets(.init(top: 5, leading: 18, bottom: 5, trailing: 18))
@@ -247,41 +248,44 @@ struct SearchContentView: View {
 #Preview {
     NavigationView {
         SearchContentView(
-            contacts: [
-                Contact(
-                    id: 0,
-                    responder: User(
+            contactsResult: SearchContactsResult(
+                contacts: [
+                    Contact(
                         id: 0,
-                        name: "Harry",
-                        email: "harry@email.com",
-                        avatarURL: nil,
-                        createdAt: .now
+                        responder: User(
+                            id: 0,
+                            name: "Harry",
+                            email: "harry@email.com",
+                            avatarURL: nil,
+                            createdAt: .now
+                        ),
+                        blockedByUserID: nil,
+                        unreadMessageCount: 0,
+                        createdAt: .now,
+                        lastUpdate: .now - 3,
+                        lastMessage: nil
                     ),
-                    blockedByUserID: nil,
-                    unreadMessageCount: 0,
-                    createdAt: .now,
-                    lastUpdate: .now - 3,
-                    lastMessage: nil
-                ),
-                Contact(
-                    id: 1,
-                    responder: User(
+                    Contact(
                         id: 1,
-                        name: "Jo",
-                        email: "jo@email.com",
-                        avatarURL: nil,
-                        createdAt: .now
-                    ),
-                    blockedByUserID: nil,
-                    unreadMessageCount: 100,
-                    createdAt: .now,
-                    lastUpdate: .distantPast,
-                    lastMessage: MessageWithMetadata(
-                        message: .init(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now, editedAt: nil, deletedAt: nil),
-                        metadata: .init(previousID: nil)
+                        responder: User(
+                            id: 1,
+                            name: "Jo",
+                            email: "jo@email.com",
+                            avatarURL: nil,
+                            createdAt: .now
+                        ),
+                        blockedByUserID: nil,
+                        unreadMessageCount: 100,
+                        createdAt: .now,
+                        lastUpdate: .distantPast,
+                        lastMessage: MessageWithMetadata(
+                            message: .init(id: 1, text: "Last message text", senderID: 1, isRead: false, createdAt: .now, editedAt: nil, deletedAt: nil),
+                            metadata: .init(previousID: nil)
+                        )
                     )
-                )
-            ],
+                ],
+                total: 2
+            ),
             searchTerm: .constant("s"),
             isLoading: false,
             searchContacts: {},
