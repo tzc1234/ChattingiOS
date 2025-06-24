@@ -17,7 +17,7 @@ final class SearchViewModel {
     private(set) var contactsResult = SearchContactsResult(contacts: [], total: 0)
     var searchTerm = ""
     var generalError: String?
-    private(set) var isLoading = false
+    var isLoading: Bool { searchContactsTask != nil }
     
     private var searchContactsTask: Task<Void, Never>?
     private var searchMoreContactsTask: Task<Void, Never>?
@@ -32,16 +32,14 @@ final class SearchViewModel {
     }
     
     func searchContacts() {
-        guard !searchTerm.isEmpty else { return }
+        guard !searchTerm.isEmpty, searchContactsTask == nil else { return }
         
-        searchContactsTask?.cancel()
         searchContactsTask = Task {
-            defer { isLoading = false }
+            defer { searchContactsTask = nil }
             
             try? await Task.sleep(for: .seconds(0.5)) // Debounce
             guard !searchTerm.isEmpty, !Task.isCancelled else { return }
             
-            isLoading = true
             do throws(UseCaseError) {
                 let param = SearchContactsParams(searchTerm: searchTerm)
                 let searched = try await searchContactsUseCase.search(by: param)
