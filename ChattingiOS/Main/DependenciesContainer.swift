@@ -71,9 +71,9 @@ final class DependenciesContainer {
             UnblockContactEndpoint(accessToken: try await accessToken(), contactID: $0).request
         }
     }
-    var updateCurrentUser: DefaultUpdateCurrentUser {
-        DefaultUpdateCurrentUser(client: refreshTokenHTTPClient) { [accessToken] in
-            UpdateCurrentUserEndpoint(accessToken: try await accessToken(), params: $0).request
+    var editCurrentUser: DefaultEditCurrentUser {
+        DefaultEditCurrentUser(client: refreshTokenHTTPClient) { [accessToken] in
+            EditCurrentUserEndpoint(accessToken: try await accessToken(), params: $0).request
         }
     }
     var updateDeviceToken: DefaultUpdateDeviceToken {

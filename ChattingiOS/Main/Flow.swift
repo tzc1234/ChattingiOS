@@ -207,7 +207,7 @@ final class Flow {
         let viewModel = EditProfileViewModel(
             user: user,
             currentAvatarData: avatarData,
-            updateCurrentUser: dependencies.updateCurrentUser
+            editCurrentUser: dependencies.editCurrentUser
         )
         let editProfileView = EditProfileView(viewModel: viewModel, onDismiss: { editedUser in
             Task { [unowned self] in
