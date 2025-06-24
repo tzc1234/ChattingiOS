@@ -65,7 +65,7 @@ struct EditProfileContentView: View {
                             .clipShape(.circle)
                             .overlay(
                                 style.signUp.iconStrokeStyle,
-                                in: .circle.stroke(lineWidth: 2)
+                                in: .circle.stroke(lineWidth: 5)
                             )
                         
                         if let selectedImage {

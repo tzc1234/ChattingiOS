@@ -20,6 +20,7 @@ struct ContactRow: View {
     private var isBlocked: Bool { contact.blockedByUserID != nil }
     private var lastMessageText: String? { contact.lastMessage?.message.text }
     private var unreadCount: Int { contact.unreadMessageCount }
+    private var avatarWidth: CGFloat { 50 }
     
     @State private var image: UIImage?
     
@@ -30,7 +31,7 @@ struct ContactRow: View {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 50, height: 50)
+                        .frame(width: avatarWidth, height: avatarWidth)
                         .clipShape(.circle)
                 } else {
                     Image(systemName: "person.circle.fill")
@@ -88,6 +89,8 @@ struct ContactRow: View {
         }
         .scaleEffect(isPressed ? 0.98 : 1)
         .defaultAnimation(duration: 0.1, value: isPressed)
-        .task { image = await loadAvatar() }
+        .task {
+            image = await loadAvatar()?.resize(to: CGSize(width: avatarWidth, height: avatarWidth))
+        }
     }
 }

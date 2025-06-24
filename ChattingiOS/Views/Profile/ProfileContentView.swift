@@ -11,6 +11,7 @@ struct ProfileContentView: View {
     @Environment(ViewStyleManager.self) private var style
     @State private var showSignOutAlert = false
     @State private var avatarImage: UIImage?
+    private var avatarWidth: CGFloat { 105 }
     
     let user: User
     let avatarData: Data?
@@ -54,7 +55,7 @@ struct ProfileContentView: View {
         }
         .onChange(of: avatarData) { _, newValue in
             if let newValue {
-                avatarImage = UIImage(data: newValue)
+                avatarImage = UIImage(data: newValue)?.resize(to: CGSize(width: avatarWidth, height: avatarWidth))
             }
         }
     }
@@ -76,7 +77,7 @@ struct ProfileContentView: View {
                             Image(uiImage: avatarImage)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 105, height: 105)
+                                .frame(width: avatarWidth, height: avatarWidth)
                                 .clipShape(.circle)
                         } else {
                             Image(systemName: "person.circle.fill")

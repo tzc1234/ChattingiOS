@@ -35,6 +35,7 @@ struct MessageListContentView: View {
     @State private var screenSize: CGSize = .zero
     @State private var showBubbleMenu = false
     
+    private var avatarWidth: CGFloat { 30 }
     private var showScrollToBottomButton: Bool {
         guard let maxIndex = visibleMessageIndex.max() else { return false }
         
@@ -90,7 +91,7 @@ struct MessageListContentView: View {
                             Image(uiImage: avatarImage)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 30, height: 30)
+                                .frame(width: avatarWidth, height: avatarWidth)
                                 .clipShape(.circle)
                         } else {
                             Image(systemName: "person.circle.fill")
@@ -107,7 +108,7 @@ struct MessageListContentView: View {
         }
         .onChange(of: avatarData) { _, newValue in
             if let newValue {
-                avatarImage = UIImage(data: newValue)
+                avatarImage = UIImage(data: newValue)?.resize(to: CGSize(width: avatarWidth, height: avatarWidth))
             }
         }
         .onChange(of: selectedBubble) { _, newValue in
