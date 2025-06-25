@@ -200,7 +200,7 @@ extension DefaultStyle {
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 ) : LinearGradient(
-                    colors: [.white.opacity(0.5)],
+                    colors: [.white.opacity(0.6), .white.opacity(0.5)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

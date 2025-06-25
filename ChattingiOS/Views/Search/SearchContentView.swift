@@ -15,9 +15,9 @@ struct SearchContentView: View {
     
     @Environment(ViewStyleManager.self) private var style
     @FocusState private var focused: Bool
-    @State private var isInit = true
     @State private var searchScope: SearchScope = .contacts
     @State private var selectedContactID: Int?
+    @State private var searchBarID = UUID()
     
     let contactsResult: SearchContactsResult
     @Binding var searchTerm: String
@@ -30,10 +30,12 @@ struct SearchContentView: View {
     var body: some View {
         ZStack {
             CTBackgroundView()
+                .onTapGesture { focused = false }
             
             VStack(spacing: 0) {
                 VStack(spacing: 8) {
                     enhancedSearchBar
+                        .id(searchBarID)
                 }
                 .padding(.horizontal, 18)
                 .padding(.bottom, 18)
@@ -51,9 +53,9 @@ struct SearchContentView: View {
         }
         .navigationTitle("Search")
         .onAppear {
-            if isInit {
+            if searchTerm.isEmpty || contactsResult.contacts.isEmpty {
+                searchBarID = UUID()
                 focused = true
-                isInit = false
             }
         }
         .onChange(of: searchTerm) { _, _ in
@@ -62,7 +64,6 @@ struct SearchContentView: View {
                 focused = true
             }
         }
-        .onTapGesture { focused = false }
     }
     
     private var enhancedSearchBar: some View {
