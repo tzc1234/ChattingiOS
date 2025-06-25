@@ -81,7 +81,6 @@ struct MessageListContentView: View {
             messageBubbleMenu
         }
         .defaultAnimation(duration: 0.3, value: showBubbleMenu)
-        .onTapGesture { messageInputFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -215,51 +214,75 @@ struct MessageListContentView: View {
     }
     
     private var messageList: some View {
-        ScrollViewReader { proxy in
-            List {
-                ForEach(Array(messages.enumerated()), id: \.offset) { index, message in
-                    messageDateHeader(message.date, index: index)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                    
-                    MessageBubble(message: message, selectedBubble: $selectedBubble, readEditedMessage: {
-                        readMessages(message.id)
-                    })
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .id(message.id)
-                    .onAppear {
-                        visibleMessageIndex.insert(index)
-                        if message == messages.first { loadPreviousMessages() }
-                        if message == messages.last { loadMoreMessages() }
-                        if message.isUnread { readMessages(message.id) }
-                    }
-                    .onDisappear { visibleMessageIndex.remove(index) }
+        MessagesTableView(
+            messages: messages,
+            content: { index, message in
+                MessageBubble(
+                    message: message,
+                    selectedBubble: $selectedBubble,
+                    readEditedMessage: { readMessages(message.id) }
+                )
+                .onAppear {
+//                    visibleMessageIndex.insert(index)
+//                    if message == messages.first { loadPreviousMessages() }
+//                    if message == messages.last { loadMoreMessages() }
+//                    if message.isUnread { readMessages(message.id) }
                 }
-                .listRowInsets(.init(top: 8, leading: 20, bottom: 8, trailing: 20))
-            }
-            .padding(.top, 20)
-            .onChange(of: messages) { _, newValue in
-                if messages.isEmpty { visibleMessageIndex.removeAll() }
-            }
-            .onChange(of: listPositionMessageID) { _, messageID in
-                if let messageID {
-                    withAnimation { scrollToMessageID = messageID }
-                    listPositionMessageID = nil
+                .onDisappear {
+//                    visibleMessageIndex.remove(index)
                 }
+            },
+            visibleMessageIndex: $visibleMessageIndex,
+            onBackgroundTap: {
+                messageInputFocused = false
             }
-            .onChange(of: scrollToMessageID) { _, messageID in
-                proxy.scrollTo(messageID, anchor: .top)
-            }
-            .onChange(of: isScrollToBottom) { _, newValue in
-                if newValue {
-                    withAnimation { proxy.scrollTo(messages.last?.id, anchor: .top) }
-                    isScrollToBottom = false
-                }
-            }
-            .listStyle(.plain)
-        }
-        .padding(.top, 8)
+        )
+        
+//        ScrollViewReader { proxy in
+//            List {
+//                ForEach(Array(messages.enumerated()), id: \.offset) { index, message in
+//                    messageDateHeader(message.date, index: index)
+//                        .listRowBackground(Color.clear)
+//                        .listRowSeparator(.hidden)
+//                    
+//                    MessageBubble(message: message, selectedBubble: $selectedBubble, readEditedMessage: {
+//                        readMessages(message.id)
+//                    })
+//                    .listRowBackground(Color.clear)
+//                    .listRowSeparator(.hidden)
+//                    .id(message.id)
+//                    .onAppear {
+//                        visibleMessageIndex.insert(index)
+//                        if message == messages.first { loadPreviousMessages() }
+//                        if message == messages.last { loadMoreMessages() }
+//                        if message.isUnread { readMessages(message.id) }
+//                    }
+//                    .onDisappear { visibleMessageIndex.remove(index) }
+//                }
+//                .listRowInsets(.init(top: 8, leading: 20, bottom: 8, trailing: 20))
+//            }
+//            .padding(.top, 20)
+//            .onChange(of: messages) { _, newValue in
+//                if messages.isEmpty { visibleMessageIndex.removeAll() }
+//            }
+//            .onChange(of: listPositionMessageID) { _, messageID in
+//                if let messageID {
+//                    withAnimation { scrollToMessageID = messageID }
+//                    listPositionMessageID = nil
+//                }
+//            }
+//            .onChange(of: scrollToMessageID) { _, messageID in
+//                proxy.scrollTo(messageID, anchor: .top)
+//            }
+//            .onChange(of: isScrollToBottom) { _, newValue in
+//                if newValue {
+//                    withAnimation { proxy.scrollTo(messages.last?.id, anchor: .top) }
+//                    isScrollToBottom = false
+//                }
+//            }
+//            .listStyle(.plain)
+//        }
+//        .padding(.top, 8)
     }
     
     @ViewBuilder
@@ -329,6 +352,7 @@ struct MessageBubbleContent: View {
 struct MessageBubble: View {
     @Environment(ViewStyleManager.self) private var style
     @State private var contentFrame: CGRect = .zero
+    @State private var backgroundID = UUID()
     
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
     private var isMine: Bool { message.isMine }
@@ -353,13 +377,17 @@ struct MessageBubble: View {
                             }
                             return Color.clear
                         }
+                        .id(backgroundID)
                     }
                     // A trick for long press gesture with a smooth scrolling
                     // https://stackoverflow.com/a/59499892
                     .onTapGesture {}
                     .onCustomLongPressGesture(canTrigger: !message.isDeleted) {
-                        impactFeedback.impactOccurred()
-                        selectedBubble = .init(frame: contentFrame, message: message)
+                        backgroundID = UUID()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            impactFeedback.impactOccurred()
+                            selectedBubble = .init(frame: contentFrame, message: message)
+                        }
                     }
                 
                 HStack(spacing: 4) {
