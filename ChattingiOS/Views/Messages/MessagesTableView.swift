@@ -30,10 +30,17 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     func updateUIView(_ tableView: UITableView, context: Context) {
         context.coordinator.messages = messages
         tableView.reloadData()
+        updateVisibleMessageIndex(tableView: tableView)
     }
     
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
+    }
+    
+    private func updateVisibleMessageIndex(tableView: UITableView) {
+        DispatchQueue.main.async {
+            visibleMessageIndex = Set(tableView.visibleCells.map(\.tag))
+        }
     }
     
     final class Coordinator: NSObject, UITableViewDataSource, UITableViewDelegate {
@@ -67,8 +74,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             .margins(.vertical, 8)
             .background(.clear)
             
-            parent.visibleMessageIndex.insert(indexPath.row)
-            
+            cell.tag = indexPath.row
             return cell
         }
         
@@ -77,6 +83,10 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         }
         
         func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            if let tableView = scrollView as? UITableView {
+                parent.updateVisibleMessageIndex(tableView: tableView)
+            }
+            
             let offsetY = scrollView.contentOffset.y
             let contentHeight = scrollView.contentSize.height
             let scrollViewHeight = scrollView.frame.size.height
