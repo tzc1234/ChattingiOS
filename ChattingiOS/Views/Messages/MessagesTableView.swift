@@ -12,6 +12,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     @ViewBuilder let content: (Int, DisplayedMessage, [DisplayedMessage]) -> Content
     @Binding var visibleMessageIndex: Set<Int>
     let isLoading: Bool
+    @Binding var isScrollToBottom: Bool
     let onContentTop: () -> Void
     let onContentBottom: () -> Void
     let onBackgroundTap: (() -> Void)?
@@ -34,8 +35,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         let coordinator = context.coordinator
         coordinator.isLoading = isLoading
         
-        let currentMessages = coordinator.messages
-        if currentMessages != messages {
+        if coordinator.messages != messages {
             coordinator.messages = messages
             tableView.reloadData()
             
@@ -47,6 +47,13 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         }
         
         updateVisibleMessageIndex(tableView: tableView)
+        
+        if isScrollToBottom {
+            DispatchQueue.main.async {
+                tableView.scrollToRow(at: IndexPath(row: messages.count-1, section: 0) , at: .bottom, animated: true)
+                isScrollToBottom = false
+            }
+        }
     }
     
     func makeCoordinator() -> Coordinator {

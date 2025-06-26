@@ -229,6 +229,7 @@ struct MessageListContentView: View {
             },
             visibleMessageIndex: $visibleMessageIndex,
             isLoading: isLoading,
+            isScrollToBottom: $isScrollToBottom,
             onContentTop: loadPreviousMessages,
             onContentBottom: loadMoreMessages,
             onBackgroundTap: { messageInputFocused = false }
