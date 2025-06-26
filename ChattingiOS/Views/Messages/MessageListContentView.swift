@@ -233,6 +233,7 @@ struct MessageListContentView: View {
             onBackgroundTap: { messageInputFocused = false }
         )
         .padding(.top, 28)
+        .disabled(showBubbleMenu)
         .onChange(of: visibleMessageIndex) { _, newValue in
             if let maxVisibleIndex = newValue.max() {
                 let maxVisibleMessageID = messages[maxVisibleIndex].id
