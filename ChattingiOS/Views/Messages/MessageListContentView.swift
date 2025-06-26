@@ -234,6 +234,12 @@ struct MessageListContentView: View {
             onContentBottom: loadMoreMessages,
             onBackgroundTap: { messageInputFocused = false }
         )
+        .onChange(of: visibleMessageIndex) { _, newValue in
+            if let maxVisibleIndex = newValue.max() {
+                let maxVisibleMessageID = messages[maxVisibleIndex].id
+                readMessages(maxVisibleMessageID)
+            }
+        }
         
 //        ScrollViewReader { proxy in
 //            List {
