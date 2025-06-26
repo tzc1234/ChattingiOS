@@ -11,6 +11,9 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     let messages: [DisplayedMessage]
     @ViewBuilder let content: (Int, DisplayedMessage) -> Content
     @Binding var visibleMessageIndex: Set<Int>
+    let isLoading: Bool
+    let onContentTop: () -> Void
+    let onContentBottom: () -> Void
     let onBackgroundTap: (() -> Void)?
     
     func makeUIView(context: Context) -> UITableView {
@@ -28,8 +31,18 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     }
     
     func updateUIView(_ tableView: UITableView, context: Context) {
-        context.coordinator.messages = messages
-        tableView.reloadData()
+        let currentMessages = context.coordinator.messages
+        if currentMessages != messages {
+            context.coordinator.messages = messages
+            tableView.reloadData()
+            
+            if let currentTopMessageID = context.coordinator.currentTopMessageID,
+               let index = messages.firstIndex(where: { $0.id == currentTopMessageID }) {
+                tableView.scrollToRow(at: IndexPath(row: index, section: 0) , at: .top, animated: false)
+                context.coordinator.currentTopMessageID = nil
+            }
+        }
+        
         updateVisibleMessageIndex(tableView: tableView)
     }
     
@@ -46,16 +59,14 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     final class Coordinator: NSObject, UITableViewDataSource, UITableViewDelegate {
         static var cellID: String { "Cell" }
         
+        var currentTopMessageID: Int?
+        var messages = [DisplayedMessage]()
+        private var lastContentOffset: CGFloat = 0
+        
         private let parent: MessagesTableView<Content>
-        var messages: [DisplayedMessage]
-        var content: (Int, DisplayedMessage) -> Content
-        var onBackgroundTap: (() -> Void)?
         
         init(parent: MessagesTableView<Content>) {
             self.parent = parent
-            self.messages = parent.messages
-            self.content = parent.content
-            self.onBackgroundTap = parent.onBackgroundTap
         }
         
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -65,7 +76,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
             let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellID, for: indexPath)
             let message = messages[indexPath.row]
-            let swiftUIView = content(indexPath.row, message)
+            let swiftUIView = parent.content(indexPath.row, message)
             
             cell.contentConfiguration = UIHostingConfiguration {
                 swiftUIView
@@ -88,11 +99,16 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             }
             
             let offsetY = scrollView.contentOffset.y
+            if offsetY == 0, !parent.isLoading {
+                currentTopMessageID = messages.first?.id
+                parent.onContentTop()
+                return
+            }
+            
             let contentHeight = scrollView.contentSize.height
             let scrollViewHeight = scrollView.frame.size.height
-            
-            if offsetY > contentHeight - scrollViewHeight {
-                print("should load more")
+            if offsetY > contentHeight - scrollViewHeight, !parent.isLoading {
+                parent.onContentBottom()
             }
         }
     }

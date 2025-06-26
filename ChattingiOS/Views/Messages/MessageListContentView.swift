@@ -223,19 +223,14 @@ struct MessageListContentView: View {
                     readEditedMessage: { readMessages(message.id) }
                 )
                 .onAppear {
-//                    visibleMessageIndex.insert(index)
-//                    if message == messages.first { loadPreviousMessages() }
-//                    if message == messages.last { loadMoreMessages() }
 //                    if message.isUnread { readMessages(message.id) }
-                }
-                .onDisappear {
-//                    visibleMessageIndex.remove(index)
                 }
             },
             visibleMessageIndex: $visibleMessageIndex,
-            onBackgroundTap: {
-                messageInputFocused = false
-            }
+            isLoading: isLoading,
+            onContentTop: loadPreviousMessages,
+            onContentBottom: loadMoreMessages,
+            onBackgroundTap: { messageInputFocused = false }
         )
         
 //        ScrollViewReader { proxy in
