@@ -11,6 +11,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     let messages: [DisplayedMessage]
     @ViewBuilder let content: (Int, DisplayedMessage, [DisplayedMessage]) -> Content
     @Binding var visibleMessageIndex: Set<Int>
+    @Binding var listPositionMessageID: Int?
     let isLoading: Bool
     @Binding var isScrollToBottom: Bool
     let onContentTop: () -> Void
@@ -47,6 +48,13 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         }
         
         updateVisibleMessageIndex(tableView: tableView)
+        
+        if let listPositionMessageID, let index = messages.firstIndex(where: { $0.id == listPositionMessageID }) {
+            DispatchQueue.main.async {
+                tableView.scrollToRow(at: IndexPath(row: index, section: 0) , at: .bottom, animated: false)
+                self.listPositionMessageID = nil
+            }
+        }
         
         if isScrollToBottom {
             DispatchQueue.main.async {

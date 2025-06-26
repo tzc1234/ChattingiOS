@@ -27,7 +27,6 @@ struct DeleteMessageAttributes {
 struct MessageListContentView: View {
     @Environment(ViewStyleManager.self) private var style
     @FocusState private var messageInputFocused: Bool
-    @State private var scrollToMessageID: Int?
     @State private var visibleMessageIndex = Set<Int>()
     @State private var isScrollToBottom = false
     @State private var selectedBubble: SelectedBubble?
@@ -228,6 +227,7 @@ struct MessageListContentView: View {
                 }
             },
             visibleMessageIndex: $visibleMessageIndex,
+            listPositionMessageID: $listPositionMessageID,
             isLoading: isLoading,
             isScrollToBottom: $isScrollToBottom,
             onContentTop: loadPreviousMessages,
