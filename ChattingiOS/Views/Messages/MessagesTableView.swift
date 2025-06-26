@@ -64,8 +64,6 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
                 isScrollToBottom = false
             }
         }
-        
-        coordinator.tableFrame = tableView.frame
     }
     
     func makeCoordinator() -> Coordinator {
@@ -82,7 +80,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         static var cellID: String { "Cell" }
         
         var tableView: UITableView?
-        var tableFrame: CGRect = .zero
+        var tableFrameBeforeKeyboardShown: CGRect = .zero
         var currentTopMessageID: Int?
         var messages = [DisplayedMessage]()
         
@@ -94,13 +92,19 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             
             NotificationCenter.default.addObserver(
                 self,
+                selector: #selector(keyboardWillShow(_:)),
+                name: UIResponder.keyboardWillShowNotification,
+                object: nil
+            )
+            NotificationCenter.default.addObserver(
+                self,
                 selector: #selector(keyboardDidShow(_:)),
                 name: UIResponder.keyboardDidShowNotification,
                 object: nil
             )
         }
         
-        @objc private func keyboardDidShow(_ notification: Notification) {
+        @objc private func keyboardWillShow(_ notification: Notification) {
             guard let userInfo = notification.userInfo,
                   let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
                   let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
@@ -109,18 +113,26 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
                 return
             }
             
-            guard tableView.frame != tableFrame else { return }
-            
+            tableFrameBeforeKeyboardShown = tableView.frame
             let keyboardHeight = keyboardFrame.height
-            
-            print("before table frame: \(tableFrame)")
-            print("table frame: \(tableView.frame)")
-            print("keyboard height: \(keyboardHeight)")
+            let bottomSafeAreaInset = parent.bottomSafeAreaInset
+            let previousAdjustment = tableView.contentInset.bottom
+            let adjustment = keyboardHeight - bottomSafeAreaInset
             
             let options = UIView.AnimationOptions(rawValue: animationCurve << 16)
             UIView.animate(withDuration: animationDuration, delay: 0, options: options) {
-                self.tableView?.contentOffset.y += keyboardHeight - self.parent.bottomSafeAreaInset
+                tableView.contentInset.bottom = adjustment
+                tableView.verticalScrollIndicatorInsets.bottom = adjustment
+                tableView.contentOffset.y += adjustment - previousAdjustment
             }
+        }
+        
+        @objc private func keyboardDidShow(_ notification: Notification) {
+            // The tableView finally updated its height (shorter height).
+            guard let tableView, tableView.frame.height < tableFrameBeforeKeyboardShown.height else { return }
+            
+            tableView.contentInset.bottom = 0
+            tableView.verticalScrollIndicatorInsets.bottom = 0
         }
         
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

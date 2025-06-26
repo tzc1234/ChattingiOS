@@ -228,7 +228,7 @@ extension DefaultStyle {
         let bubble = Bubble()
         let bubbleMenu = BubbleMenu()
         let dateHeader = DateHeader()
-        var scrollToBottomIconColor: Color { .primary.opacity(0.5) }
+        var scrollToBottomIconColor: Color { .primary.opacity(0.6) }
     }
 }
 
