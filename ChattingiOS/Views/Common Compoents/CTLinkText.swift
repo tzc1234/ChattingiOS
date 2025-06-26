@@ -10,11 +10,12 @@ import SwiftUI
 struct CTLinkText: View {
     let text: String
     let linkColor: Color
+    let shouldOpenLink: Bool
     
     var body: some View {
         Text(makeAttributedString())
             .environment(\.openURL, OpenURLAction { url in
-                .discarded
+                shouldOpenLink ? .systemAction : .discarded
             })
     }
     

@@ -292,22 +292,27 @@ struct MessageBubbleContent: View {
     }
     
     let message: DisplayedMessage
+    let shouldOpenLink: Bool
     
     var body: some View {
-        CTLinkText(text: message.text, linkColor: style.message.bubble.linkForegroundColor(isMine: isMine))
-            .font(.callout)
-            .italic(message.isDeleted)
-            .foregroundColor(style.message.bubble.foregroundColor(isMine: isMine))
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(
-                style.message.bubble.background(isMine: isMine),
-                in: .rect(cornerRadii: cornerRadii)
-            )
-            .overlay(
-                style.message.bubble.strokeColor(isMine: isMine),
-                in: .rect(cornerRadii: cornerRadii).stroke(lineWidth: 1)
-            )
+        CTLinkText(
+            text: message.text,
+            linkColor: style.message.bubble.linkForegroundColor(isMine: isMine),
+            shouldOpenLink: shouldOpenLink
+        )
+        .font(.callout)
+        .italic(message.isDeleted)
+        .foregroundColor(style.message.bubble.foregroundColor(isMine: isMine))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            style.message.bubble.background(isMine: isMine),
+            in: .rect(cornerRadii: cornerRadii)
+        )
+        .overlay(
+            style.message.bubble.strokeColor(isMine: isMine),
+            in: .rect(cornerRadii: cornerRadii).stroke(lineWidth: 1)
+        )
     }
 }
 
@@ -328,7 +333,7 @@ struct MessageBubble: View {
             if isMine { Spacer() }
             
             VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
-                MessageBubbleContent(message: message)
+                MessageBubbleContent(message: message, shouldOpenLink: selectedBubble == nil)
                     .onChange(of: message) { _, newValue in
                         if message.text != newValue.text, newValue.isUnread { readEditedMessage() }
                     }

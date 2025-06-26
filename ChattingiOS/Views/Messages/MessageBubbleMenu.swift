@@ -109,7 +109,7 @@ struct MessageBubbleMenu: View {
         HStack {
             if message.isMine { Spacer() }
             
-            MessageBubbleContent(message: message)
+            MessageBubbleContent(message: message, shouldOpenLink: false)
                 .frame(width: bubbleFrame.width, height: bubbleFrame.height)
                 .background {
                     GeometryReader { proxy -> Color in
