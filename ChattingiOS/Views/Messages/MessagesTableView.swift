@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MessagesTableView<Content: View>: UIViewRepresentable {
     let messages: [DisplayedMessage]
-    @ViewBuilder let content: (Int, DisplayedMessage) -> Content
+    @ViewBuilder let content: (Int, DisplayedMessage, [DisplayedMessage]) -> Content
     @Binding var visibleMessageIndex: Set<Int>
     let isLoading: Bool
     let onContentTop: () -> Void
@@ -31,15 +31,18 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     }
     
     func updateUIView(_ tableView: UITableView, context: Context) {
-        let currentMessages = context.coordinator.messages
+        let coordinator = context.coordinator
+        coordinator.isLoading = isLoading
+        
+        let currentMessages = coordinator.messages
         if currentMessages != messages {
-            context.coordinator.messages = messages
+            coordinator.messages = messages
             tableView.reloadData()
             
-            if let currentTopMessageID = context.coordinator.currentTopMessageID,
+            if let currentTopMessageID = coordinator.currentTopMessageID,
                let index = messages.firstIndex(where: { $0.id == currentTopMessageID }) {
                 tableView.scrollToRow(at: IndexPath(row: index, section: 0) , at: .top, animated: false)
-                context.coordinator.currentTopMessageID = nil
+                coordinator.currentTopMessageID = nil
             }
         }
         
@@ -64,9 +67,11 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         private var lastContentOffset: CGFloat = 0
         
         private let parent: MessagesTableView<Content>
+        var isLoading: Bool
         
         init(parent: MessagesTableView<Content>) {
             self.parent = parent
+            self.isLoading = parent.isLoading
         }
         
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -76,7 +81,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
             let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellID, for: indexPath)
             let message = messages[indexPath.row]
-            let swiftUIView = parent.content(indexPath.row, message)
+            let swiftUIView = parent.content(indexPath.row, message, messages)
             
             cell.contentConfiguration = UIHostingConfiguration {
                 swiftUIView

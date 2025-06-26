@@ -216,14 +216,15 @@ struct MessageListContentView: View {
     private var messageList: some View {
         MessagesTableView(
             messages: messages,
-            content: { index, message in
-                MessageBubble(
-                    message: message,
-                    selectedBubble: $selectedBubble,
-                    readEditedMessage: { readMessages(message.id) }
-                )
-                .onAppear {
-//                    if message.isUnread { readMessages(message.id) }
+            content: { index, message, messages in
+                VStack(spacing: 12) {
+                    messageDateHeader(message.date, index: index, messages: messages)
+                    
+                    MessageBubble(
+                        message: message,
+                        selectedBubble: $selectedBubble,
+                        readEditedMessage: { readMessages(message.id) }
+                    )
                 }
             },
             visibleMessageIndex: $visibleMessageIndex,
@@ -281,8 +282,8 @@ struct MessageListContentView: View {
     }
     
     @ViewBuilder
-    private func messageDateHeader(_ dateText: String, index: Int) -> some View {
-        if index > 0 {
+    private func messageDateHeader(_ dateText: String, index: Int, messages: [DisplayedMessage]) -> some View {
+        if index > 0, !messages.isEmpty {
             if dateText != messages[index-1].date {
                 messageDateHeader(dateText)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -294,6 +295,11 @@ struct MessageListContentView: View {
         Text(dateText)
             .font(.footnote)
             .foregroundStyle(style.message.dateHeaderColor)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .background {
+                RoundedRectangle(cornerRadius: 16).fill(.white.opacity(0.5))
+            }
     }
     
     private var messageInputArea: some View {
