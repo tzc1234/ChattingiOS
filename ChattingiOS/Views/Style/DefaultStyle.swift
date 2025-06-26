@@ -189,8 +189,15 @@ extension DefaultStyle {
             }
         }
         
+        struct DateHeader {
+            var foregroundColor: Color { .primary.opacity(0.9) }
+            var backgroundColor: Color { .white.opacity(0.5) }
+            var cornerRadius: CGFloat { 16 }
+        }
+        
         struct Bubble {
             func foregroundColor(isMine: Bool) -> Color { isMine ? .white : .primary }
+            func linkForegroundColor(isMine: Bool) -> Color { isMine ? .white : .blue }
             var timeColor: Color { .primary.opacity(0.6) }
             var cornerRadius: CGFloat { 16 }
             func background(isMine: Bool) -> LinearGradient {
@@ -220,8 +227,8 @@ extension DefaultStyle {
         let input = Input()
         let bubble = Bubble()
         let bubbleMenu = BubbleMenu()
+        let dateHeader = DateHeader()
         var scrollToBottomIconColor: Color { .primary.opacity(0.5) }
-        var dateHeaderColor: Color { .primary.opacity(0.9) }
     }
 }
 

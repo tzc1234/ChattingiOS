@@ -160,13 +160,11 @@ struct MessageListContentView: View {
     
     @ViewBuilder
     private var minVisibleMessageDateHeader: some View {
-        if let minIndex = visibleMessageIndex.min() {
+        if let minVisibleIndex = visibleMessageIndex.min() {
             VStack {
-                messageDateHeader(messages[minIndex].date)
+                messageDateHeader(messages[minVisibleIndex].date)
                 Spacer()
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 8)
         }
     }
     
@@ -234,58 +232,13 @@ struct MessageListContentView: View {
             onContentBottom: loadMoreMessages,
             onBackgroundTap: { messageInputFocused = false }
         )
+        .padding(.top, 28)
         .onChange(of: visibleMessageIndex) { _, newValue in
             if let maxVisibleIndex = newValue.max() {
                 let maxVisibleMessageID = messages[maxVisibleIndex].id
                 readMessages(maxVisibleMessageID)
             }
         }
-        
-//        ScrollViewReader { proxy in
-//            List {
-//                ForEach(Array(messages.enumerated()), id: \.offset) { index, message in
-//                    messageDateHeader(message.date, index: index)
-//                        .listRowBackground(Color.clear)
-//                        .listRowSeparator(.hidden)
-//                    
-//                    MessageBubble(message: message, selectedBubble: $selectedBubble, readEditedMessage: {
-//                        readMessages(message.id)
-//                    })
-//                    .listRowBackground(Color.clear)
-//                    .listRowSeparator(.hidden)
-//                    .id(message.id)
-//                    .onAppear {
-//                        visibleMessageIndex.insert(index)
-//                        if message == messages.first { loadPreviousMessages() }
-//                        if message == messages.last { loadMoreMessages() }
-//                        if message.isUnread { readMessages(message.id) }
-//                    }
-//                    .onDisappear { visibleMessageIndex.remove(index) }
-//                }
-//                .listRowInsets(.init(top: 8, leading: 20, bottom: 8, trailing: 20))
-//            }
-//            .padding(.top, 20)
-//            .onChange(of: messages) { _, newValue in
-//                if messages.isEmpty { visibleMessageIndex.removeAll() }
-//            }
-//            .onChange(of: listPositionMessageID) { _, messageID in
-//                if let messageID {
-//                    withAnimation { scrollToMessageID = messageID }
-//                    listPositionMessageID = nil
-//                }
-//            }
-//            .onChange(of: scrollToMessageID) { _, messageID in
-//                proxy.scrollTo(messageID, anchor: .top)
-//            }
-//            .onChange(of: isScrollToBottom) { _, newValue in
-//                if newValue {
-//                    withAnimation { proxy.scrollTo(messages.last?.id, anchor: .top) }
-//                    isScrollToBottom = false
-//                }
-//            }
-//            .listStyle(.plain)
-//        }
-//        .padding(.top, 8)
     }
     
     @ViewBuilder
@@ -293,7 +246,6 @@ struct MessageListContentView: View {
         if index > 0, !messages.isEmpty {
             if dateText != messages[index-1].date {
                 messageDateHeader(dateText)
-                    .frame(maxWidth: .infinity, alignment: .center)
             }
         }
     }
@@ -301,12 +253,13 @@ struct MessageListContentView: View {
     private func messageDateHeader(_ dateText: String) -> some View {
         Text(dateText)
             .font(.footnote)
-            .foregroundStyle(style.message.dateHeaderColor)
+            .foregroundStyle(style.message.dateHeader.foregroundColor)
             .padding(.vertical, 4)
             .padding(.horizontal, 8)
-            .background {
-                RoundedRectangle(cornerRadius: 16).fill(.white.opacity(0.5))
-            }
+            .background(
+                style.message.dateHeader.backgroundColor,
+                in: .rect(cornerRadius: style.message.dateHeader.cornerRadius)
+            )
     }
     
     private var messageInputArea: some View {
@@ -340,7 +293,7 @@ struct MessageBubbleContent: View {
     let message: DisplayedMessage
     
     var body: some View {
-        SmartLinkText(text: message.text)
+        CTLinkText(text: message.text, linkColor: style.message.bubble.linkForegroundColor(isMine: isMine))
             .font(.callout)
             .italic(message.isDeleted)
             .foregroundColor(style.message.bubble.foregroundColor(isMine: isMine))
@@ -414,41 +367,6 @@ struct MessageBubble: View {
             if !isMine { Spacer() }
         }
         .id(message.text)
-    }
-}
-
-struct SmartLinkText: View {
-    let text: String
-    
-    var body: some View {
-        Text(makeAttributedString())
-            .environment(\.openURL, OpenURLAction { url in
-                print("Intercepted URL: \(url)")
-                return .discarded
-            })
-    }
-    
-    private func makeAttributedString() -> AttributedString {
-        var attributedString = AttributedString(text)
-        
-        let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
-        let range = NSRange(location: 0, length: text.utf16.count)
-        
-        detector?.enumerateMatches(in: text, options: [], range: range) { match, _, _ in
-            guard let match,
-                  let range = Range(match.range, in: text),
-                  let attributedRange = Range(range, in: attributedString),
-                  let url = match.url else {
-                return
-            }
-            
-            attributedString[attributedRange].foregroundColor = .orange
-            attributedString[attributedRange].underlineStyle = .single
-            attributedString[attributedRange].font = .callout.weight(.semibold)
-            attributedString[attributedRange].link = url
-        }
-        
-        return attributedString
     }
 }
 
