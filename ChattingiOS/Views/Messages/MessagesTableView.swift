@@ -9,9 +9,10 @@ import SwiftUI
 
 struct MessagesTableView<Content: View>: UIViewRepresentable {
     let messages: [DisplayedMessage]
-    @ViewBuilder let content: (Int, DisplayedMessage, [DisplayedMessage]) -> Content
+    @ViewBuilder let content: (Int, DisplayedMessage) -> Content
     @Binding var visibleMessageIndex: Set<Int>
     @Binding var listPositionMessageID: Int?
+    let bottomSafeAreaInset: CGFloat
     let isLoading: Bool
     @Binding var isScrollToBottom: Bool
     let onContentTop: () -> Void
@@ -29,12 +30,13 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap))
         tableView.addGestureRecognizer(tapGesture)
         
+        context.coordinator.tableView = tableView
         return tableView
     }
     
     func updateUIView(_ tableView: UITableView, context: Context) {
         let coordinator = context.coordinator
-        coordinator.isLoading = isLoading
+        coordinator.parent = self
         
         if coordinator.messages != messages {
             coordinator.messages = messages
@@ -62,6 +64,8 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
                 isScrollToBottom = false
             }
         }
+        
+        coordinator.tableFrame = tableView.frame
     }
     
     func makeCoordinator() -> Coordinator {
@@ -77,16 +81,46 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     final class Coordinator: NSObject, UITableViewDataSource, UITableViewDelegate {
         static var cellID: String { "Cell" }
         
+        var tableView: UITableView?
+        var tableFrame: CGRect = .zero
         var currentTopMessageID: Int?
         var messages = [DisplayedMessage]()
-        private var lastContentOffset: CGFloat = 0
         
-        private let parent: MessagesTableView<Content>
-        var isLoading: Bool
+        var parent: MessagesTableView<Content>
         
         init(parent: MessagesTableView<Content>) {
             self.parent = parent
-            self.isLoading = parent.isLoading
+            super.init()
+            
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(keyboardDidShow(_:)),
+                name: UIResponder.keyboardDidShowNotification,
+                object: nil
+            )
+        }
+        
+        @objc private func keyboardDidShow(_ notification: Notification) {
+            guard let userInfo = notification.userInfo,
+                  let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+                  let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
+                  let animationCurve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
+                  let tableView else {
+                return
+            }
+            
+            guard tableView.frame != tableFrame else { return }
+            
+            let keyboardHeight = keyboardFrame.height
+            
+            print("before table frame: \(tableFrame)")
+            print("table frame: \(tableView.frame)")
+            print("keyboard height: \(keyboardHeight)")
+            
+            let options = UIView.AnimationOptions(rawValue: animationCurve << 16)
+            UIView.animate(withDuration: animationDuration, delay: 0, options: options) {
+                self.tableView?.contentOffset.y += keyboardHeight - self.parent.bottomSafeAreaInset
+            }
         }
         
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -96,7 +130,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
             let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellID, for: indexPath)
             let message = messages[indexPath.row]
-            let swiftUIView = parent.content(indexPath.row, message, messages)
+            let swiftUIView = parent.content(indexPath.row, message)
             
             cell.contentConfiguration = UIHostingConfiguration {
                 swiftUIView
@@ -130,6 +164,10 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             if offsetY > contentHeight - scrollViewHeight, !parent.isLoading {
                 parent.onContentBottom()
             }
+        }
+        
+        deinit {
+            NotificationCenter.default.removeObserver(self)
         }
     }
 }

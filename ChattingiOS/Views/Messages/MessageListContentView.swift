@@ -32,6 +32,7 @@ struct MessageListContentView: View {
     @State private var selectedBubble: SelectedBubble?
     @State private var avatarImage: UIImage?
     @State private var screenSize: CGSize = .zero
+    @State private var bottomSafeAreaInset: CGFloat = .zero
     @State private var showBubbleMenu = false
     
     private var avatarWidth: CGFloat { 30 }
@@ -120,9 +121,12 @@ struct MessageListContentView: View {
             }
         }
         .onAppear {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                screenSize = windowScene.screen.bounds.size
-            }
+            guard let windowScene = UIApplication.shared.connectedScenes
+                    .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+                  let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) else { return }
+            
+            screenSize = windowScene.screen.bounds.size
+            bottomSafeAreaInset = keyWindow.safeAreaInsets.bottom
         }
     }
     
@@ -213,9 +217,9 @@ struct MessageListContentView: View {
     private var messageList: some View {
         MessagesTableView(
             messages: messages,
-            content: { index, message, messages in
+            content: { index, message in
                 VStack(spacing: 12) {
-                    messageDateHeader(message.date, index: index, messages: messages)
+                    messageDateHeader(message.date, index: index)
                     
                     MessageBubble(
                         message: message,
@@ -226,6 +230,7 @@ struct MessageListContentView: View {
             },
             visibleMessageIndex: $visibleMessageIndex,
             listPositionMessageID: $listPositionMessageID,
+            bottomSafeAreaInset: bottomSafeAreaInset,
             isLoading: isLoading,
             isScrollToBottom: $isScrollToBottom,
             onContentTop: loadPreviousMessages,
@@ -243,7 +248,7 @@ struct MessageListContentView: View {
     }
     
     @ViewBuilder
-    private func messageDateHeader(_ dateText: String, index: Int, messages: [DisplayedMessage]) -> some View {
+    private func messageDateHeader(_ dateText: String, index: Int) -> some View {
         if index > 0, !messages.isEmpty {
             if dateText != messages[index-1].date {
                 messageDateHeader(dateText)
