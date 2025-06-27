@@ -26,10 +26,11 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: Coordinator.cellID)
         tableView.separatorStyle = .none
         tableView.backgroundColor = .clear
-        
-        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap))
-        tableView.addGestureRecognizer(tapGesture)
-        
+        tableView.addGestureRecognizer(UITapGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handleBackgroundTap)
+        ))
+
         context.coordinator.tableView = tableView
         return tableView
     }
@@ -80,16 +81,20 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         static var cellID: String { "Cell" }
         
         var tableView: UITableView?
-        var tableFrameBeforeKeyboardShown: CGRect = .zero
         var currentTopMessageID: Int?
         var messages = [DisplayedMessage]()
+        private var tableFrameBeforeKeyboardShown: CGRect = .zero
+        private var lastContentOffsetYAdjustment: CGFloat = .zero
         
         var parent: MessagesTableView<Content>
         
         init(parent: MessagesTableView<Content>) {
             self.parent = parent
             super.init()
-            
+            self.observeKeyboardHeight()
+        }
+        
+        private func observeKeyboardHeight() {
             NotificationCenter.default.addObserver(
                 self,
                 selector: #selector(keyboardWillShow(_:)),
@@ -100,6 +105,12 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
                 self,
                 selector: #selector(keyboardDidShow(_:)),
                 name: UIResponder.keyboardDidShowNotification,
+                object: nil
+            )
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(keyboardWillHide(_:)),
+                name: UIResponder.keyboardWillHideNotification,
                 object: nil
             )
         }
@@ -113,11 +124,12 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
                 return
             }
             
-            tableFrameBeforeKeyboardShown = tableView.frame
             let keyboardHeight = keyboardFrame.height
-            let bottomSafeAreaInset = parent.bottomSafeAreaInset
             let previousAdjustment = tableView.contentInset.bottom
-            let adjustment = keyboardHeight - bottomSafeAreaInset
+            let adjustment = keyboardHeight - parent.bottomSafeAreaInset
+            
+            tableFrameBeforeKeyboardShown = tableView.frame
+            lastContentOffsetYAdjustment = adjustment
             
             let options = UIView.AnimationOptions(rawValue: animationCurve << 16)
             UIView.animate(withDuration: animationDuration, delay: 0, options: options) {
@@ -133,6 +145,22 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             
             tableView.contentInset.bottom = 0
             tableView.verticalScrollIndicatorInsets.bottom = 0
+        }
+        
+        @objc private func keyboardWillHide(_ notification: Notification) {
+            guard let userInfo = notification.userInfo,
+                  let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
+                  let animationCurve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
+                  let tableView,
+                  lastContentOffsetYAdjustment > 0 else {
+                return
+            }
+            
+            let adjustment = lastContentOffsetYAdjustment
+            let options = UIView.AnimationOptions(rawValue: animationCurve << 16)
+            UIView.animate(withDuration: animationDuration, delay: 0, options: options) {
+                tableView.contentOffset.y -= adjustment
+            }
         }
         
         func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -155,7 +183,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             return cell
         }
         
-        @objc func handleTap(_ gesture: UITapGestureRecognizer) {
+        @objc func handleBackgroundTap(_ gesture: UITapGestureRecognizer) {
             parent.onBackgroundTap?()
         }
         
