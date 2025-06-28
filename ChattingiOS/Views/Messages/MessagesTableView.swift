@@ -68,7 +68,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(parent: self)
+        Coordinator(self)
     }
     
     private func updateVisibleMessageIndex(tableView: UITableView) {
@@ -88,7 +88,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         
         var parent: MessagesTableView<Content>
         
-        init(parent: MessagesTableView<Content>) {
+        init(_ parent: MessagesTableView<Content>) {
             self.parent = parent
             super.init()
             self.observeKeyboardHeight()
