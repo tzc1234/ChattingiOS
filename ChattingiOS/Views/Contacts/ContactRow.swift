@@ -46,6 +46,7 @@ struct ContactRow: View {
                     Text(contact.responder.name)
                         .font(.headline)
                         .foregroundColor(style.listRow.foregroundColor)
+                        .lineLimit(1)
                     
                     Spacer()
                     
