@@ -63,7 +63,13 @@ struct MessageListContentView: View {
             CTBackgroundView()
             
             VStack(spacing: 0) {
-                setupErrorNotice
+                if setupError != nil || blockedState != .normal {
+                    VStack(spacing: 6) {
+                        setupErrorNotice
+                        blockedNotice
+                    }
+                    .padding(.vertical, 8)
+                }
                 
                 ZStack {
                     messageList
@@ -158,7 +164,21 @@ struct MessageListContentView: View {
                 }
             )
             .padding(.horizontal, 18)
-            .padding(.vertical, 8)
+        }
+    }
+    
+    @ViewBuilder
+    private var blockedNotice: some View {
+        if blockedState != .normal {
+            CTNotice(
+                text: blockedState == .blockedByMe ?
+                    "You have blocked \(responderName)." :
+                    "You are blocked by \(responderName).",
+                backgroundColor: style.notice.noticeBackgroundColor,
+                strokeColor: style.notice.noticeStrokeColor,
+                button: {}
+            )
+            .padding(.horizontal, 18)
         }
     }
     

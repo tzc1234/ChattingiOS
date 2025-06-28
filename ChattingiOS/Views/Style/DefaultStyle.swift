@@ -142,6 +142,8 @@ extension DefaultStyle {
         var defaultStrokeColor: Color { .green.opacity(0.6) }
         var errorBackgroundColor: Color { .red.opacity(0.5) }
         var errorStrokeColor: Color { .red.opacity(0.6) }
+        var noticeBackgroundColor: Color { .orange.opacity(0.3) }
+        var noticeStrokeColor: Color { .orange.opacity(0.4) }
         let button = Button()
     }
 }
