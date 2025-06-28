@@ -23,7 +23,7 @@ struct CustomLongPressModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onLongPressGesture(
-                minimumDuration: 0.2,
+                minimumDuration: 0.15,
                 maximumDistance: 10,
                 perform: {},
                 onPressingChanged: { isPressing in

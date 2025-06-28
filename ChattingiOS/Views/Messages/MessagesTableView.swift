@@ -15,6 +15,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     let bottomSafeAreaInset: CGFloat
     let isLoading: Bool
     @Binding var isScrollToBottom: Bool
+    let isScrollEnabled: Bool
     let onContentTop: () -> Void
     let onContentBottom: () -> Void
     let onBackgroundTap: (() -> Void)?
@@ -65,6 +66,8 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
                 isScrollToBottom = false
             }
         }
+        
+        tableView.isScrollEnabled = isScrollEnabled
     }
     
     func makeCoordinator() -> Coordinator {

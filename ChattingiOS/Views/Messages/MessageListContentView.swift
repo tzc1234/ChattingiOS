@@ -117,7 +117,14 @@ struct MessageListContentView: View {
             }
         }
         .onChange(of: selectedBubble?.message) { _, newValue in
-            showBubbleMenu = newValue != nil
+            if newValue != nil {
+                messageInputFocused = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    showBubbleMenu = true
+                }
+            } else {
+                showBubbleMenu = false
+            }
         }
         .onChange(of: showBubbleMenu) { _, newValue in
             if !newValue {
@@ -253,12 +260,12 @@ struct MessageListContentView: View {
             bottomSafeAreaInset: bottomSafeAreaInset,
             isLoading: isLoading,
             isScrollToBottom: $isScrollToBottom,
+            isScrollEnabled: !showBubbleMenu,
             onContentTop: loadPreviousMessages,
             onContentBottom: loadMoreMessages,
             onBackgroundTap: { messageInputFocused = false }
         )
         .padding(.top, 28)
-        .disabled(showBubbleMenu)
         .onChange(of: visibleMessageIndex) { _, newValue in
             if let maxVisibleIndex = newValue.max() {
                 let maxVisibleMessageID = messages[maxVisibleIndex].id
@@ -344,7 +351,6 @@ struct MessageBubbleContent: View {
 struct MessageBubble: View {
     @Environment(ViewStyleManager.self) private var style
     @State private var contentFrame: CGRect = .zero
-    @State private var backgroundID = UUID()
     
     private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
     private var isMine: Bool { message.isMine }
@@ -369,17 +375,13 @@ struct MessageBubble: View {
                             }
                             return Color.clear
                         }
-                        .id(backgroundID)
                     }
                     // A trick for long press gesture with a smooth scrolling
                     // https://stackoverflow.com/a/59499892
                     .onTapGesture {}
                     .onCustomLongPressGesture(canTrigger: !message.isDeleted) {
-                        backgroundID = UUID()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            impactFeedback.impactOccurred()
-                            selectedBubble = .init(frame: $contentFrame, message: message)
-                        }
+                        impactFeedback.impactOccurred()
+                        selectedBubble = .init(frame: $contentFrame, message: message)
                     }
                 
                 HStack(spacing: 4) {
