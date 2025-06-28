@@ -7,6 +7,12 @@
 
 import Foundation
 
+enum ContactBlockedState {
+    case normal
+    case blockedByMe
+    case blockedByResponder
+}
+
 @MainActor @Observable
 final class MessageListViewModel {
     private(set) var messages = [DisplayedMessage]()
@@ -19,7 +25,12 @@ final class MessageListViewModel {
     
     private var contactID: Int { contact.id }
     var username: String { contact.responder.name }
-    var isBlocked: Bool { contact.blockedByUserID != nil }
+    var blockedState: ContactBlockedState {
+        guard let blockedByUserID = contact.blockedByUserID else { return .normal }
+        
+        return blockedByUserID == currentUserID ? .blockedByMe : .blockedByResponder
+    }
+    private var isBlocked: Bool { contact.blockedByUserID != nil }
     var isConnecting: Bool { connection != nil }
     private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
     private var isReadOnlyMode: Bool { setupError != nil }

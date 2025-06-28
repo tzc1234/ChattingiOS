@@ -18,7 +18,7 @@ struct MessageListView: View {
             avatarData: viewModel.avatarData,
             messages: viewModel.messages,
             isLoading: viewModel.isLoading,
-            isBlocked: viewModel.isBlocked,
+            blockedState: viewModel.blockedState,
             isConnecting: viewModel.isConnecting,
             setupError: $viewModel.setupError,
             listPositionMessageID: $viewModel.messageIDForListPosition,

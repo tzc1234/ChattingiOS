@@ -46,7 +46,7 @@ struct MessageListContentView: View {
     let avatarData: Data?
     let messages: [DisplayedMessage]
     let isLoading: Bool
-    let isBlocked: Bool
+    let blockedState: ContactBlockedState
     let isConnecting: Bool
     @Binding var setupError: String?
     @Binding var listPositionMessageID: Int?
@@ -71,7 +71,7 @@ struct MessageListContentView: View {
                     scrollToBottomButton
                 }
                 
-                if !isBlocked {
+                if blockedState == .normal {
                     messageInputArea
                 }
             }
@@ -394,7 +394,7 @@ struct MessageBubble: View {
                 .init(id: 4, text: "Message deleted.", isMine: false, isRead: true, isDeleted: true, createdAt: .now, date:  "3 Jan 2025", time: "11:00"),
             ],
             isLoading: false,
-            isBlocked: false,
+            blockedState: .normal,
             isConnecting: true,
             setupError: .constant("Error occurred!"),
             listPositionMessageID: .constant(nil),
