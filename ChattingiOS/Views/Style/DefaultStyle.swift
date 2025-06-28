@@ -159,9 +159,9 @@ extension DefaultStyle {
     struct LoadingView {
         var cornerRadius: CGFloat { 16 }
         var textColor: Color { .white.opacity(0.9) }
-        var spinnerColor: Color { .white }
-        var backgroundColor: Color { .black.opacity(0.3) }
-        var strokeColor: Color { .black.opacity(0.4) }
+        var spinnerColor: Color { .blue }
+        var backgroundColor: Color { .white.opacity(0.5) }
+        var strokeColor: Color { .white.opacity(0.6) }
     }
 }
 
@@ -325,5 +325,9 @@ extension View {
     
     func defaultAnimation<V: Equatable>(duration: TimeInterval = 0.2, value: V) -> some View {
         animation(.easeInOut(duration: duration), value: value)
+    }
+    
+    func contentTransitionAnimation<V: Equatable>(duration: TimeInterval = 0.3, value: V) -> some View {
+        animation(.easeIn(duration: duration), value: value)
     }
 }
