@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct SelectedBubble: Equatable {
-    let frame: CGRect
+struct SelectedBubble {
+    @Binding var frame: CGRect
     let message: DisplayedMessage
 }
 

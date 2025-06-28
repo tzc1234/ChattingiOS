@@ -116,8 +116,8 @@ struct MessageListContentView: View {
                 avatarImage = UIImage(data: newValue)?.resize(to: CGSize(width: avatarWidth, height: avatarWidth))
             }
         }
-        .onChange(of: selectedBubble) { _, newValue in
-            showBubbleMenu = selectedBubble != nil
+        .onChange(of: selectedBubble?.message) { _, newValue in
+            showBubbleMenu = newValue != nil
         }
         .onChange(of: showBubbleMenu) { _, newValue in
             if !newValue {
@@ -378,7 +378,7 @@ struct MessageBubble: View {
                         backgroundID = UUID()
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             impactFeedback.impactOccurred()
-                            selectedBubble = .init(frame: contentFrame, message: message)
+                            selectedBubble = .init(frame: $contentFrame, message: message)
                         }
                     }
                 
