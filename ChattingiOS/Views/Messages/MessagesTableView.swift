@@ -15,7 +15,8 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     let bottomSafeAreaInset: CGFloat
     let isLoading: Bool
     @Binding var isScrollToBottom: Bool
-    let isScrollEnabled: Bool
+    let disabled: Bool
+    @FocusState var messageInputFocused: Bool
     let onContentTop: () -> Void
     let onContentBottom: () -> Void
     let onBackgroundTap: (() -> Void)?
@@ -67,7 +68,20 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             }
         }
         
-        tableView.isScrollEnabled = isScrollEnabled
+        tableView.isScrollEnabled = !disabled
+        tableView.isUserInteractionEnabled = !disabled
+        
+        if disabled {
+            DispatchQueue.main.async {
+                tableView.contentInset.bottom = coordinator.lastContentOffsetYAdjustment
+                messageInputFocused = false
+            }
+        } else {
+            if coordinator.lastContentOffsetYAdjustment > 0 {
+                tableView.contentInset.bottom = 0
+                coordinator.lastContentOffsetYAdjustment = 0
+            }
+        }
     }
     
     func makeCoordinator() -> Coordinator {
@@ -86,8 +100,9 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         var tableView: UITableView?
         var currentTopMessageID: Int?
         var messages = [DisplayedMessage]()
+        
         private var tableFrameBeforeKeyboardShown: CGRect = .zero
-        private var lastContentOffsetYAdjustment: CGFloat = .zero
+        var lastContentOffsetYAdjustment: CGFloat = 0
         
         var parent: MessagesTableView<Content>
         
@@ -119,6 +134,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         }
         
         @objc private func keyboardWillShow(_ notification: Notification) {
+            guard !parent.disabled else { return }
             guard let userInfo = notification.userInfo,
                   let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
                   let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
@@ -143,6 +159,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         }
         
         @objc private func keyboardDidShow(_ notification: Notification) {
+            guard !parent.disabled else { return }
             // The tableView finally updated its height (shorter height).
             guard let tableView, tableView.frame.height < tableFrameBeforeKeyboardShown.height else { return }
             
@@ -151,18 +168,22 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         }
         
         @objc private func keyboardWillHide(_ notification: Notification) {
-            guard let userInfo = notification.userInfo,
+            guard !parent.disabled else { return }
+            guard lastContentOffsetYAdjustment > 0,
+                  let userInfo = notification.userInfo,
                   let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
                   let animationCurve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
-                  let tableView,
-                  lastContentOffsetYAdjustment > 0 else {
+                  let tableView else {
                 return
             }
             
             let adjustment = lastContentOffsetYAdjustment
             let options = UIView.AnimationOptions(rawValue: animationCurve << 16)
             UIView.animate(withDuration: animationDuration, delay: 0, options: options) {
+                tableView.contentInset.bottom = 0
+                tableView.verticalScrollIndicatorInsets.bottom = 0
                 tableView.contentOffset.y -= adjustment
+                self.lastContentOffsetYAdjustment = 0
             }
         }
         
