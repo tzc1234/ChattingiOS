@@ -89,7 +89,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             if coordinator.lastContentOffsetYAdjustment > 0 {
                 let maxOffsetY = tableView.contentSize.height - tableView.bounds.height
                 // If contentOffset y within the maxOffsetY, that means the bottom contentInset is not necessary,
-                // just set it to 0.
+                // set bottom contentInset to 0.
                 // If contentOffset y is beyond the maxOffsetY, keep it to hold the current contentOffset y.
                 if tableView.contentOffset.y <= maxOffsetY {
                     tableView.contentInset.bottom = 0
@@ -195,13 +195,10 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
                 return
             }
             
-            let adjustment = lastContentOffsetYAdjustment
             let options = UIView.AnimationOptions(rawValue: animationCurve << 16)
-            UIView.animate(withDuration: animationDuration, delay: 0, options: options) {
-                tableView.contentInset.bottom = 0
-                tableView.verticalScrollIndicatorInsets.bottom = 0
-                tableView.contentOffset.y -= adjustment
-                self.lastContentOffsetYAdjustment = 0
+            UIView.animate(withDuration: animationDuration, delay: 0, options: options) { [self] in
+                tableView.contentOffset.y -= lastContentOffsetYAdjustment
+                lastContentOffsetYAdjustment = 0
             }
         }
         
