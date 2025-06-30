@@ -10,7 +10,6 @@ import SwiftUI
 struct MessageInputArea: View {
     @Environment(ViewStyleManager.self) private var style
     @State private var textEditorHeight: CGFloat = 35
-    private let impactFeedback = UIImpactFeedbackGenerator(style: .light)
     
     @Binding var inputMessage: String
     @FocusState var focused: Bool
@@ -36,7 +35,7 @@ struct MessageInputArea: View {
                 }
             
             Button {
-                impactFeedback.impactOccurred()
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 sendAction()
                 focused = false
             } label: {
