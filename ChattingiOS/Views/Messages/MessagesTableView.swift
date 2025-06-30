@@ -72,10 +72,8 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         tableView.isUserInteractionEnabled = !disabled
         
         if disabled {
-            DispatchQueue.main.async {
-                tableView.contentInset.bottom = coordinator.lastContentOffsetYAdjustment
-                messageInputFocused = false
-            }
+            tableView.contentInset.bottom = coordinator.lastContentOffsetYAdjustment
+            messageInputFocused = false
         } else {
             if coordinator.lastContentOffsetYAdjustment > 0 {
                 tableView.contentInset.bottom = 0

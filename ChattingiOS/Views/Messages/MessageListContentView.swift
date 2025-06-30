@@ -111,13 +111,13 @@ struct MessageListContentView: View {
                 }
             }
         }
-        .onChange(of: avatarData) { _, newValue in
-            if let newValue {
-                avatarImage = UIImage(data: newValue)?.resize(to: CGSize(width: avatarWidth, height: avatarWidth))
+        .onChange(of: avatarData) { _, avatarData in
+            if let avatarData {
+                avatarImage = UIImage(data: avatarData)?.resize(to: CGSize(width: avatarWidth, height: avatarWidth))
             }
         }
-        .onChange(of: selectedBubble?.message) { _, newValue in
-            showBubbleMenu = newValue != nil
+        .onChange(of: selectedBubble) { _, selectedBubble in
+            showBubbleMenu = selectedBubble != nil
         }
         .onChange(of: showBubbleMenu) { _, showBubbleMenu in
             if !showBubbleMenu {
@@ -129,7 +129,9 @@ struct MessageListContentView: View {
         .onAppear {
             guard let windowScene = UIApplication.shared.connectedScenes
                     .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-                  let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) else { return }
+                  let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+                return
+            }
             
             screenSize = windowScene.screen.bounds.size
             bottomSafeAreaInset = keyWindow.safeAreaInsets.bottom
@@ -379,7 +381,7 @@ struct MessageBubble: View {
                         backgroundID = UUID()
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             impactFeedback.impactOccurred()
-                            selectedBubble = .init(frame: $contentFrame, message: message)
+                            selectedBubble = .init(frame: contentFrame, message: message)
                         }
                     }
                 
