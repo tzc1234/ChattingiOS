@@ -34,6 +34,7 @@ struct MessageListContentView: View {
     @State private var screenSize: CGSize = .zero
     @State private var bottomSafeAreaInset: CGFloat = .zero
     @State private var showBubbleMenu = false
+    @State private var bubbleMenuShowingState: MessageBubbleMenuShowingState = .hidden
     
     private var avatarWidth: CGFloat { 30 }
     private var showScrollToBottomButton: Bool {
@@ -117,12 +118,18 @@ struct MessageListContentView: View {
             }
         }
         .onChange(of: selectedBubble) { _, selectedBubble in
-            showBubbleMenu = selectedBubble != nil
+            if selectedBubble != nil {
+                showBubbleMenu = true
+            }
         }
         .onChange(of: showBubbleMenu) { _, showBubbleMenu in
-            if !showBubbleMenu {
+            if showBubbleMenu {
+                bubbleMenuShowingState = .shown
+            } else {
+                bubbleMenuShowingState = .beforeHidden
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     selectedBubble = nil
+                    bubbleMenuShowingState = .hidden
                 }
             }
         }
@@ -255,7 +262,7 @@ struct MessageListContentView: View {
             bottomSafeAreaInset: bottomSafeAreaInset,
             isLoading: isLoading,
             isScrollToBottom: $isScrollToBottom,
-            disabled: showBubbleMenu,
+            bubbleMenuShowingState: bubbleMenuShowingState,
             messageInputFocused: _messageInputFocused,
             onContentTop: loadPreviousMessages,
             onContentBottom: loadMoreMessages,

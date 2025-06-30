@@ -7,7 +7,15 @@
 
 import SwiftUI
 
+enum MessageBubbleMenuShowingState {
+    case shown
+    case beforeHidden
+    case hidden
+}
+
 struct MessagesTableView<Content: View>: UIViewRepresentable {
+    var disabled: Bool { bubbleMenuShowingState != .hidden }
+    
     let messages: [DisplayedMessage]
     @ViewBuilder let content: (Int, DisplayedMessage) -> Content
     @Binding var visibleMessageIndex: Set<Int>
@@ -15,7 +23,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
     let bottomSafeAreaInset: CGFloat
     let isLoading: Bool
     @Binding var isScrollToBottom: Bool
-    let disabled: Bool
+    let bubbleMenuShowingState: MessageBubbleMenuShowingState
     @FocusState var messageInputFocused: Bool
     let onContentTop: () -> Void
     let onContentBottom: () -> Void
@@ -71,14 +79,15 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         tableView.isScrollEnabled = !disabled
         tableView.isUserInteractionEnabled = !disabled
         
-        if disabled {
+        switch bubbleMenuShowingState {
+        case .shown:
             tableView.contentInset.bottom = coordinator.lastContentOffsetYAdjustment
             messageInputFocused = false
-        } else {
+        case .beforeHidden:
             if coordinator.lastContentOffsetYAdjustment > 0 {
-                tableView.contentInset.bottom = 0
-                coordinator.lastContentOffsetYAdjustment = 0
+                messageInputFocused = true
             }
+        case .hidden: break
         }
     }
     
@@ -100,7 +109,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         var messages = [DisplayedMessage]()
         
         private var tableFrameBeforeKeyboardShown: CGRect = .zero
-        var lastContentOffsetYAdjustment: CGFloat = 0
+        private(set) var lastContentOffsetYAdjustment: CGFloat = 0
         
         var parent: MessagesTableView<Content>
         
