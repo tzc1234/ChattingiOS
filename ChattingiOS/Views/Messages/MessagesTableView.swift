@@ -82,9 +82,20 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         switch bubbleMenuShowingState {
         case .shown:
             tableView.contentInset.bottom = coordinator.lastContentOffsetYAdjustment
+            tableView.verticalScrollIndicatorInsets.bottom = coordinator.lastContentOffsetYAdjustment
+            
             messageInputFocused = false
         case .beforeHidden:
             if coordinator.lastContentOffsetYAdjustment > 0 {
+                let maxOffsetY = tableView.contentSize.height - tableView.bounds.height
+                // If contentOffset y within the maxOffsetY, that means the bottom contentInset is not necessary,
+                // just set it to 0.
+                // If contentOffset y is beyond the maxOffsetY, keep it to hold the current contentOffset y.
+                if tableView.contentOffset.y <= maxOffsetY {
+                    tableView.contentInset.bottom = 0
+                    tableView.verticalScrollIndicatorInsets.bottom = 0
+                }
+                
                 messageInputFocused = true
             }
         case .hidden: break
