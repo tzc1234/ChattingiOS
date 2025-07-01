@@ -368,7 +368,7 @@ private extension Message {
             isRead: isRead,
             isDeleted: deletedAt != nil,
             createdAt: createdAt,
-            date: createdAt.formatted(date: .abbreviated, time: .omitted),
+            date: createdAt.displayed(),
             time: timePrefix + createdAt.formatted(date: .omitted, time: .shortened)
         )
     }
@@ -382,4 +382,22 @@ private extension [Message] {
 
 extension Int? {
     static var endLimit: Int { -1 }
+}
+
+private extension Date {
+    func displayed() -> String {
+        let calendar = Calendar.current
+        
+        if calendar.isDateInToday(self) {
+            return "Today"
+        } else if calendar.isDateInYesterday(self) {
+            return "Yesterday"
+        } else if let daysDifference = calendar.dateComponents([.day], from: .now, to: self).day, abs(daysDifference) < 7 {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE"
+            return formatter.string(from: self)
+        } else {
+            return formatted(date: .abbreviated, time: .omitted)
+        }
+    }
 }
