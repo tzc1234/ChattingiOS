@@ -2,9 +2,12 @@
 ### I'm curious about how the webSocket works🤔, so I started this project, 1 on 1 chatting💬 app as a practice. It has to run with the server side [here](https://github.com/tzc1234/ChattingServer). 
 
 ### Screenshots
-<img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/signin.jpeg" alt="signin" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/add_contact.jpeg" alt="add_contact" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/contacts.jpeg" alt="contacts" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/messages.jpeg" alt="messages" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/message_notification.jpeg" alt="message_notification" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/profile.jpeg" alt="profile" width="256" height="555"/>
+<img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/add_contact.jpeg" alt="add_contact" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/contacts.jpeg" alt="contacts" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/search_contacts.jpeg" alt="search_contacts" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/messages.jpeg" alt="messages" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/message_notification.jpeg" alt="message_notification" width="256" height="555"/> <img src="https://github.com/tzc1234/ChattingiOS/blob/main/screenshots/profile.jpeg" alt="profile" width="256" height="555"/>
 
 ### Retrospective
+#### Use UITableViewRepresentable for messages page
+Due to the complexity of the messages page, I would like to have a more fine-grained control (for example the scroll.) of the list of message bubbles. The SwiftUI list does not provide an API for controlling the content offset y (at least not in iOS 17). Therefore, I switch to UITableView, controlling the offset y for accurate keyboard height adjustment.
+
 #### Re-render message bubble after edit message
 After the message is edited, if bubbles increase lines of text (to become "taller"), the message bubble view will not expand vertically correctly. I think it's the list row height calculation issue of SwiftUI `List`. It's time to use the good old trick, change the id of the view (use `.id()` modifier), and force SwiftUI to recreate it.
 
@@ -56,6 +59,7 @@ The compiler will complain if something is not thread-safe, non-sendable. In ord
 5. AsyncStream
 6. APNs
 7. Core Data
+8. Vapor for back-end
 
 ### Goals to achieve
 1. Learn webSocket
@@ -73,3 +77,4 @@ The compiler will complain if something is not thread-safe, non-sendable. In ord
 * Version 1.4 new UI design
 * Version 1.5 unify web socket binary types
 * Version 1.6 edit/delete message
+* Version 1.7 search contacts and UI improvement
