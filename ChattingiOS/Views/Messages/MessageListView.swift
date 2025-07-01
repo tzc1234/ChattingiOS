@@ -10,7 +10,7 @@ import SwiftUI
 struct MessageListView: View {
     @Environment(\.scenePhase) private var scenePhase
     
-    @ObservedObject var viewModel: MessageListViewModel
+    @Bindable var viewModel: MessageListViewModel
     
     var body: some View {
         MessageListContentView(
@@ -18,7 +18,7 @@ struct MessageListView: View {
             avatarData: viewModel.avatarData,
             messages: viewModel.messages,
             isLoading: viewModel.isLoading,
-            isBlocked: viewModel.isBlocked,
+            blockedState: viewModel.blockedState,
             isConnecting: viewModel.isConnecting,
             setupError: $viewModel.setupError,
             listPositionMessageID: $viewModel.messageIDForListPosition,
@@ -45,7 +45,7 @@ struct MessageListView: View {
         .task { await viewModel.loadAvatarData() }
         .onAppear { viewModel.setupMessageList() }
         .onDisappear { viewModel.closeMessageChannel() }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 viewModel.setupMessageList()
             } else if phase == .inactive {

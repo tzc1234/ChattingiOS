@@ -18,6 +18,7 @@ struct DefaultStyle {
     let loadingView = LoadingView()
     let message = Message()
     let profile = Profile()
+    let search = Search()
 }
 
 extension DefaultStyle {
@@ -141,6 +142,8 @@ extension DefaultStyle {
         var defaultStrokeColor: Color { .green.opacity(0.6) }
         var errorBackgroundColor: Color { .red.opacity(0.5) }
         var errorStrokeColor: Color { .red.opacity(0.6) }
+        var noticeBackgroundColor: Color { .orange.opacity(0.3) }
+        var noticeStrokeColor: Color { .orange.opacity(0.4) }
         let button = Button()
     }
 }
@@ -156,9 +159,9 @@ extension DefaultStyle {
     struct LoadingView {
         var cornerRadius: CGFloat { 16 }
         var textColor: Color { .white.opacity(0.9) }
-        var spinnerColor: Color { .white }
-        var backgroundColor: Color { .black.opacity(0.3) }
-        var strokeColor: Color { .black.opacity(0.4) }
+        var spinnerColor: Color { .blue }
+        var backgroundColor: Color { .white.opacity(0.5) }
+        var strokeColor: Color { .white.opacity(0.6) }
     }
 }
 
@@ -188,8 +191,15 @@ extension DefaultStyle {
             }
         }
         
+        struct DateHeader {
+            var foregroundColor: Color { .primary.opacity(0.9) }
+            var backgroundColor: Color { .white.opacity(0.5) }
+            var cornerRadius: CGFloat { 16 }
+        }
+        
         struct Bubble {
             func foregroundColor(isMine: Bool) -> Color { isMine ? .white : .primary }
+            func linkForegroundColor(isMine: Bool) -> Color { isMine ? .white : .blue }
             var timeColor: Color { .primary.opacity(0.6) }
             var cornerRadius: CGFloat { 16 }
             func background(isMine: Bool) -> LinearGradient {
@@ -219,8 +229,8 @@ extension DefaultStyle {
         let input = Input()
         let bubble = Bubble()
         let bubbleMenu = BubbleMenu()
-        var scrollToBottomIconColor: Color { .primary.opacity(0.5) }
-        var dateHeaderColor: Color { .primary.opacity(0.9) }
+        let dateHeader = DateHeader()
+        var scrollToBottomIconColor: Color { .primary.opacity(0.6) }
     }
 }
 
@@ -257,6 +267,52 @@ extension DefaultStyle {
     }
 }
 
+extension DefaultStyle {
+    struct Search {
+        struct Segment {
+            func textColor(isActive: Bool) -> Color { isActive ? .white : .blue }
+            var cornerRadius: CGFloat { 14 }
+            var backgroundColor: Color { .white.opacity(0.8) }
+            var strokeColor: Color { .gray.opacity(0.2) }
+            var activeStyle: LinearGradient {
+                LinearGradient(
+                    colors: [.blue, .purple],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        }
+        
+        struct EmptyState {
+            var iconColor: Color { .blue.opacity(0.6) }
+            var titleColor: Color { .primary }
+            var subtitleColor: Color { .secondary }
+        }
+        
+        struct NoResults {
+            var iconColor: Color { .gray }
+            var titleColor: Color { .primary }
+            var subtitleColor: Color { .secondary }
+        }
+    
+        var textColor: Color { .primary }
+        func iconColor(isActive: Bool) -> Color { isActive ? .blue : .gray }
+        var backgroundColor: Color { .white.opacity(0.8) }
+        var cornerRadius: CGFloat { 16 }
+        var defaultStrokeColor: Color { .gray.opacity(0.2) }
+        func outerStrokeStyle(isActive: Bool) -> LinearGradient {
+            LinearGradient(
+                colors: isActive ? [.blue.opacity(0.7), .purple.opacity(0.7)] : [.clear],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+        let segment = Segment()
+        let emptyState = EmptyState()
+        let noResults = NoResults()
+    }
+}
+
 extension View {
     @ViewBuilder
     func defaultShadow(color: Color, isActive: Bool = true) -> some View {
@@ -269,5 +325,9 @@ extension View {
     
     func defaultAnimation<V: Equatable>(duration: TimeInterval = 0.2, value: V) -> some View {
         animation(.easeInOut(duration: duration), value: value)
+    }
+    
+    func contentTransitionAnimation<V: Equatable>(duration: TimeInterval = 0.3, value: V) -> some View {
+        animation(.easeIn(duration: duration), value: value)
     }
 }

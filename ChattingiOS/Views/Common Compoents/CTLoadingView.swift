@@ -8,27 +8,21 @@
 import SwiftUI
 
 struct CTLoadingView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     var body: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .controlSize(.large)
-                .tint(style.loadingView.spinnerColor)
-            
-            Text("Loading...")
-                .font(.title3.weight(.medium))
-                .foregroundStyle(style.loadingView.textColor)
-        }
-        .background {
-            style.loadingView.backgroundColor
-                .frame(width: 160, height: 160)
-                .clipShape(.rect(cornerRadius: style.loadingView.cornerRadius))
-                .overlay(
-                    style.loadingView.strokeColor,
-                    in: .rect(cornerRadius: style.loadingView.cornerRadius).stroke(lineWidth: 1)
-                )
-        }
+        ProgressView()
+            .controlSize(.large)
+            .tint(style.loadingView.spinnerColor)
+            .background {
+                style.loadingView.backgroundColor
+                    .frame(width: 100, height: 100)
+                    .clipShape(.rect(cornerRadius: style.loadingView.cornerRadius))
+                    .overlay(
+                        style.loadingView.strokeColor,
+                        in: .rect(cornerRadius: style.loadingView.cornerRadius).stroke(lineWidth: 1)
+                    )
+            }
     }
 }
 
@@ -36,6 +30,6 @@ struct CTLoadingView: View {
     ZStack {
         Color.white
         CTLoadingView()
-            .environmentObject(ViewStyleManager())
+            .environment(ViewStyleManager())
     }
 }

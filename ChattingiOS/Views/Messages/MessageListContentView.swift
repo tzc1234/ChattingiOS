@@ -25,16 +25,18 @@ struct DeleteMessageAttributes {
 }
 
 struct MessageListContentView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @FocusState private var messageInputFocused: Bool
-    @State private var scrollToMessageID: Int?
     @State private var visibleMessageIndex = Set<Int>()
     @State private var isScrollToBottom = false
     @State private var selectedBubble: SelectedBubble?
     @State private var avatarImage: UIImage?
     @State private var screenSize: CGSize = .zero
+    @State private var bottomSafeAreaInset: CGFloat = .zero
     @State private var showBubbleMenu = false
+    @State private var bubbleMenuShowingState: MessageBubbleMenuShowingState = .hidden
     
+    private var avatarWidth: CGFloat { 30 }
     private var showScrollToBottomButton: Bool {
         guard let maxIndex = visibleMessageIndex.max() else { return false }
         
@@ -45,7 +47,7 @@ struct MessageListContentView: View {
     let avatarData: Data?
     let messages: [DisplayedMessage]
     let isLoading: Bool
-    let isBlocked: Bool
+    let blockedState: ContactBlockedState
     let isConnecting: Bool
     @Binding var setupError: String?
     @Binding var listPositionMessageID: Int?
@@ -62,7 +64,13 @@ struct MessageListContentView: View {
             CTBackgroundView()
             
             VStack(spacing: 0) {
-                setupErrorNotice
+                if setupError != nil || blockedState != .normal {
+                    VStack(spacing: 6) {
+                        setupErrorNotice
+                        blockedNotice
+                    }
+                    .padding(.vertical, 8)
+                }
                 
                 ZStack {
                     messageList
@@ -70,7 +78,7 @@ struct MessageListContentView: View {
                     scrollToBottomButton
                 }
                 
-                if !isBlocked {
+                if blockedState == .normal {
                     messageInputArea
                 }
             }
@@ -80,7 +88,6 @@ struct MessageListContentView: View {
             messageBubbleMenu
         }
         .defaultAnimation(duration: 0.3, value: showBubbleMenu)
-        .onTapGesture { messageInputFocused = false }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -90,7 +97,7 @@ struct MessageListContentView: View {
                             Image(uiImage: avatarImage)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 30, height: 30)
+                                .frame(width: avatarWidth, height: avatarWidth)
                                 .clipShape(.circle)
                         } else {
                             Image(systemName: "person.circle.fill")
@@ -105,25 +112,36 @@ struct MessageListContentView: View {
                 }
             }
         }
-        .onChange(of: avatarData) { newValue in
-            if let newValue {
-                avatarImage = UIImage(data: newValue)
+        .onChange(of: avatarData) { _, avatarData in
+            if let avatarData {
+                avatarImage = UIImage(data: avatarData)?.resize(to: CGSize(width: avatarWidth, height: avatarWidth))
             }
         }
-        .onChange(of: selectedBubble) { newValue in
-            showBubbleMenu = selectedBubble != nil
+        .onChange(of: selectedBubble) { _, selectedBubble in
+            if selectedBubble != nil {
+                showBubbleMenu = true
+            }
         }
-        .onChange(of: showBubbleMenu) { newValue in
-            if !newValue {
+        .onChange(of: showBubbleMenu) { _, showBubbleMenu in
+            if showBubbleMenu {
+                bubbleMenuShowingState = .shown
+            } else {
+                bubbleMenuShowingState = .beforeHidden
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     selectedBubble = nil
+                    bubbleMenuShowingState = .hidden
                 }
             }
         }
         .onAppear {
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-                screenSize = windowScene.screen.bounds.size
+            guard let windowScene = UIApplication.shared.connectedScenes
+                    .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+                  let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+                return
             }
+            
+            screenSize = windowScene.screen.bounds.size
+            bottomSafeAreaInset = keyWindow.safeAreaInsets.bottom
         }
     }
     
@@ -155,19 +173,31 @@ struct MessageListContentView: View {
                 }
             )
             .padding(.horizontal, 18)
-            .padding(.vertical, 8)
+        }
+    }
+    
+    @ViewBuilder
+    private var blockedNotice: some View {
+        if blockedState != .normal {
+            CTNotice(
+                text: blockedState == .blockedByMe ?
+                    "You have blocked \(responderName)." :
+                    "You are blocked by \(responderName).",
+                backgroundColor: style.notice.noticeBackgroundColor,
+                strokeColor: style.notice.noticeStrokeColor,
+                button: {}
+            )
+            .padding(.horizontal, 18)
         }
     }
     
     @ViewBuilder
     private var minVisibleMessageDateHeader: some View {
-        if let minIndex = visibleMessageIndex.min() {
+        if let minVisibleIndex = visibleMessageIndex.min() {
             VStack {
-                messageDateHeader(messages[minIndex].date)
+                messageDateHeader(messages[minVisibleIndex].date)
                 Spacer()
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 8)
         }
     }
     
@@ -214,58 +244,44 @@ struct MessageListContentView: View {
     }
     
     private var messageList: some View {
-        ScrollViewReader { proxy in
-            List {
-                ForEach(Array(messages.enumerated()), id: \.offset) { index, message in
+        MessagesTableView(
+            messages: messages,
+            content: { index, message in
+                VStack(spacing: 12) {
                     messageDateHeader(message.date, index: index)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
                     
-                    MessageBubble(message: message, selectedBubble: $selectedBubble, readEditedMessage: {
-                        readMessages(message.id)
-                    })
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                    .id(message.id)
-                    .onAppear {
-                        visibleMessageIndex.insert(index)
-                        if message == messages.first { loadPreviousMessages() }
-                        if message == messages.last { loadMoreMessages() }
-                        if message.isUnread { readMessages(message.id) }
-                    }
-                    .onDisappear { visibleMessageIndex.remove(index) }
+                    MessageBubble(
+                        message: message,
+                        selectedBubble: $selectedBubble,
+                        readEditedMessage: { readMessages(message.id) }
+                    )
                 }
-                .listRowInsets(.init(top: 8, leading: 20, bottom: 8, trailing: 20))
+            },
+            visibleMessageIndex: $visibleMessageIndex,
+            listPositionMessageID: $listPositionMessageID,
+            bottomSafeAreaInset: bottomSafeAreaInset,
+            isLoading: isLoading,
+            isScrollToBottom: $isScrollToBottom,
+            bubbleMenuShowingState: bubbleMenuShowingState,
+            messageInputFocused: _messageInputFocused,
+            onContentTop: loadPreviousMessages,
+            onContentBottom: loadMoreMessages,
+            onBackgroundTap: { messageInputFocused = false }
+        )
+        .padding(.top, 28)
+        .onChange(of: visibleMessageIndex) { _, newValue in
+            if let maxVisibleIndex = newValue.max() {
+                let maxVisibleMessageID = messages[maxVisibleIndex].id
+                readMessages(maxVisibleMessageID)
             }
-            .padding(.top, 20)
-            .onChange(of: messages) { newValue in
-                if messages.isEmpty { visibleMessageIndex.removeAll() }
-            }
-            .onChange(of: listPositionMessageID) { messageID in
-                if let messageID {
-                    withAnimation { scrollToMessageID = messageID }
-                    listPositionMessageID = nil
-                }
-            }
-            .onChange(of: scrollToMessageID) { messageID in
-                proxy.scrollTo(messageID, anchor: .top)
-            }
-            .onChange(of: isScrollToBottom) { newValue in
-                if newValue {
-                    withAnimation { proxy.scrollTo(messages.last?.id, anchor: .top) }
-                    isScrollToBottom = false
-                }
-            }
-            .listStyle(.plain)
         }
     }
     
     @ViewBuilder
     private func messageDateHeader(_ dateText: String, index: Int) -> some View {
-        if index > 0 {
+        if index > 0, !messages.isEmpty {
             if dateText != messages[index-1].date {
                 messageDateHeader(dateText)
-                    .frame(maxWidth: .infinity, alignment: .center)
             }
         }
     }
@@ -273,7 +289,13 @@ struct MessageListContentView: View {
     private func messageDateHeader(_ dateText: String) -> some View {
         Text(dateText)
             .font(.footnote)
-            .foregroundStyle(style.message.dateHeaderColor)
+            .foregroundStyle(style.message.dateHeader.foregroundColor)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .background(
+                style.message.dateHeader.backgroundColor,
+                in: .rect(cornerRadius: style.message.dateHeader.cornerRadius)
+            )
     }
     
     private var messageInputArea: some View {
@@ -291,99 +313,6 @@ struct MessageListContentView: View {
     }
 }
 
-struct MessageBubbleContent: View {
-    @EnvironmentObject private var style: ViewStyleManager
-    
-    private var isMine: Bool { message.isMine }
-    private var cornerRadii: RectangleCornerRadii {
-        RectangleCornerRadii(
-            topLeading: style.message.bubble.cornerRadius,
-            bottomLeading: isMine ? style.message.bubble.cornerRadius : 0,
-            bottomTrailing: isMine ? 0 : style.message.bubble.cornerRadius,
-            topTrailing: style.message.bubble.cornerRadius
-        )
-    }
-    
-    let message: DisplayedMessage
-    
-    var body: some View {
-        Text(message.text)
-            .font(.callout)
-            .italic(message.isDeleted)
-            .foregroundColor(style.message.bubble.foregroundColor(isMine: isMine))
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(
-                style.message.bubble.background(isMine: isMine),
-                in: .rect(cornerRadii: cornerRadii)
-            )
-            .overlay(
-                style.message.bubble.strokeColor(isMine: isMine),
-                in: .rect(cornerRadii: cornerRadii).stroke(lineWidth: 1)
-            )
-    }
-}
-
-struct MessageBubble: View {
-    @EnvironmentObject private var style: ViewStyleManager
-    @State private var contentFrame: CGRect = .zero
-    
-    private let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-    private var isMine: Bool { message.isMine }
-    
-    let message: DisplayedMessage
-    @Binding var selectedBubble: SelectedBubble?
-    let readEditedMessage: () -> Void
-    
-    var body: some View {
-        HStack {
-            if isMine { Spacer() }
-            
-            VStack(alignment: isMine ? .trailing : .leading, spacing: 4) {
-                MessageBubbleContent(message: message)
-                    .onChange(of: message) { newValue in
-                        if message.text != newValue.text, newValue.isUnread { readEditedMessage() }
-                    }
-                    .background {
-                        GeometryReader { proxy in
-                            DispatchQueue.main.async {
-                                contentFrame = proxy.frame(in: .global)
-                            }
-                            return Color.clear
-                        }
-                    }
-                    // A trick for long press gesture with a smooth scrolling
-                    // https://stackoverflow.com/a/59499892
-                    .onTapGesture {}
-                    .onLongPressGesture(
-                        minimumDuration: 0.1,
-                        perform: {
-                            if !message.isDeleted {
-                                impactFeedback.impactOccurred()
-                                selectedBubble = .init(frame: contentFrame, message: message)
-                            }
-                        }
-                    )
-                
-                HStack(spacing: 4) {
-                    Text(message.time)
-                        .font(.caption)
-                        .foregroundColor(style.message.bubble.timeColor)
-                    
-                    if isMine, !message.isDeleted {
-                        Image(systemName: message.isRead ? "checkmark.circle.fill" : "checkmark.circle")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(style.message.bubble.readIconColor(isRead: message.isRead))
-                    }
-                }
-            }
-            
-            if !isMine { Spacer() }
-        }
-        .id(message.text)
-    }
-}
-
 #Preview {
     NavigationView {
         MessageListContentView(
@@ -397,7 +326,7 @@ struct MessageBubble: View {
                 .init(id: 4, text: "Message deleted.", isMine: false, isRead: true, isDeleted: true, createdAt: .now, date:  "3 Jan 2025", time: "11:00"),
             ],
             isLoading: false,
-            isBlocked: false,
+            blockedState: .normal,
             isConnecting: true,
             setupError: .constant("Error occurred!"),
             listPositionMessageID: .constant(nil),
@@ -420,6 +349,6 @@ struct MessageBubble: View {
             )
         )
     }
-    .environmentObject(ViewStyleManager())
+    .environment(ViewStyleManager())
     .preferredColorScheme(.light)
 }

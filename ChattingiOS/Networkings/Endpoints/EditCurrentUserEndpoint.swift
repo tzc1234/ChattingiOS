@@ -1,5 +1,5 @@
 //
-//  UpdateCurrentUserEndpoint.swift
+//  EditCurrentUserEndpoint.swift
 //  ChattingiOS
 //
 //  Created by Tsz-Lung on 05/06/2025.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct UpdateCurrentUserEndpoint: Endpoint {
+struct EditCurrentUserEndpoint: Endpoint {
     var path: String { apiPath + "me" }
     var httpMethod: HTTPMethod { .put }
     var headers: [String: String]? {
@@ -21,12 +21,12 @@ struct UpdateCurrentUserEndpoint: Endpoint {
     let apiConstants: APIConstants
     private let boundary: String
     private let accessToken: AccessToken
-    private let params: UpdateCurrentUserParams
+    private let params: EditCurrentUserParams
     
     init(apiConstants: APIConstants = APIConstants(),
          boundary: String = UUID().uuidString,
          accessToken: AccessToken,
-         params: UpdateCurrentUserParams) {
+         params: EditCurrentUserParams) {
         self.apiConstants = apiConstants
         self.boundary = boundary
         self.accessToken = accessToken

@@ -8,9 +8,10 @@
 import SwiftUI
 
 struct ProfileContentView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @State private var showSignOutAlert = false
     @State private var avatarImage: UIImage?
+    private var avatarWidth: CGFloat { 105 }
     
     let user: User
     let avatarData: Data?
@@ -52,9 +53,9 @@ struct ProfileContentView: View {
         } message: {
             Text("Are you sure you want to sign out?")
         }
-        .onChange(of: avatarData) { newValue in
+        .onChange(of: avatarData) { _, newValue in
             if let newValue {
-                avatarImage = UIImage(data: newValue)
+                avatarImage = UIImage(data: newValue)?.resize(to: CGSize(width: avatarWidth, height: avatarWidth))
             }
         }
     }
@@ -76,7 +77,7 @@ struct ProfileContentView: View {
                             Image(uiImage: avatarImage)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 105, height: 105)
+                                .frame(width: avatarWidth, height: avatarWidth)
                                 .clipShape(.circle)
                         } else {
                             Image(systemName: "person.circle.fill")
@@ -142,7 +143,7 @@ struct ProfileContentView: View {
 }
 
 struct ProfileInfoCard: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     let icon: String
     let title: String
@@ -200,6 +201,6 @@ struct ProfileInfoCard: View {
         editAction: { _ in },
         signOutAction: {}
     )
-    .environmentObject(ViewStyleManager())
+    .environment(ViewStyleManager())
     .preferredColorScheme(.light)
 }

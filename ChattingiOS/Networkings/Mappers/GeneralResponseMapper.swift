@@ -31,3 +31,4 @@ typealias ContactResponseMapper = GeneralResponseMapper<ContactResponse>
 typealias TokenResponseMapper = GeneralResponseMapper<TokenResponse>
 typealias UserTokenResponseMapper = GeneralResponseMapper<UserTokenResponse>
 typealias UserResponseMapper = GeneralResponseMapper<UserResponse>
+typealias SearchContactsResponseMapper = GeneralResponseMapper<SearchContactsResponse>

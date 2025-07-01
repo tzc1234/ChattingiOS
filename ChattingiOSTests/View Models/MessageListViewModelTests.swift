@@ -19,11 +19,11 @@ final class MessageListViewModelTests: XCTestCase {
     func test_init_deliversContactInfoCorrectly() {
         let avatarURL = URL(string: "http://avatar-url.com")!
         let contact = makeContact(responderName: "a name", avatarURL: avatarURL, blockedByUserID: 0)
-        let (sut, _) = makeSUT(contact: contact, getMessagesStubs: [])
+        let (sut, _) = makeSUT(currentUserID: 1, contact: contact, getMessagesStubs: [])
         
         XCTAssertEqual(sut.username, contact.responder.name)
         XCTAssertNil(sut.avatarData)
-        XCTAssertEqual(sut.isBlocked, contact.blockedByUserID != nil)
+        XCTAssertEqual(sut.blockedState, .blockedByResponder)
     }
     
     func test_initialiseMessageList_sendsParamsToCollaboratorsCorrectly() async {

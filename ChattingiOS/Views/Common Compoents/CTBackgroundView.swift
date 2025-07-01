@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CTBackgroundView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     var body: some View {
         style.common.background

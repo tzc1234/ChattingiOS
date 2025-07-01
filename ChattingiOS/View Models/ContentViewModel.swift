@@ -9,11 +9,13 @@ import SwiftUI
 
 enum TabItem {
     case contacts
+    case search
     case profile
     
     var title: String {
         switch self {
         case .contacts: "Contacts"
+        case .search: "Search"
         case .profile: "Profile"
         }
     }
@@ -21,27 +23,29 @@ enum TabItem {
     var systemImage: String {
         switch self {
         case .contacts: "person.3"
+        case .search: "magnifyingglass"
         case .profile: "person"
         }
     }
 }
 
-@MainActor
-final class ContentViewModel: ObservableObject {
+@MainActor @Observable
+final class ContentViewModel {
     enum SignInState {
         case signedIn(User, to: TabItem)
         case userInitiatedSignOut
         case tokenInvalid
     }
     
-    let navigationControlForContacts = NavigationControlViewModel()
-    let navigationControlForProfile = NavigationControlViewModel()
+    let contactsNavigationControl = NavigationControlViewModel()
+    let searchNavigationControl = NavigationControlViewModel()
+    let profileNavigationControl = NavigationControlViewModel()
     
-    @Published private(set) var user: User?
-    @Published var isLoading = false
-    @Published var generalError: String?
-    @Published var showSheet = false
-    @Published var selectedTab: TabItem = .contacts
+    private(set) var user: User?
+    var isLoading = false
+    var generalError: String?
+    var showSheet = false
+    var selectedTab: TabItem = .contacts
     
     func set(signInState: SignInState) async {
         switch signInState {
@@ -58,7 +62,7 @@ final class ContentViewModel: ObservableObject {
     
     private func set(user: User?) async {
         if user == nil {
-            navigationControlForContacts.popToRoot()
+            contactsNavigationControl.popToRoot()
         }
         self.user = user
     }

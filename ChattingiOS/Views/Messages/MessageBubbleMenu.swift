@@ -13,7 +13,7 @@ struct SelectedBubble: Equatable {
 }
 
 struct MessageBubbleMenu: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @FocusState private var editAreaFocused: Bool
     @State private var showMenuItems = true
     @State private var showEditArea = false
@@ -79,7 +79,7 @@ struct MessageBubbleMenu: View {
                     editArea
                 }
             }
-            .onChange(of: keyboardHeight) { newValue in
+            .onChange(of: keyboardHeight) { _, newValue in
                 if newValue > 0 {
                     updateScrollOffsetY()
                 }
@@ -109,7 +109,7 @@ struct MessageBubbleMenu: View {
         HStack {
             if message.isMine { Spacer() }
             
-            MessageBubbleContent(message: message)
+            MessageBubbleContent(message: message, shouldOpenLink: false)
                 .frame(width: bubbleFrame.width, height: bubbleFrame.height)
                 .background {
                     GeometryReader { proxy -> Color in
@@ -223,7 +223,7 @@ struct MessageBubbleMenu: View {
 }
 
 struct MessageBubbleMenuButton: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     let title: String
     let icon: String

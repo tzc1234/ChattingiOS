@@ -14,20 +14,14 @@ final class Flow {
     private var pushNotificationHandler: PushNotificationsHandler { dependencies.pushNotificationHandler }
     private var style: ViewStyleManager { dependencies.viewStyleManager }
     
-    private var navigationControlForContacts: NavigationControlViewModel {
-        contentViewModel.navigationControlForContacts
-    }
-    private var navigationControlForProfile: NavigationControlViewModel {
-        contentViewModel.navigationControlForProfile
-    }
+    private var contactsNavigationControl: NavigationControlViewModel { contentViewModel.contactsNavigationControl }
+    private var searchNavigationControl: NavigationControlViewModel { contentViewModel.searchNavigationControl }
+    private var profileNavigationControl: NavigationControlViewModel { contentViewModel.profileNavigationControl }
     
     // Let Flow manage the lifetime of the ContactListViewModel instance. Since there's a weird behaviour,
     // the ContactListView sometime will not update if let it manage its own ContactListViewModel.
     private var contactListViewModel: ContactListViewModel?
-    
     private weak var messageListViewModel: MessageListViewModel?
-    private var editProfileTask: Task<Void, Never>?
-    private var newContactTask: Task<Void, Never>?
     var deviceToken: String? {
         didSet {
             Task { await updateDeviceToken() }
@@ -55,7 +49,7 @@ final class Flow {
             guard let user = await currentUserVault.retrieveCurrentUser()?.user else { return }
             
             await contentViewModel.set(signInState: .signedIn(user, to: .contacts))
-            navigationControlForContacts.forceReloadContent()
+            contactsNavigationControl.forceReloadContent()
         }
     }
     
@@ -76,7 +70,7 @@ final class Flow {
         // Order does matter!
         await contentViewModel.set(signInState: .signedIn(user, to: .contacts))
         contactListViewModel = nil
-        navigationControlForContacts.forceReloadContent()
+        contactsNavigationControl.forceReloadContent()
         await updateDeviceToken()
     }
     
@@ -100,8 +94,12 @@ final class Flow {
             guard let currentUserID = contentViewModel.user?.id, currentUserID == userID else { return }
             
             // On contacts tab, not on MessageListView.
-            if contentViewModel.selectedTab == .contacts, navigationControlForContacts.path.count < 1 {
-                showMessageListView(currentUserID: currentUserID, contact: contact)
+            if contentViewModel.selectedTab == .contacts, contactsNavigationControl.path.count < 1 {
+                showMessageListView(
+                    currentUserID: currentUserID,
+                    contact: contact,
+                    navigationControl: contactsNavigationControl
+                )
             }
             
             cache(contact)
@@ -135,13 +133,19 @@ final class Flow {
     func startView() -> some View {
         ContentView(viewModel: contentViewModel) { [unowned self] currentUser in
             TabView(selection: contentViewModel.selectedTabBinding) { [unowned self] in
-                NavigationControlView(viewModel: navigationControlForContacts) { [unowned self] in
+                NavigationControlView(viewModel: contactsNavigationControl) { [unowned self] in
                     contactListView(currentUserID: currentUser.id)
                 }
                 .tabItem { Label(TabItem.contacts.title, systemImage: TabItem.contacts.systemImage) }
                 .tag(TabItem.contacts)
                 
-                NavigationControlView(viewModel: navigationControlForProfile) { [unowned self] in
+                NavigationControlView(viewModel: searchNavigationControl) { [unowned self] in
+                    searchView(currentUserID: currentUser.id)
+                }
+                .tabItem { Label(TabItem.search.title, systemImage: TabItem.search.systemImage) }
+                .tag(TabItem.search)
+                
+                NavigationControlView(viewModel: profileNavigationControl) { [unowned self] in
                     profileView(user: currentUser)
                 }
                 .tabItem { Label(TabItem.profile.title, systemImage: TabItem.profile.systemImage) }
@@ -153,7 +157,7 @@ final class Flow {
             signUpView()
         }
         .preferredColorScheme(.light)
-        .environmentObject(style)
+        .environment(style)
     }
     
     private func signInView() -> SignInView {
@@ -203,41 +207,35 @@ final class Flow {
         let viewModel = EditProfileViewModel(
             user: user,
             currentAvatarData: avatarData,
-            updateCurrentUser: dependencies.updateCurrentUser
+            editCurrentUser: dependencies.editCurrentUser
         )
-        editProfileTask?.cancel()
-        editProfileTask = Task { [unowned self] in
-            defer { editProfileTask = nil }
-            
-            for await editedUser in viewModel.$user.values {
-                guard editedUser != user else { continue }
+        let editProfileView = EditProfileView(viewModel: viewModel, onDismiss: { editedUser in
+            Task { [unowned self] in
+                guard editedUser != user else { return }
                 
                 if let currentUser = await currentUserVault.retrieveCurrentUser() {
                     do {
                         // Save edited user into current user vault.
                         try await currentUserVault.saveCurrentUserWithoutNotifyObservers(
                             user: editedUser,
-                            token: Token(accessToken: currentUser.accessToken, refreshToken: currentUser.refreshToken)
+                            token: Token(
+                                accessToken: currentUser.accessToken,
+                                refreshToken: currentUser.refreshToken
+                            )
                         )
                         
                         await contentViewModel.set(signInState: .signedIn(editedUser, to: .profile))
-                        navigationControlForProfile.forceReloadContent()
+                        profileNavigationControl.forceReloadContent()
                     } catch {
                         // If save error occurred, delete the current user, force user sign in.
                         try? await currentUserVault.deleteCurrentUser()
                     }
-                    
-                    // Release this task after user update process.
-                    editProfileTask?.cancel()
                 } else {
                     assertionFailure("CurrentUser should not be nil just after edit profile.")
                 }
             }
-        }
-        let editProfileView = EditProfileView(viewModel: viewModel, onDisappear: { [unowned self] in
-            editProfileTask?.cancel()
         })
-        navigationControlForProfile.show(next: NavigationDestination(editProfileView))
+        profileNavigationControl.show(next: NavigationDestination(editProfileView))
     }
     
     private func contactListView(currentUserID: Int) -> some View {
@@ -262,31 +260,27 @@ final class Flow {
             alertContent: { [unowned self] alertState in
                 newContactView(with: alertState)
             }, rowTapped: { [unowned self] contact in
-                showMessageListView(currentUserID: currentUserID, contact: contact)
+                showMessageListView(
+                    currentUserID: currentUserID,
+                    contact: contact,
+                    navigationControl: contactsNavigationControl
+                )
             })
             .navigationDestinationFor(MessageListView.self)
     }
     
     private func newContactView(with alertState: Binding<AlertState>) -> some View {
         let viewModel = NewContactViewModel(newContact: dependencies.newContact)
-        newContactTask?.cancel()
-        newContactTask = Task { [unowned self] in
-            for await contact in viewModel.$contact.values {
-                if let contact, let contactListViewModel {
-                    try? await Task.sleep(for: .seconds(0.5)) // Wait for New Contact Popup disappeared.
-                    contactListViewModel.addToTop(contact: contact, message: "New contact added.")
-                }
-            }
-        }
-        return NewContactView(viewModel: viewModel, alertState: alertState, onDisappear: { [unowned self] in
-            newContactTask?.cancel()
-            newContactTask = nil
+        return NewContactView(viewModel: viewModel, alertState: alertState, onDismiss: { [unowned self] contact in
+            contactListViewModel?.addToTop(contact: contact, message: "New contact added.")
         })
         .preferredColorScheme(.light)
-        .environmentObject(style)
+        .environment(style)
     }
     
-    private func showMessageListView(currentUserID: Int, contact: Contact) {
+    private func showMessageListView(currentUserID: Int,
+                                     contact: Contact,
+                                     navigationControl: NavigationControlViewModel) {
         let viewModel = MessageListViewModel(
             currentUserID: currentUserID,
             contact: contact,
@@ -297,6 +291,21 @@ final class Flow {
         messageListViewModel = viewModel
         
         let destination = NavigationDestination(MessageListView(viewModel: viewModel))
-        navigationControlForContacts.show(next: destination)
+        navigationControl.show(next: destination)
+    }
+    
+    private func searchView(currentUserID: Int) -> some View {
+        let viewModel = SearchViewModel(
+            searchContacts: dependencies.searchContacts,
+            loadImageData: dependencies.decoratedLoadImageDataWithCache
+        )
+        return SearchView(viewModel: viewModel, rowTapped: { [unowned self] contact in
+            showMessageListView(
+                currentUserID: currentUserID,
+                contact: contact,
+                navigationControl: searchNavigationControl
+            )
+        })
+        .navigationDestinationFor(MessageListView.self)
     }
 }

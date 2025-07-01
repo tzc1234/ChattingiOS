@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct NewContactContentView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @State private var keyboardHeight: CGFloat = 0
     
     @Binding var email: String
@@ -94,6 +94,6 @@ struct NewContactContentView: View {
         dismiss: {},
         submitTapped: {}
     )
-    .environmentObject(ViewStyleManager())
+    .environment(ViewStyleManager())
     .preferredColorScheme(.light)
 }

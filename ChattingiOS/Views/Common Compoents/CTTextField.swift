@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct CTTextField: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @State private var isPasswordInvisible = true
     
     @Binding private var text: String

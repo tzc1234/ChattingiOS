@@ -7,24 +7,35 @@
 
 import Foundation
 
-@MainActor
-final class MessageListViewModel: ObservableObject {
-    @Published private(set) var messages = [DisplayedMessage]()
-    @Published var generalError: String?
-    @Published var setupError: String?
-    @Published var inputMessage = ""
-    @Published private(set) var isLoading = false
-    @Published var messageIDForListPosition: Int?
-    @Published private(set) var avatarData: Data?
+enum ContactBlockedState {
+    case normal
+    case blockedByMe
+    case blockedByResponder
+}
+
+@MainActor @Observable
+final class MessageListViewModel {
+    private(set) var messages = [DisplayedMessage]()
+    var generalError: String?
+    var setupError: String?
+    var inputMessage = ""
+    private(set) var isLoading = false
+    var messageIDForListPosition: Int?
+    private(set) var avatarData: Data?
     
     private var contactID: Int { contact.id }
     var username: String { contact.responder.name }
-    var isBlocked: Bool { contact.blockedByUserID != nil }
+    var blockedState: ContactBlockedState {
+        guard let blockedByUserID = contact.blockedByUserID else { return .normal }
+        
+        return blockedByUserID == currentUserID ? .blockedByMe : .blockedByResponder
+    }
+    private var isBlocked: Bool { contact.blockedByUserID != nil }
     var isConnecting: Bool { connection != nil }
     private var messageIDForInitialListPosition: Int? { messages.first(where: \.isUnread)?.id ?? messages.last?.id }
     private var isReadOnlyMode: Bool { setupError != nil }
     
-    @Published private var connection: MessageChannelConnection?
+    private var connection: MessageChannelConnection?
     private var canLoadPrevious = false
     private var canLoadMore = false
     private var messagesToBeReadIDs = Set<Int>()
@@ -349,17 +360,16 @@ final class MessageListViewModel: ObservableObject {
 
 private extension Message {
     func toDisplayedModel(currentUserID: Int) -> DisplayedMessage {
-        DisplayedMessage(
+        let timePrefix = deletedAt != nil ? "Deleted " : editedAt != nil ? "Edited " : ""
+        return DisplayedMessage(
             id: id,
             text: text,
             isMine: senderID == currentUserID,
             isRead: isRead,
             isDeleted: deletedAt != nil,
             createdAt: createdAt,
-            date: createdAt.formatted(date: .abbreviated, time: .omitted),
-            time: deletedAt.map { _ in "Deleted \(createdAt.formatted(date: .omitted, time: .shortened))" } ??
-            editedAt.map { _ in "Edited \(createdAt.formatted(date: .omitted, time: .shortened))" } ??
-                createdAt.formatted(date: .omitted, time: .shortened)
+            date: createdAt.displayed(),
+            time: timePrefix + createdAt.formatted(date: .omitted, time: .shortened)
         )
     }
 }
@@ -372,4 +382,22 @@ private extension [Message] {
 
 extension Int? {
     static var endLimit: Int { -1 }
+}
+
+private extension Date {
+    func displayed() -> String {
+        let calendar = Calendar.current
+        
+        if calendar.isDateInToday(self) {
+            return "Today"
+        } else if calendar.isDateInYesterday(self) {
+            return "Yesterday"
+        } else if let daysDifference = calendar.dateComponents([.day], from: .now, to: self).day, abs(daysDifference) < 7 {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE"
+            return formatter.string(from: self)
+        } else {
+            return formatted(date: .abbreviated, time: .omitted)
+        }
+    }
 }

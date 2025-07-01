@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct UpdateCurrentUserParams: Equatable {
+struct EditCurrentUserParams: Equatable {
     let name: String
     let avatar: AvatarParams?
 }

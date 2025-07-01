@@ -7,7 +7,8 @@
 
 import SwiftUI
 
-final class ViewStyleManager: ObservableObject {
+@Observable
+final class ViewStyleManager {
     private let style = DefaultStyle()
     
     var common: DefaultStyle.Common { style.common }
@@ -20,4 +21,5 @@ final class ViewStyleManager: ObservableObject {
     var loadingView: DefaultStyle.LoadingView { style.loadingView }
     var message: DefaultStyle.Message { style.message}
     var profile: DefaultStyle.Profile { style.profile }
+    var search: DefaultStyle.Search { style.search }
 }

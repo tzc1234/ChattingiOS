@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CTIconView<Content: View>: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     
     @ViewBuilder let content: () -> Content
     

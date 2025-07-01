@@ -10,8 +10,8 @@ import SwiftUI
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     
-    @ObservedObject var viewModel: EditProfileViewModel
-    let onDisappear: () -> Void
+    @Bindable var viewModel: EditProfileViewModel
+    let onDismiss: (User) -> Void
     
     var body: some View {
         EditProfileContentView(
@@ -29,17 +29,17 @@ struct EditProfileView: View {
         } message: {
             Text(viewModel.generalError ?? "")
         }
-        .onChange(of: viewModel.saveSuccess) { newValue in
-            if newValue {
+        .onChange(of: viewModel.saveSuccess) { _, success in
+            if success {
                 dismiss()
+                onDismiss(viewModel.user)
             }
         }
-        .onDisappear(perform: onDisappear)
     }
 }
 
 struct EditProfileContentView: View {
-    @EnvironmentObject private var style: ViewStyleManager
+    @Environment(ViewStyleManager.self) private var style
     @State private var showImagePicker = false
     @State private var showActionSheet = false
     @State private var selectedImage: UIImage?
@@ -65,7 +65,7 @@ struct EditProfileContentView: View {
                             .clipShape(.circle)
                             .overlay(
                                 style.signUp.iconStrokeStyle,
-                                in: .circle.stroke(lineWidth: 2)
+                                in: .circle.stroke(lineWidth: 5)
                             )
                         
                         if let selectedImage {
@@ -143,7 +143,7 @@ struct EditProfileContentView: View {
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(selectedImage: $selectedImage)
         }
-        .onChange(of: selectedImage) { newValue in
+        .onChange(of: selectedImage) { _, newValue in
             avatarDataInput = selectedImage?.jpegData(compressionQuality: 0.8)
         }
     }
@@ -161,6 +161,6 @@ struct EditProfileContentView: View {
             saveAction: {}
         )
         .preferredColorScheme(.light)
-        .environmentObject(ViewStyleManager())
+        .environment(ViewStyleManager())
     }
 }

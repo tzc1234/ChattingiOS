@@ -11,23 +11,13 @@ struct ScrollViewRepresentable<Content: View>: UIViewRepresentable {
     @Binding var scrollOffset: CGPoint
     let contentInsets: UIEdgeInsets
     let onBackgroundTap: () -> Void
-    let content: Content
-    
-    init(scrollOffset: Binding<CGPoint>,
-         contentInsets: UIEdgeInsets,
-         onBackgroundTap: @escaping () -> Void,
-         content: @escaping () -> Content) {
-        self._scrollOffset = scrollOffset
-        self.contentInsets = contentInsets
-        self.onBackgroundTap = onBackgroundTap
-        self.content = content()
-    }
+    let content: () -> Content
     
     func makeUIView(context: Context) -> UIScrollView {
         let scrollView = UIScrollView()
         scrollView.delegate = context.coordinator
         
-        let hostingController = UIHostingController(rootView: content)
+        let hostingController = UIHostingController(rootView: content())
         hostingController.view.backgroundColor = .clear
         scrollView.addSubview(hostingController.view)
         
@@ -39,7 +29,7 @@ struct ScrollViewRepresentable<Content: View>: UIViewRepresentable {
     }
     
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
-        context.coordinator.hostingController?.rootView = content
+        context.coordinator.hostingController?.rootView = content()
         
         guard let hostingView = context.coordinator.hostingController?.view else { return }
         
