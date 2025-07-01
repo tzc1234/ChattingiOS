@@ -14,8 +14,6 @@ enum MessageBubbleMenuShowingState {
 }
 
 struct MessagesTableView<Content: View>: UIViewRepresentable {
-    var disabled: Bool { bubbleMenuShowingState != .hidden }
-    
     let messages: [DisplayedMessage]
     @ViewBuilder let content: (Int, DisplayedMessage) -> Content
     @Binding var visibleMessageIndex: Set<Int>
@@ -76,8 +74,8 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             }
         }
         
-        tableView.isScrollEnabled = !disabled
-        tableView.isUserInteractionEnabled = !disabled
+        tableView.isScrollEnabled =  bubbleMenuShowingState != .shown
+        tableView.isUserInteractionEnabled = bubbleMenuShowingState != .shown
         
         switch bubbleMenuShowingState {
         case .shown:
@@ -87,15 +85,6 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             messageInputFocused = false
         case .beforeHidden:
             if coordinator.lastContentOffsetYAdjustment > 0 {
-                let maxOffsetY = tableView.contentSize.height - tableView.bounds.height
-                // If contentOffset y within the maxOffsetY, that means the bottom contentInset is not necessary,
-                // set bottom contentInset to 0.
-                // If contentOffset y is beyond the maxOffsetY, keep it to hold the current contentOffset y.
-                if tableView.contentOffset.y <= maxOffsetY {
-                    tableView.contentInset.bottom = 0
-                    tableView.verticalScrollIndicatorInsets.bottom = 0
-                }
-                
                 messageInputFocused = true
             }
         case .hidden: break
@@ -119,7 +108,6 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         var currentTopMessageID: Int?
         var messages = [DisplayedMessage]()
         
-        private var tableFrameBeforeKeyboardShown: CGRect = .zero
         private(set) var lastContentOffsetYAdjustment: CGFloat = 0
         
         var parent: MessagesTableView<Content>
@@ -152,7 +140,7 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         }
         
         @objc private func keyboardWillShow(_ notification: Notification) {
-            guard !parent.disabled else { return }
+            guard parent.bubbleMenuShowingState != .shown, parent.bubbleMenuShowingState != .beforeHidden else { return }
             guard let userInfo = notification.userInfo,
                   let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
                   let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
@@ -162,10 +150,9 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
             }
             
             let keyboardHeight = keyboardFrame.height
-            let previousAdjustment = tableView.contentInset.bottom
+            let previousAdjustment = lastContentOffsetYAdjustment
             let adjustment = keyboardHeight - parent.bottomSafeAreaInset
-            
-            tableFrameBeforeKeyboardShown = tableView.frame
+
             lastContentOffsetYAdjustment = adjustment
             
             let options = UIView.AnimationOptions(rawValue: animationCurve << 16)
@@ -177,16 +164,33 @@ struct MessagesTableView<Content: View>: UIViewRepresentable {
         }
         
         @objc private func keyboardDidShow(_ notification: Notification) {
-            guard !parent.disabled else { return }
-            // The tableView finally updated its height (shorter height).
-            guard let tableView, tableView.frame.height < tableFrameBeforeKeyboardShown.height else { return }
+            guard parent.bubbleMenuShowingState != .shown else { return }
+            guard let userInfo = notification.userInfo,
+                  let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
+                  let animationCurve = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt,
+                  let tableView else {
+                return
+            }
+
+            let previousOffsetY = tableView.contentOffset.y
             
             tableView.contentInset.bottom = 0
             tableView.verticalScrollIndicatorInsets.bottom = 0
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                let maxOffsetY = tableView.contentSize.height - tableView.bounds.height
+                let currentOffsetY = tableView.contentOffset.y
+                let offsetY = max(previousOffsetY, currentOffsetY)
+                
+                let options = UIView.AnimationOptions(rawValue: animationCurve << 16)
+                UIView.animate(withDuration: animationDuration, delay: 0, options: options) {
+                    tableView.contentOffset.y = min(offsetY, maxOffsetY)
+                }
+            }
         }
         
         @objc private func keyboardWillHide(_ notification: Notification) {
-            guard !parent.disabled else { return }
+            guard parent.bubbleMenuShowingState != .shown else { return }
             guard lastContentOffsetYAdjustment > 0,
                   let userInfo = notification.userInfo,
                   let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double,
