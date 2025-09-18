@@ -793,7 +793,7 @@ final class MessageListViewModelTests: XCTestCase {
             isRead: isRead,
             isDeleted: deletedAt != nil,
             createdAt: createdAt,
-            date: createdAt.formatted(date: .abbreviated, time: .omitted),
+            date: createdAt.displayed(),
             time: createdAt.formatted(date: .omitted, time: .shortened)
         )
         return MessagePair(model: model, display: display)
@@ -832,5 +832,23 @@ private extension [MessagePair] {
 private extension MessageWithMetadata {
     init(_ message: Message, previousID: Int? = nil) {
         self.init(message: message, metadata: .init(previousID: previousID))
+    }
+}
+
+private extension Date {
+    func displayed() -> String {
+        let calendar = Calendar.current
+        
+        if calendar.isDateInToday(self) {
+            return "Today"
+        } else if calendar.isDateInYesterday(self) {
+            return "Yesterday"
+        } else if let daysDifference = calendar.dateComponents([.day], from: .now, to: self).day, abs(daysDifference) < 7 {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE"
+            return formatter.string(from: self)
+        } else {
+            return formatted(date: .abbreviated, time: .omitted)
+        }
     }
 }
