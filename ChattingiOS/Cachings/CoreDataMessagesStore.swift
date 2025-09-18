@@ -25,15 +25,13 @@ extension CoreDataMessagesStore {
         case loadContainerFailed
     }
     
-    private static var modelName: String { "MessagesStore" }
-    private static let model = getModel()
-    
-    private static func getModel() -> NSManagedObjectModel? {
-        let currentBundle = Bundle(for: Self.self)
+    private static let modelName: String = "MessagesStore"
+    nonisolated(unsafe) private static let model: NSManagedObjectModel? = {
+        let currentBundle = Bundle(for: CoreDataMessagesStore.self)
         guard let url = currentBundle.url(forResource: modelName, withExtension: "momd") else { return nil }
         
         return NSManagedObjectModel(contentsOf: url)
-    }
+    }()
     
     private static func loadContainer(for url: URL, with model: NSManagedObjectModel) throws -> NSPersistentContainer {
         let container = NSPersistentContainer(name: modelName, managedObjectModel: model)
