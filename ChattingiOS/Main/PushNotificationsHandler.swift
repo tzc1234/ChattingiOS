@@ -5,7 +5,7 @@
 //  Created by Tsz-Lung on 02/04/2025.
 //
 
-@preconcurrency import UserNotifications
+import UserNotifications
 import UIKit
 
 typealias UserID = Int

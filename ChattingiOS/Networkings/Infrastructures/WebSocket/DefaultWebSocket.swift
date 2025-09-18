@@ -29,7 +29,7 @@ actor DefaultWebSocket: WebSocket {
             
             while true {
                 try? await sendHeartbeat()
-                try? await Task.sleep(for: .seconds(30)) // Wait heartbeat response for 30s.
+                try? await Task.sleep(for: .seconds(45)) // Wait heartbeat response for 45s.
                 
                 if await !heartbeatResponded, await !channel.isActive {
                     continuation.finish(throwing: WebSocketError.disconnected)

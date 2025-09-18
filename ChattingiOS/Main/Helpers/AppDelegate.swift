@@ -6,7 +6,7 @@
 //
 
 import UIKit
-@preconcurrency import UserNotifications
+import UserNotifications
 
 @Observable
 final class AppDelegate: NSObject, UIApplicationDelegate {
